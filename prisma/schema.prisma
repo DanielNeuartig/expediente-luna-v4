@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id              Int       @id @default(autoincrement())
+  activo          Boolean   @default(true)
+  email           String?   @unique
+  name            String?
+  image           String?
+  emailVerified   DateTime?
+
+  perfil          Perfil?       @relation("UserAPerfil")
+
+  usuarioClinicas UsuarioClinica[]
+  accesos         Acceso[]
+  perfilesCreados Perfil[]      @relation("UserCreoPerfil")
+
+  accounts        Account[]
+  sessions        Session[]
+  tipoUsuario     TipoUsuario @default(PROPIETARIO) // ✅ este es el nuevo "rol"
+}
+
+model Perfil {
+  id       Int      @id @default(autoincrement())
+  nombre   String
+  creadoEn DateTime @default(now())
+  
+  clave String // Ej. +52
+  telefonoPrincipal   String  @unique
+  telefonoSecundario1 String?
+  telefonoSecundario2 String?
+
+  usuarioId Int  @unique
+  usuario   User @relation("UserAPerfil", fields: [usuarioId], references: [id])
+
+  creadoPor   User? @relation("UserCreoPerfil", fields: [creadoPorId], references: [id])
+  creadoPorId Int?
+}
+
+model Clinica {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  direccion String
+  telefono  String
+  tipo      String
+  creadoEn  DateTime @default(now())
+
+  usuarioClinicas UsuarioClinica[]
+}
+
+model UsuarioClinica {
+  id        Int @id @default(autoincrement())
+  usuarioId Int
+  clinicaId Int
+
+  usuario User    @relation(fields: [usuarioId], references: [id])
+  clinica Clinica @relation(fields: [clinicaId], references: [id])
+
+  @@unique([usuarioId, clinicaId])
+}
+
+model Acceso {
+  id           Int         @id @default(autoincrement())
+  usuarioId    Int?
+  ip           String
+  fecha        DateTime    @default(now())
+  tipoAcceso   TipoAcceso
+  detalle      String?
+  userAgent    String?
+
+  usuario User? @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId, tipoAcceso, fecha])
+}
+
+enum TipoUsuario {
+  CEO
+  ADMINISTRADOR
+  MEDICO
+  AUXILIAR
+  PROPIETARIO
+}
+
+enum TipoAcceso {
+  SMS_ENVIO
+  SMS_VERIFICACION
+  LOGIN
+  REGISTRO
+  REGISTRO_PERFIL
+  SMS_DISPONIBILIDAD
+  GET_USUARIO_ACTUAL
+}
+
+model Account {
+  id                Int    @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
