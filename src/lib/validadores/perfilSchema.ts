@@ -48,7 +48,9 @@ export const perfilSchema = z.object({
   nombre: nombreSchema,
   clave: claveSchema,
   telefonoPrincipal: telefonoSchema,
-  codigoVerificacion: codigoVerificacionSchema,
+  codigoVerificacion: codigoVerificacionSchema
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
   telefonoSecundario1: telefonoSchema
     .optional()
     .or(z.literal('').transform(() => undefined)),

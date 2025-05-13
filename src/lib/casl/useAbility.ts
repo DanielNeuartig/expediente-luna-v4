@@ -1,4 +1,4 @@
-// src/lib/casl/useAbility.ts
+/*// src/lib/casl/useAbility.ts
 'use client'
 
 import { useContext } from 'react'
@@ -10,4 +10,4 @@ export function useAbility() {
     throw new Error('useAbility debe usarse dentro de un AbilityContext.Provider')
   }
   return ability
-}
+}*/

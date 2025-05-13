@@ -1,4 +1,4 @@
-'use client'
+/*'use client'
 
 import { Box, Button, Icon, Text, VStack, Link } from '@chakra-ui/react'
 import { LuLogOut, LuLayoutDashboard, LuUser } from 'react-icons/lu'
@@ -92,4 +92,4 @@ export default function Sidebar({
       </VStack>
     </Box>
   )
-}
+}*/

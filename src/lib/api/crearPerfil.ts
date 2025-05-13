@@ -13,6 +13,7 @@ export async function crearPerfil(data: PerfilFormData) {
   const json = await res.json()
 
   if (!res.ok) {
+      console.error('❌ Error backend:', json) //
     throw new Error(json.error || 'Error al crear el perfil')
   }
 

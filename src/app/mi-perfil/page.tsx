@@ -1,8 +1,8 @@
 // app/mi-perfil/page.tsx
 'use client'
 
-import { Box, Container, Heading } from '@chakra-ui/react'
 import FormularioPerfil from '@/components/ui/FormularioPerfil'
+import { Box, Container, Heading } from '@chakra-ui/react'
 
 export default function MiPerfilPage() {
   return (
@@ -12,7 +12,7 @@ export default function MiPerfilPage() {
       </Heading>
 
       <Box  shadow="md" rounded="xl" p="6" borderWidth="1px">
-        <FormularioPerfil />
+        <FormularioPerfil/>
       </Box>
     </Container>
   )

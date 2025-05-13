@@ -30,13 +30,20 @@ model Perfil {
   nombre   String
   creadoEn DateTime @default(now())
   
+
+
+  
   clave String // Ej. +52
   telefonoPrincipal   String  @unique
+
+  telefonoVerificado Boolean @default(false)
+
+  
   telefonoSecundario1 String?
   telefonoSecundario2 String?
 
-  usuarioId Int  @unique
-  usuario   User @relation("UserAPerfil", fields: [usuarioId], references: [id])
+usuarioId Int? @unique
+usuario   User? @relation("UserAPerfil", fields: [usuarioId], references: [id])
 
   creadoPor   User? @relation("UserCreoPerfil", fields: [creadoPorId], references: [id])
   creadoPorId Int?

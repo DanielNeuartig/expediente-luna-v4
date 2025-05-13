@@ -8,8 +8,7 @@ import { Button, Center, Heading, VStack, Spinner } from '@chakra-ui/react'
 import TarjetaBase from '@/components/ui/TarjetaBase'
 
 export default function LoginPage() {
-const { data: session, status } = useSession()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const {status } = useSession()
   const router = useRouter()
 
   useEffect(() => {

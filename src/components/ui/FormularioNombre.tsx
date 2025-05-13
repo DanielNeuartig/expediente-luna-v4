@@ -48,7 +48,8 @@ export default function FormularioNombre() {
               <Text mb="1" fontSize="sm" fontWeight="medium">
                 Nombre
               </Text>
-              <Input {...register('nombre')} />
+              <Input 
+              {...register('nombre')} />
               {errors.nombre && (
                 <Text color="red.500" fontSize="xs">
                   {errors.nombre.message}
