@@ -19,7 +19,8 @@ export default function TarjetaBase({ children }: { children: React.ReactNode })
       p={6}
       borderWidth={1}
       borderRadius="xl"
-      boxShadow="md"
+      boxShadow="sm"
+      bg="tema.llamativo"
     >
       {children}
     </MotionBox>
