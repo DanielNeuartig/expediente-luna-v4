@@ -169,23 +169,63 @@ export default function HomePage() {
           </VStack>
 
         </Box>
-        <Button
-  onClick={() => signIn('google')}
+
+
+
+
+      </Flex>
+
+
+
+   <Box
   position="fixed"
   bottom="6"
   right="6"
   zIndex="overlay"
-  size="lg"
-  borderRadius="full"
-  shadow="lg"
-  bg="tema.intenso"
-  color="white"
-  _hover={{ bg: 'tema.llamativo' }}
+  display="flex"
+  flexDirection="row"
+  gap="4"
+  alignItems="center"
 >
-  <Icon as={LogIn} boxSize="4" mr="2" />
-  ¿Usuario beta?
-</Button>
-      </Flex>
+  <Button
+    size="lg"
+    borderRadius="full"
+    shadow="lg"
+    bg="white"
+    color="tema.intenso"
+    gap="2"
+    px="4"
+    py="2"
+  >
+    <Text fontWeight="light" fontSize="sm">
+      Un desarrollo de
+    </Text>
+    <Image
+      src="/imagenes/LogoELDOCsm.png"
+      alt="Logo ELDOC"
+      borderRadius="md"
+      bg="white"
+      h="10"
+      w="10"
+    />
+  </Button>
+
+  <Box
+    onClick={() => signIn('google')}
+    borderRadius="full"
+    shadow="lg"
+    bg="tema.intenso"
+    color="white"
+    _hover={{ bg: 'tema.llamativo' }}
+    px="6"
+    py="3"
+  >
+    <Icon as={LogIn} boxSize="4" mr="2" />
+    ¿Usuario beta?
+  </Box>
+</Box>
+
+     
     </Box>
   );
 }
