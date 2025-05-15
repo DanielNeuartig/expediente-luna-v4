@@ -9,7 +9,7 @@ export default async function MiPerfilLayout({ children }: { children: ReactNode
 
   // ❌ Si no hay sesión, redirige al login
   if (!session || !session.user.activo) {
-    redirect('/login')
+    redirect('/')
   }
 
   // 🔍 Verificamos si ya tiene un perfil

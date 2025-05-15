@@ -1,4 +1,3 @@
-// src/components/formulario/InputTelefonoConClave.tsx
 'use client'
 
 import {
@@ -26,26 +25,50 @@ export default function InputTelefonoConClave() {
   return (
     <HStack align="start" gap={2} w="full">
       <Field.Root required flex="1" invalid={!!errors.clave}>
-        <Field.Label>Clave telefónica</Field.Label>
+        <Field.Label color="tema.claro">Clave telefónica</Field.Label>
         <Input
           {...register('clave')}
           placeholder="Ej. +52"
           autoComplete="off"
+          bg="tema.suave"
+          color="tema.intenso"
+          border="none"
+          borderRadius="md"
+          _focus={{
+            bg: 'whiteAlpha.900',
+            boxShadow: 'sm',
+            border: 'none',
+          }}
         />
-        {errors.clave && <FieldErrorText>{errors.clave.message}</FieldErrorText>}
+        {errors.clave && (
+          <FieldErrorText color="tema.llamativo">
+            {errors.clave.message}
+          </FieldErrorText>
+        )}
       </Field.Root>
 
       <Field.Root required flex="3" invalid={!!errors.telefonoPrincipal}>
-        <Field.Label>Teléfono principal</Field.Label>
+        <Field.Label color="tema.claro">Teléfono principal</Field.Label>
         <Input
           {...register('telefonoPrincipal')}
           placeholder="Ej. 33 12 34 56 78"
           inputMode="numeric"
           autoComplete="off"
           onChange={(e) => formatearTelefono(e.target.value)}
+          bg="tema.suave"
+          color="tema.intenso"
+          border="none"
+          borderRadius="md"
+          _focus={{
+            bg: 'whiteAlpha.900',
+            boxShadow: 'sm',
+            border: 'none',
+          }}
         />
         {errors.telefonoPrincipal && (
-          <FieldErrorText>{errors.telefonoPrincipal.message}</FieldErrorText>
+          <FieldErrorText color="tema.llamativo">
+            {errors.telefonoPrincipal.message}
+          </FieldErrorText>
         )}
       </Field.Root>
     </HStack>

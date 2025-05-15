@@ -1,32 +1,48 @@
-import { ReactNode } from 'react'
-import Sidebar from '@/components/layout/Sidebar'
-import { Flex, Box } from '@chakra-ui/react'
-import DashboardHeader from '@/components/ui/DashboardHeader'
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { ReactNode } from "react";
+import Sidebar from "@/components/layout/Sidebar";
+import { Box } from "@chakra-ui/react";
+import DashboardHeader from "@/components/ui/DashboardHeader";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const session = await auth()
-console.log('Session en layout:', session)
-  // Redirige si no hay sesión o si el usuario no está activo
+export default async function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await auth();
+
   if (!session || !session.user.activo) {
-    redirect('/login')
+    redirect("/");
   }
+
   const perfil = await prisma.perfil.findUnique({
-  where: { usuarioId: session.user.id },
-})
-if (!perfil) {
-  redirect('/mi-perfil')
-}
+    where: { usuarioId: session.user.id },
+  });
+
+  if (!perfil) {
+    redirect("/mi-perfil");
+  }
 
   return (
-    <Flex minH="100vh">
+    <>
       <Sidebar />
-      <Box as="main" flex="1" p="6">
-        <DashboardHeader />
+      <DashboardHeader />
+
+<Box
+  as="main"
+  ml="60"
+  h="100vh"
+  overflowY="auto"
+  px="6"
+  pb="6"
+bg="gray.200"
+>
+  <Box pt="20"> 
         {children}
+        </Box>
       </Box>
-    </Flex>
-  )
+    </>
+  );
 }

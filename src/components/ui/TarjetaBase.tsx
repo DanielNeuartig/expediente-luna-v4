@@ -1,12 +1,16 @@
-'use client'
+"use client";
 
-import { Box } from '@chakra-ui/react'
-import { motion } from 'framer-motion'
-import { animacionAparecer } from '@/lib/animaciones'
+import { Box } from "@chakra-ui/react";
+import { motion } from "framer-motion";
+import { animacionAparecer } from "@/lib/animaciones";
 
-const MotionBox = motion(Box)
+const MotionBox = motion(Box);
 
-export default function TarjetaBase({ children }: { children: React.ReactNode }) {
+export default function TarjetaBase({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <MotionBox
       variants={animacionAparecer}
@@ -17,12 +21,13 @@ export default function TarjetaBase({ children }: { children: React.ReactNode })
       mx="auto"
       mt={10}
       p={6}
-      borderWidth={1}
+      border="1px solid"
+      borderColor="gray.200"
       borderRadius="xl"
-      boxShadow="sm"
-      bg="tema.llamativo"
+      boxShadow="none"
+      bg="white"
     >
       {children}
     </MotionBox>
-  )
+  );
 }

@@ -11,7 +11,7 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
-import { UserRound } from 'lucide-react'
+import { CircleUserRound } from 'lucide-react'
 
 interface ResultadoPerfil {
   id: number
@@ -23,7 +23,9 @@ export default function SearchBar() {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [usandoTeclado, setUsandoTeclado] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   const router = useRouter()
 
   const { data = [], isFetching } = useQuery<ResultadoPerfil[]>({
@@ -51,6 +53,7 @@ export default function SearchBar() {
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false)
+        setQuery('')
       }
     }
 
@@ -59,6 +62,13 @@ export default function SearchBar() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  useEffect(() => {
+    const el = itemRefs.current[selectedIndex]
+    if (el) {
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [selectedIndex])
 
   const formatearTelefono = (telefono: string) =>
     telefono.replace(/\D/g, '').replace(/(\d{2})(?=\d)/g, '$1 ').trim()
@@ -70,15 +80,20 @@ export default function SearchBar() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen) return
+    if (!isOpen && e.key === 'Escape') {
+      setQuery('')
+      return
+    }
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
+      setUsandoTeclado(true)
       setSelectedIndex((prev) => Math.min(prev + 1, data.length - 1))
     }
 
     if (e.key === 'ArrowUp') {
       e.preventDefault()
+      setUsandoTeclado(true)
       setSelectedIndex((prev) => Math.max(prev - 1, 0))
     }
 
@@ -90,18 +105,25 @@ export default function SearchBar() {
 
     if (e.key === 'Escape') {
       setIsOpen(false)
+      setQuery('')
     }
   }
 
   return (
     <Box ref={containerRef} position="relative" maxW="md" w="full">
       <Input
-        placeholder="Buscar perfil..."
+        placeholder="buscar..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}
-        bg="black"
+        bg="gray.200"
+        color="tema.suave"
+        border="none"
+        borderRadius="3xl"
+        _focus={{ boxShadow: 'none', border: 'none' }}
+        _hover={{ boxShadow: 'none', border: 'none' }}
       />
+
       {isFetching && (
         <Spinner size="sm" position="absolute" top="2" right="2" />
       )}
@@ -109,31 +131,48 @@ export default function SearchBar() {
       {isOpen && (
         <Box
           mt="1"
-          border="1px solid #ccc"
-          borderRadius="md"
-          bg="black"
+          bg="white"
+          border="none"
+          borderRadius="lg"
           zIndex="10"
           position="absolute"
           width="full"
           maxHeight="250px"
           overflowY="auto"
-          shadow="md"
+          onMouseMove={() => setUsandoTeclado(false)}
         >
           <List.Root>
             {data.map((perfil, index) => (
               <List.Item
+                ref={(el) => {
+                  itemRefs.current[index] = el
+                }}
                 key={perfil.id}
-                bg={index === selectedIndex ? 'gray.100' : 'black'}
-                px="3"
-                py="2"
-                _hover={{ bg: 'gray.800', cursor: 'pointer' }}
+                bg={index === selectedIndex ? 'tema.llamativo' : 'tema.intenso'}
+                color="tema.claro"
+                px="4"
+                py="1"
+                borderBottom="0px solid"
+                borderColor="gray.400"
+                _hover={
+                  usandoTeclado
+                    ? {}
+                    : {
+                        bg:
+                          index === selectedIndex
+                            ? 'tema.llamativo'
+                            : 'tema.suave',
+                        cursor: 'pointer',
+                      }
+                }
                 onMouseEnter={() => setSelectedIndex(index)}
                 onClick={() => manejarSeleccion(perfil.id)}
               >
                 <HStack>
-                  <UserRound size={18} />
+                  <CircleUserRound size={24} />
                   <Text>
-                    {perfil.nombre} – {formatearTelefono(perfil.telefonoPrincipal)}
+                    {perfil.nombre} –{' '}
+                    {formatearTelefono(perfil.telefonoPrincipal)}
                   </Text>
                 </HStack>
               </List.Item>

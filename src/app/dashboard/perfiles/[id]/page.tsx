@@ -1,15 +1,9 @@
 // src/app/dashboard/perfiles/[id]/page.tsx
 
-import { Suspense } from 'react'
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
-import {
-  Heading,
-  Text,
-  Spinner,
-  Box,
-  List,
-} from '@chakra-ui/react'
+import { Suspense } from "react";
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { Heading, Text, Spinner, Box, List, Center } from "@chakra-ui/react";
 import {
   Phone,
   PhoneForwarded,
@@ -17,53 +11,57 @@ import {
   User,
   UserPlus,
   CalendarDays,
-} from 'lucide-react'
-import TarjetaBase from '@/components/ui/TarjetaBase'
+} from "lucide-react";
+import TarjetaBase from "@/components/ui/TarjetaBase";
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
   return (
     <>
       {/* Contenido inmediato */}
-      <Box p="4">
-        <Text fontSize="lg">Bienvenido a la página del perfil</Text>
-        <Text fontSize="sm" color="gray.500">
+      {/*<Box p="4">
+        <Text fontSize="lg" color="tema.suave">Bienvenido a la página del perfil</Text>
+        <Text fontSize="sm" color="tema.suave">
           Esta parte se renderiza sin esperar los parámetros.
         </Text>
-      </Box>
+      </Box>*/}
 
       {/* Contenido suspendido */}
-      <Suspense
-        fallback={
-          <Box p="4">
-            <Spinner color="blue.500" />
-            <Text mt="2" fontSize="sm" color="gray.600">
-              Cargando perfil...
-            </Text>
-          </Box>
-        }
-      >
-        <AsyncPerfilComponent params={params} />
-      </Suspense>
+      <Center>
+        <Suspense
+          fallback={
+            <Box p="4">
+              <Spinner
+                animationDuration=".7s"
+                borderWidth="2px"
+                size="xl"
+                color="tema.llamativo"
+              />
+            </Box>
+          }
+        >
+          <AsyncPerfilComponent params={params} />
+        </Suspense>
+      </Center>
     </>
-  )
+  );
 }
 
 async function AsyncPerfilComponent({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
+  const { id } = await params;
 
   // Simular retardo
-  await new Promise((r) => setTimeout(r, 2000))
+  await new Promise((r) => setTimeout(r, 2000));
 
-  const idNum = Number(id)
-  if (isNaN(idNum)) return notFound()
+  const idNum = Number(id);
+  if (isNaN(idNum)) return notFound();
 
   const perfil = await prisma.perfil.findUnique({
     where: { id: idNum },
@@ -75,16 +73,19 @@ async function AsyncPerfilComponent({
         },
       },
     },
-  })
+  });
 
-  if (!perfil) return notFound()
+  if (!perfil) return notFound();
 
   const formatearTelefono = (telefono: string) =>
-    telefono.replace(/\D/g, '').replace(/(\d{2})(?=\d)/g, '$1 ').trim()
+    telefono
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(?=\d)/g, "$1 ")
+      .trim();
 
   return (
     <TarjetaBase>
-      <Heading size="lg" mb="4">
+      <Heading fontWeight= "light"  size="md" mb="4" color="tema.intenso">
         {perfil.nombre}
       </Heading>
 
@@ -94,8 +95,9 @@ async function AsyncPerfilComponent({
           <List.Indicator asChild color="blue.500">
             <Phone />
           </List.Indicator>
-          <Text>
-            Teléfono principal: {perfil.clave + " " +formatearTelefono(perfil.telefonoPrincipal)}
+          <Text color="tema.suave" fontWeight= "light" >
+            Teléfono principal:{" "}
+            {perfil.clave + " " + formatearTelefono(perfil.telefonoPrincipal)}
           </Text>
         </List.Item>
 
@@ -105,7 +107,7 @@ async function AsyncPerfilComponent({
             <List.Indicator asChild color="teal.500">
               <PhoneForwarded />
             </List.Indicator>
-            <Text>
+            <Text color="tema.suave">
               Tel. secundario 1: {formatearTelefono(perfil.telefonoSecundario1)}
             </Text>
           </List.Item>
@@ -116,7 +118,7 @@ async function AsyncPerfilComponent({
             <List.Indicator asChild color="teal.500">
               <PhoneForwarded />
             </List.Indicator>
-            <Text>
+            <Text color="tema.suave">
               Tel. secundario 2: {formatearTelefono(perfil.telefonoSecundario2)}
             </Text>
           </List.Item>
@@ -126,12 +128,12 @@ async function AsyncPerfilComponent({
         <List.Item>
           <List.Indicator
             asChild
-            color={perfil.telefonoVerificado ? 'green.500' : 'red.500'}
+            color={perfil.telefonoVerificado ? "green.500" : "red.500"}
           >
             <CheckCircle />
           </List.Indicator>
-          <Text>
-            Teléfono verificado: {perfil.telefonoVerificado ? 'Sí' : 'No'}
+          <Text color="tema.suave">
+            Teléfono verificado: {perfil.telefonoVerificado ? "Sí" : "No"}
           </Text>
         </List.Item>
 
@@ -140,7 +142,7 @@ async function AsyncPerfilComponent({
           <List.Indicator asChild color="gray.600">
             <User />
           </List.Indicator>
-          <Text>Tiene usuario: {perfil.usuario ? 'Sí' : 'No'}</Text>
+          <Text color="tema.suave">Tiene usuario: {perfil.usuario ? "Sí" : "No"}</Text>
         </List.Item>
 
         {/* Creado por */}
@@ -148,10 +150,7 @@ async function AsyncPerfilComponent({
           <List.Indicator asChild color="purple.500">
             <UserPlus />
           </List.Indicator>
-          <Text>
-            Creado por:{' '}
-            {perfil.creadoPor?.perfil?.nombre ?? '—'}
-          </Text>
+          <Text color="tema.suave">Creado por: {perfil.creadoPor?.perfil?.nombre ?? "—"}</Text>
         </List.Item>
 
         {/* Fecha de creación */}
@@ -159,9 +158,9 @@ async function AsyncPerfilComponent({
           <List.Indicator asChild color="orange.500">
             <CalendarDays />
           </List.Indicator>
-          <Text>Creado en: {perfil.creadoEn.toLocaleString()}</Text>
+          <Text color="tema.suave">Creado en: {perfil.creadoEn.toLocaleString()}</Text>
         </List.Item>
       </List.Root>
     </TarjetaBase>
-  )
+  );
 }
