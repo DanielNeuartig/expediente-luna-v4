@@ -9,8 +9,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import ResultadoMascotaCompacto from '@/components/ui/ResultadoMascotaCompacto'
 import ResultadoPerfilCompacto from '@/components/ui/ResultadoPerfilCompacto'
+import BoxMascota from '@/components/ui/BoxMascota'
 
 export type ResultadoBusqueda = {
   id: number
@@ -24,6 +24,8 @@ export type ResultadoBusqueda = {
   esterilizado?: 'ESTERILIZADO' | 'NO_ESTERILIZADO' | 'DESCONOCIDO'
   microchip?: string
   activo?: boolean
+  perfilId?: number
+  nombrePerfil?: string
 }
 
 export type ResultadoMascota = Extract<ResultadoBusqueda, { tipo: 'mascota' }>
@@ -171,10 +173,10 @@ export default function Searchbar() {
                 onClick={() => manejarSeleccion(item)}
               >
                 {item.tipo === 'mascota' && (
-                  <ResultadoMascotaCompacto mascota={item as ResultadoMascota} />
+                  <BoxMascota mascota={item as ResultadoMascota} redirigirPerfil={false} />
                 )}
                 {item.tipo === 'perfil' && (
-  <ResultadoPerfilCompacto perfil={item as ResultadoPerfil} />
+                  <ResultadoPerfilCompacto perfil={item as ResultadoPerfil} />
                 )}
               </List.Item>
             ))}

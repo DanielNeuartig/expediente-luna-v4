@@ -15,9 +15,10 @@ import {
   Egg,
   EggOff,
   CircleHelp,
+  CircleUser,
 } from 'lucide-react'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { format, differenceInYears, differenceInMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 type ResultadoMascota = {
@@ -31,6 +32,8 @@ type ResultadoMascota = {
   esterilizado?: 'ESTERILIZADO' | 'NO_ESTERILIZADO' | 'DESCONOCIDO'
   microchip?: string
   activo?: boolean
+  perfilId?: number
+  nombrePerfil?: string // ✅ añadido
 }
 
 const iconoEspecie: Record<string, string> = {
@@ -48,24 +51,18 @@ const iconoEspecie: Record<string, string> = {
   OTRO: '❓',
 }
 
-const calcularEdad = (fecha: string) => {
-  const nacimiento = new Date(fecha)
-  const hoy = new Date()
-  const años = hoy.getFullYear() - nacimiento.getFullYear()
-  const meses =
-    hoy.getMonth() -
-    nacimiento.getMonth() +
-    (hoy.getDate() < nacimiento.getDate() ? -1 : 0)
-
-  return `${años}A ${meses >= 0 ? meses : meses + 12}M`
-}
-
 export default function ResultadoMascotaCompacto({
   mascota,
 }: {
   mascota: ResultadoMascota
 }) {
   console.log('🐾 Datos mascota:', JSON.stringify(mascota, null, 2))
+
+  const edad = mascota.fechaNacimiento
+    ? `${differenceInYears(new Date(), new Date(mascota.fechaNacimiento))}A ${
+        differenceInMonths(new Date(), new Date(mascota.fechaNacimiento)) % 12
+      }M`
+    : 'Edad desconocida'
 
   return (
     <Link href={`/dashboard/mascotas/${mascota.id}`}>
@@ -77,11 +74,13 @@ export default function ResultadoMascotaCompacto({
         width="100%"
       >
         <VStack align="start" gap="2">
-          {/* Línea superior: nombre, especie, estado, sexo, esterilización */}
           <HStack flexWrap="wrap" align="center" gap="2">
             <Text fontSize="sm">{iconoEspecie[mascota.especie ?? 'OTRO']}</Text>
             <Text fontWeight="bold" fontSize="sm" color="tema.claro">
               {mascota.nombre}
+            </Text>
+            <Text fontSize="xs" fontWeight="light" color="tema.claro">
+              #{mascota.id}
             </Text>
 
             <Box
@@ -90,7 +89,7 @@ export default function ResultadoMascotaCompacto({
               px="2"
               py="1"
             >
-              <CheckCircle size={10} color="white" />
+              <CheckCircle size={16} color="white" />
             </Box>
 
             <Box
@@ -138,9 +137,10 @@ export default function ResultadoMascotaCompacto({
                 )}
               </HStack>
             </Box>
+
+        
           </HStack>
 
-          {/* Línea inferior: raza, nacimiento, edad, microchip */}
           <HStack flexWrap="wrap" align="center" gap="2">
             {mascota.raza && (
               <Box bg="tema.suave" borderRadius="full" px="2" py="1">
@@ -154,13 +154,15 @@ export default function ResultadoMascotaCompacto({
               <>
                 <Box bg="tema.suave" borderRadius="full" px="2" py="1">
                   <Text fontWeight="bold" fontSize="xs" color="tema.claro">
-                    📆 {format(new Date(mascota.fechaNacimiento), 'dd/MM/yyyy', { locale: es })}
+                    📆 {format(new Date(mascota.fechaNacimiento), 'dd/MM/yyyy', {
+                      locale: es,
+                    })}
                   </Text>
                 </Box>
 
                 <Box bg="tema.suave" borderRadius="full" px="2" py="1">
                   <Text fontWeight="bold" fontSize="xs" color="tema.claro">
-                    ⏳ {calcularEdad(mascota.fechaNacimiento)}
+                    ⏳ {edad}
                   </Text>
                 </Box>
               </>
@@ -177,6 +179,16 @@ export default function ResultadoMascotaCompacto({
               </Box>
             )}
           </HStack>
+              {mascota.nombrePerfil && (
+              <Box bg="tema.suave" borderRadius="full" px="2" py="1">
+                <HStack gap="1">
+                  <CircleUser size={16} color="white" />
+                  <Text fontSize="xs" fontWeight="medium" color="tema.claro">
+                    {mascota.nombrePerfil}
+                  </Text>
+                </HStack>
+              </Box>
+            )}
         </VStack>
       </Box>
     </Link>

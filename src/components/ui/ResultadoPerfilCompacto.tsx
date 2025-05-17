@@ -30,12 +30,14 @@ export default function ResultadoPerfilCompacto({ perfil }: { perfil: ResultadoP
           </HStack>
 
           {perfil.telefonoPrincipal && (
+             <Box bg="tema.suave" borderRadius="full" px="2" py="1">
             <HStack gap="1">
               <Phone size={14} color="white" />
-              <Text fontWeight="bold" fontSize="sm" color="tema.claro">
+              <Text fontWeight="bold" fontSize="xs" color="tema.claro">
                 {perfil.telefonoPrincipal.replace(/(\d{2})(?=\d)/g, '$1 ').trim()}
               </Text>
             </HStack>
+            </Box>
           )}
         </VStack>
       </Box>

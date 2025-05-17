@@ -2,17 +2,12 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { differenceInYears, differenceInMonths } from "date-fns";
 import {
-
   Text,
   Spinner,
   Box,
   List,
-
   HStack,
-
-  Button,
 } from "@chakra-ui/react";
 import {
   Phone,
@@ -26,39 +21,7 @@ import {
 } from "lucide-react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import FormularioMascotaVisual from "@/components/ui/FormularioMascotaVisual";
-import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
-//import { useRouter } from 'next/navigation'
-import Link from "next/link";
-
-//const router = useRouter();
-function calcularEdad(fecha?: string | Date | null) {
-  if (!fecha) return null;
-  const nacimiento = new Date(fecha);
-  const hoy = new Date();
-  const años = differenceInYears(hoy, nacimiento);
-  const meses = differenceInMonths(hoy, nacimiento) % 12;
-  return `${años}A ${meses}M`;
-}
-const iconoEspecie: Record<string, string> = {
-  CANINO: "🐶",
-  FELINO: "🐱",
-  AVE_PSITACIDA: "🦜",
-  AVE_OTRA: "🐦",
-  OFIDIO: "🐍",
-  QUELONIO: "🐢",
-  LAGARTIJA: "🦎",
-  ROEDOR: "🐹",
-  LAGOMORFO: "🐰",
-  HURON: "🦡",
-  PORCINO: "🐷",
-  OTRO: "❓",
-};
-
-/*
-const handleDescargarPDF = async (perfil: any) => {
-  const blob = await pdf(<PerfilPDF perfil={perfil} />).toBlob();
-  saveAs(blob, `perfil_${perfil.nombre}.pdf`);
-};*/
+import BoxMascota from "@/components/ui/BoxMascota";
 
 export default async function Page({
   params,
@@ -66,7 +29,6 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   return (
-    // <Center>
     <Suspense
       fallback={
         <Box p="4">
@@ -81,7 +43,6 @@ export default async function Page({
     >
       <AsyncPerfilComponent params={params} />
     </Suspense>
-    // </Center>
   );
 }
 
@@ -105,7 +66,7 @@ async function AsyncPerfilComponent({
       },
       mascotas: {
         include: {
-          raza: true, // 👈 necesario para acceder a mascota.raza.nombre
+          raza: true,
         },
       },
     },
@@ -142,63 +103,42 @@ async function AsyncPerfilComponent({
           >
             <HStack gap="2">
               <Album size={20} color="white" />
-              <Text
-                fontWeight="bold"
-                color="tema.claro"
-                //textAlign="center"
-                fontSize={"sm"}
-              >
+              <Text fontWeight="bold" color="tema.claro" fontSize={"sm"}>
                 {perfil.prefijo}
               </Text>
             </HStack>
           </Box>
 
           <List.Root gap="3" variant="plain">
-            {/* Documento ID */}
             <List.Item>
-              <List.Indicator
-                asChild
-                color={perfil.documentoId ? "cyan.500" : "red.500"}
-              >
+              <List.Indicator asChild color={perfil.documentoId ? "cyan.500" : "red.500"}>
                 <User />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Documento ID:
-                </Text>
-                <Text color="tema.suave" fontWeight="light">
-                  {perfil.documentoId ?? "—"}
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Documento ID:</Text>
+                <Text color="tema.suave" fontWeight="light">{perfil.documentoId ?? "—"}</Text>
               </HStack>
             </List.Item>
 
-            {/* Teléfono principal */}
             <List.Item>
               <List.Indicator asChild color="blue.500">
                 <Phone />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Teléfono principal:
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Teléfono principal:</Text>
                 <Text color="tema.suave" fontWeight="light">
-                  {perfil.clave +
-                    " " +
-                    formatearTelefono(perfil.telefonoPrincipal)}
+                  {perfil.clave + " " + formatearTelefono(perfil.telefonoPrincipal)}
                 </Text>
               </HStack>
             </List.Item>
 
-            {/* Tel. secundario 1 */}
             {perfil.telefonoSecundario1 && (
               <List.Item>
                 <List.Indicator asChild color="teal.500">
                   <PhoneForwarded />
                 </List.Indicator>
                 <HStack>
-                  <Text color="tema.suave" fontWeight="medium">
-                    Tel. secundario 1:
-                  </Text>
+                  <Text color="tema.suave" fontWeight="medium">Tel. secundario 1:</Text>
                   <Text color="tema.suave" fontWeight="light">
                     {formatearTelefono(perfil.telefonoSecundario1)}
                   </Text>
@@ -206,16 +146,13 @@ async function AsyncPerfilComponent({
               </List.Item>
             )}
 
-            {/* Tel. secundario 2 */}
             {perfil.telefonoSecundario2 && (
               <List.Item>
                 <List.Indicator asChild color="teal.500">
                   <PhoneForwarded />
                 </List.Indicator>
                 <HStack>
-                  <Text color="tema.suave" fontWeight="medium">
-                    Tel. secundario 2:
-                  </Text>
+                  <Text color="tema.suave" fontWeight="medium">Tel. secundario 2:</Text>
                   <Text color="tema.suave" fontWeight="light">
                     {formatearTelefono(perfil.telefonoSecundario2)}
                   </Text>
@@ -223,63 +160,48 @@ async function AsyncPerfilComponent({
               </List.Item>
             )}
 
-            {/* Teléfono verificado */}
             <List.Item>
-              <List.Indicator
-                asChild
-                color={perfil.telefonoVerificado ? "green.500" : "red.500"}
-              >
+              <List.Indicator asChild color={perfil.telefonoVerificado ? "green.500" : "red.500"}>
                 <CheckCircle />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Teléfono verificado:
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Teléfono verificado:</Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.telefonoVerificado ? "Sí" : "No"}
                 </Text>
               </HStack>
             </List.Item>
 
-            {/* Tiene usuario */}
             <List.Item>
               <List.Indicator asChild color="gray.600">
                 <User />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Tiene usuario:
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Tiene usuario:</Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.usuario ? "Sí" : "No"}
                 </Text>
               </HStack>
             </List.Item>
 
-            {/* Creado por */}
             <List.Item>
               <List.Indicator asChild color="purple.500">
                 <UserPlus />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Creado por:
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Creado por:</Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.autor?.perfil?.nombre ?? "—"}
                 </Text>
               </HStack>
             </List.Item>
 
-            {/* Fecha creación */}
             <List.Item>
               <List.Indicator asChild color="orange.500">
                 <CalendarDays />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">
-                  Creado en:
-                </Text>
+                <Text color="tema.suave" fontWeight="medium">Creado en:</Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.fechaCreacion.toLocaleString()}
                 </Text>
@@ -288,6 +210,7 @@ async function AsyncPerfilComponent({
           </List.Root>
         </TarjetaBase>
       </Box>
+
       <Box gridColumn="2" gridRow="1">
         <TarjetaBase>
           <Text color="tema.suave" fontWeight={"bold"} fontSize={"2xl"}>
@@ -300,28 +223,25 @@ async function AsyncPerfilComponent({
             </Text>
           ) : (
             <List.Root gap="3" variant="plain">
-              {perfil.mascotas.map((mascota) => (
-                <List.Item key={mascota.id}>
-  <Link href={`/dashboard/mascotas/${mascota.id}`}>
-    <Button {...estilosBotonEspecial} borderRadius="full" as="div">
-      <HStack>
-        <Text color="tema.claro" fontWeight="bold">
-          {mascota.nombre}{" "}
-          {mascota.fechaNacimiento
-            ? `· ${calcularEdad(mascota.fechaNacimiento)}`
-            : ""}
-        </Text>
-        <Text color="tema.claro" fontWeight="light">
-          {iconoEspecie[mascota.especie] ?? "❓"} {mascota.especie}
-          {mascota.raza?.nombre ? ` · ${mascota.raza.nombre}` : ""}
-        </Text>
-        <Text color="tema.claro" fontWeight="bold">
-          {mascota.activo ? "🟢" : "🔴"}
-        </Text>
-      </HStack>
-    </Button>
-  </Link>
-</List.Item>
+              {perfil.mascotas.map((m) => (
+                <List.Item key={m.id}>
+                  <BoxMascota
+                    mascota={{
+                      id: m.id,
+                      nombre: m.nombre,
+                      tipo: "mascota",
+                      especie: m.especie,
+                      fechaNacimiento: m.fechaNacimiento?.toISOString(),
+                      sexo: m.sexo,
+                      esterilizado: m.esterilizado,
+                      microchip: m.microchip ?? undefined,
+                      activo: m.activo,
+                      raza: m.raza?.nombre ?? undefined,
+                      perfilId: perfil.id,
+                      nombrePerfil: perfil.nombre,
+                    }}
+                  />
+                </List.Item>
               ))}
             </List.Root>
           )}
@@ -333,7 +253,7 @@ async function AsyncPerfilComponent({
           <Text color="tema.suave" fontWeight={"bold"} fontSize={"2xl"}>
             Registrar mascota
           </Text>
-          <FormularioMascotaVisual></FormularioMascotaVisual>
+          <FormularioMascotaVisual />
         </TarjetaBase>
       </Box>
     </>

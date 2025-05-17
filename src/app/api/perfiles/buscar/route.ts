@@ -44,15 +44,13 @@ export async function GET(req: Request) {
       },
       orderBy: { nombre: "asc" },
       take: 5,
-      select: {
-        id: true,
-        nombre: true,
-        especie: true,
-        fechaNacimiento: true,
-        sexo: true,
-        esterilizado: true,
-        microchip: true,
-        activo: true,
+      include: {
+        perfil: {
+          select: {
+            id: true,
+            nombre: true,
+          },
+        },
         raza: {
           select: {
             nombre: true,
@@ -78,6 +76,8 @@ export async function GET(req: Request) {
       esterilizado: m.esterilizado,
       microchip: m.microchip,
       activo: m.activo,
+      perfilId: m.perfil?.id ?? null,
+      nombrePerfil: m.perfil?.nombre ?? null,
       raza: m.raza?.nombre ?? null,
       tipo: "mascota" as const,
     })),
