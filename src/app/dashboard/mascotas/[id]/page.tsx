@@ -2,20 +2,22 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { Spinner, Box, HStack, Text, List, Button } from "@chakra-ui/react";
+import { format } from "date-fns";
+import { Spinner, Box, HStack, Text, Button, VStack } from "@chakra-ui/react";
 import {
-  PawPrint,
-  HeartPulse,
-  ShieldCheck,
-  Ruler,
   Barcode,
-  User,
-  CalendarDays,
   CheckCircle,
   ArrowLeft,
+  Circle,
+  Venus,
+  Mars,
+  Egg,
+  EggOff,
+  CircleHelp,
 } from "lucide-react";
 import Link from "next/link";
 import TarjetaBase from "@/components/ui/TarjetaBase";
+import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
 
 export async function generateMetadata({
   params,
@@ -89,160 +91,124 @@ async function AsyncMascotaComponent({
   return (
     <Box gridColumn="1" gridRow="1">
       <TarjetaBase>
-        <Box bg="tema.suave" borderRadius="2xl" px="3" py="4" mb="1">
-          <HStack gap="2">
-            <PawPrint size={30} color="white" />
-            <Text fontWeight="bold" color="tema.claro" textAlign="center">
-              {mascota.nombre}
-            </Text>
-          </HStack>
+        <Box bg="tema.intenso" borderRadius="2xl" px="3" py="4" mb="1">
+          <VStack align="start" width="100%">
+            <HStack gap="1" width="100%" justify="flex-start">
+              <Text fontSize="3xl" as="span" role="img">
+                {iconoEspecie[mascota.especie]}
+              </Text>
+              <Text
+                fontSize="xl"
+                fontWeight="bold"
+                color="tema.claro"
+              >
+                {mascota.nombre}
+              </Text>
+              <Box
+                bg={mascota.activo ? "green.600" : "red.600"}
+                borderRadius="full"
+                px="2"
+                py="1"
+              >
+                <CheckCircle size={16} color="white" />
+              </Box>
+
+              <Box
+                bg={
+                  mascota.sexo === "MACHO"
+                    ? "blue.600"
+                    : mascota.sexo === "HEMBRA"
+                    ? "purple.600"
+                    : "gray.600"
+                }
+                borderRadius="full"
+                px="2"
+                py="1"
+              >
+                <HStack gap="1">
+                  {mascota.sexo === "MACHO" && <Mars size={16} color="white" />}
+                  {mascota.sexo === "HEMBRA" && (
+                    <Venus size={16} color="white" />
+                  )}
+                  {mascota.sexo === "DESCONOCIDO" && (
+                    <Circle size={16} color="white" />
+                  )}
+                </HStack>
+              </Box>
+              <Box
+                bg={
+                  mascota.esterilizado === "ESTERILIZADO"
+                    ? "green.600"
+                    : mascota.esterilizado === "NO_ESTERILIZADO"
+                    ? "red.600"
+                    : "gray.600"
+                }
+                borderRadius="full"
+                px="2"
+                py="1"
+              >
+                <HStack gap="1">
+                  {mascota.esterilizado === "ESTERILIZADO" && (
+                    <EggOff size={16} color="white" />
+                  )}
+                  {mascota.esterilizado === "NO_ESTERILIZADO" && (
+                    <Egg size={16} color="white" />
+                  )}
+                  {mascota.esterilizado === "DESCONOCIDO" && (
+                    <CircleHelp size={16} color="white" />
+                  )}
+                </HStack>
+              </Box>
+              <Box bg="tema.suave" borderRadius="full" px="1" py="1">
+                <Text fontWeight="bold" color="tema.claro" fontSize="sm">
+                  ⏳{edad}
+                </Text>
+              </Box>
+            </HStack>
+
+            <HStack width="100%" justify="flex-start">
+              <Box bg="tema.suave" borderRadius="full" px="1" py="1">
+                <Text fontWeight="bold" color="tema.claro" fontSize="sm">
+                  {mascota.raza?.nombre ?? "—"}{" "}
+                </Text>
+              </Box>
+
+              <Box bg="tema.suave" borderRadius="full" px="1" py="1">
+                <Text fontWeight="bold" color="tema.claro" fontSize="sm">
+                  {mascota.fechaNacimiento
+                    ? format(new Date(mascota.fechaNacimiento), "dd/MM/yyyy")
+                    : "—"}
+                </Text>
+              </Box>
+
+              <Box bg="tema.suave" borderRadius="full" px="1" py="1">
+                <HStack gap="1">
+                  <Barcode size={16} color="white" />
+                  <Text fontWeight="bold" color="tema.claro" fontSize="sm">
+                    {mascota.microchip ?? "—"}
+                  </Text>
+                </HStack>
+              </Box>
+            </HStack>
+            <HStack width="100%" justify="flex-start">
+              <Button {...estilosBotonEspecial}>
+                <Link href={`/dashboard/perfiles/${mascota.perfil.id}`}>
+                  <HStack gap="1">
+                    <ArrowLeft size={20} color="white" />
+                    <Text fontWeight="bold" color="tema.claro" fontSize="sm">
+                      {mascota.perfil.nombre} {mascota.perfil.clave}{" "}
+                      {mascota.perfil.telefonoPrincipal}
+                    </Text>
+                  </HStack>
+                </Link>
+              </Button>
+            </HStack>
+          </VStack>
         </Box>
 
-        <Box
-          bg="tema.llamativo"
-          borderRadius="full"
-          px="4"
-          py="1"
-          display="inline-flex"
-          mb="2"
-          boxShadow="sm"
-        >
-          <HStack gap="2">
-            <HeartPulse size={20} color="white" />
-            <Text fontWeight="bold" color="tema.claro" fontSize="sm">
-              {iconoEspecie[mascota.especie]} {mascota.especie}
-            </Text>
-          </HStack>
-        </Box>
-
-        <List.Root gap="3" variant="plain">
-          <List.Item>
-            <List.Indicator asChild color="cyan.500">
-              <User />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Tutor:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.perfil.nombre}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="teal.500">
-              <ShieldCheck />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Raza:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.raza?.nombre ?? "—"}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="pink.500">
-              <ShieldCheck />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Sexo:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.sexo}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="purple.400">
-              <ShieldCheck />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Esterilizado:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.esterilizado}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="orange.500">
-              <CalendarDays />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Edad:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {edad}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="gray.500">
-              <Ruler />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Color:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.color ?? "—"}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator asChild color="gray.600">
-              <Barcode />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Microchip:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.microchip ?? "—"}
-              </Text>
-            </HStack>
-          </List.Item>
-
-          <List.Item>
-            <List.Indicator
-              asChild
-              color={mascota.activo ? "green.500" : "red.500"}
-            >
-              <CheckCircle />
-            </List.Indicator>
-            <HStack>
-              <Text color="tema.suave" fontWeight="medium">
-                Activo:
-              </Text>
-              <Text color="tema.suave" fontWeight="light">
-                {mascota.activo ? "Sí" : "No"}
-              </Text>
-            </HStack>
-          </List.Item>
-        </List.Root>
-
-        {/* Botón para regresar al perfil */}
-        <Box mt="6">
-          <Link href={`/dashboard/perfiles/${mascota.perfil.id}`}>
-            <Button colorScheme="gray" variant="outline">
-              <HStack>
-                <ArrowLeft size={16} />
-                <Text>Volver al perfil</Text>
-              </HStack>
-            </Button>
-          </Link>
-        </Box>
+        <VStack gap="1" align="flex-start" mb="4">
+          {/* Fila 1 */}
+        </VStack>
       </TarjetaBase>
     </Box>
   );

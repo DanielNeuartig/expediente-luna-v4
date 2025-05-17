@@ -44,7 +44,15 @@ export async function GET(req: Request) {
       },
       orderBy: { nombre: "asc" },
       take: 5,
-      include: {
+      select: {
+        id: true,
+        nombre: true,
+        especie: true,
+        fechaNacimiento: true,
+        sexo: true,
+        esterilizado: true,
+        microchip: true,
+        activo: true,
         raza: {
           select: {
             nombre: true,
@@ -66,6 +74,10 @@ export async function GET(req: Request) {
       nombre: m.nombre,
       especie: m.especie,
       fechaNacimiento: m.fechaNacimiento?.toISOString(),
+      sexo: m.sexo,
+      esterilizado: m.esterilizado,
+      microchip: m.microchip,
+      activo: m.activo,
       raza: m.raza?.nombre ?? null,
       tipo: "mascota" as const,
     })),

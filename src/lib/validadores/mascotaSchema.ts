@@ -116,3 +116,4 @@ perfilId: z.number({
 }),
   imagen: z.string().optional()
 })
+export type MascotaFormData = z.infer<typeof mascotaSchema>
