@@ -1,3 +1,4 @@
+// src/app/api/perfil/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { perfilSchema } from '@/lib/validadores/perfilSchema'
@@ -26,6 +27,8 @@ export async function POST(req: Request) {
   const {
     nombre,
     clave,
+    prefijo,
+    documentoId,
     telefonoPrincipal,
     telefonoSecundario1,
     telefonoSecundario2,
@@ -33,7 +36,6 @@ export async function POST(req: Request) {
   } = validacion.data
 
   const numeroCompleto = `${clave}${telefonoPrincipal}`
-
   let telefonoVerificado = false
 
   let perfilExistente: { id: number } | null = null
@@ -69,57 +71,55 @@ export async function POST(req: Request) {
     )
   }
 
-try {
-  const data = {
-    nombre,
-    clave,
-    telefonoPrincipal,
-    telefonoSecundario1,
-    telefonoSecundario2,
-    telefonoVerificado,
-    creadoPor: {
-      connect: { id: session.user.id },
-    },
-    ...(perfilExistente ? {} : {
-      usuario: {
-        connect: { id: session.user.id },
-      },
-    }),
+  // ✅ Verifica si ya hay un perfil con ese teléfono principal
+  const telefonoDuplicado = await prisma.perfil.findUnique({
+    where: { telefonoPrincipal },
+  });
+
+  if (telefonoDuplicado) {
+    return NextResponse.json(
+      { error: "Ya existe un perfil con ese teléfono principal." },
+      { status: 400 }
+    )
   }
 
-  console.log('📦 Datos que se intentarán guardar en DB:', data)
+  try {
+    const data = {
+      nombre,
+      clave,
+      prefijo,
+      documentoId,
+      telefonoPrincipal,
+      telefonoSecundario1,
+      telefonoSecundario2,
+      telefonoVerificado,
+      autor: {
+        connect: { id: session.user.id },
+      },
+      ...(perfilExistente ? {} : {
+        usuario: {
+          connect: { id: session.user.id },
+        },
+      }),
+    }
 
-  const [perfil] = await prisma.$transaction([
-    prisma.perfil.create({ data }),
-  ])
+    console.log('📦 Datos que se intentarán guardar en DB:', data)
 
-  return NextResponse.json({ mensaje: 'Perfil creado exitosamente', perfil })
-} catch (err) {
-  if (err instanceof Error) {
+    const [perfil] = await prisma.$transaction([
+      prisma.perfil.create({ data }),
+    ])
+
+    return NextResponse.json({ mensaje: 'Perfil creado exitosamente', perfil })
+  } catch (err: any) {
     console.error('❌ Error al crear perfil en la base de datos:')
     console.error('→ Mensaje:', err.message)
     console.error('→ Stack:', err.stack)
 
-    const prismaErr = err as { code?: string; meta?: unknown }
-
-    console.error('→ Código de error (Prisma):', prismaErr.code)
-    console.error('→ Detalles (Prisma):', prismaErr.meta)
-
     return NextResponse.json(
       {
-        error: err.message,
-        prisma: {
-          code: prismaErr.code,
-          meta: prismaErr.meta,
-        },
+        error: err.message ?? 'Error desconocido',
       },
       { status: 500 }
     )
   }
-
-  return NextResponse.json(
-    { error: 'Error desconocido' },
-    { status: 500 }
-  )
-}
 }

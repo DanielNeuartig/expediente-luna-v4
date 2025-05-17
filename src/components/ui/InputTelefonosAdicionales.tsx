@@ -9,6 +9,8 @@ import {
 } from '@chakra-ui/react'
 import { useFormContext } from 'react-hook-form'
 import { PerfilFormData } from '@/lib/validadores/perfilSchema'
+import { estilosInputBase } from './config/estilosInputBase'
+import { estilosTituloInput } from './config/estilosTituloInput'
 
 export default function InputTelefonosAdicionales() {
   const {
@@ -29,8 +31,9 @@ export default function InputTelefonosAdicionales() {
   return (
     <Stack gap={3}>
       <Field.Root flex="1" invalid={!!errors.telefonoSecundario1}>
-        <Field.Label>Teléfono secundario 1</Field.Label>
+        <Field.Label {...estilosTituloInput}>Teléfono secundario 1</Field.Label>
         <Input
+                {...estilosInputBase}
           {...register('telefonoSecundario1')}
           placeholder="Opcional"
           inputMode="numeric"
@@ -45,8 +48,9 @@ export default function InputTelefonosAdicionales() {
       </Field.Root>
 
       <Field.Root flex="1" invalid={!!errors.telefonoSecundario2}>
-        <Field.Label>Teléfono secundario 2</Field.Label>
+        <Field.Label {...estilosTituloInput}>Teléfono secundario 2</Field.Label>
         <Input
+        {...estilosInputBase}
           {...register('telefonoSecundario2')}
           placeholder="Opcional"
           inputMode="numeric"

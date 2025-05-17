@@ -26,14 +26,16 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const { status } = useSession();
+  const { status, data } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated" && data?.user?.activo) {
       router.push("/dashboard");
+    } else if (status === "authenticated" && !data?.user?.activo) {
+      router.push("/sin-permiso");
     }
-  }, [status, router]);
+  }, [status, data, router]);
 
   if (status === "loading") {
     return (
@@ -84,10 +86,8 @@ export default function HomePage() {
               fontSize={{ base: "2xl", md: "2xl" }}
               color="tema.claro"
             >
-              EXPEDIENTE UNIVERSAL 
-              PARA MASCOTAS
+              EXPEDIENTE UNIVERSAL PARA MASCOTAS
             </Heading>
-            
 
             <SimpleGrid columns={{ base: 3, md: 3 }} gap="4" w="100%">
               <VStack
@@ -117,10 +117,9 @@ export default function HomePage() {
                 gap="2"
                 justify="center"
                 align="center"
-
               >
                 <Icon as={Hospital} boxSize="10" color="tema.suave" />
-                <Text fontWeight="light" color="tema.suave" >
+                <Text fontWeight="light" color="tema.suave">
                   Para clínicas
                 </Text>
               </VStack>
@@ -160,72 +159,63 @@ export default function HomePage() {
                 borderWidth="9px"
                 size="xl"
                 color="tema.llamativo"
-              css={{ "--spinner-track-color": "colors.gray.100" }}
+                css={{ "--spinner-track-color": "colors.gray.100" }}
               />
               <Text fontSize="md" fontWeight="light" color="tema.llamativo">
                 En desarrollo...
               </Text>
             </Box>
           </VStack>
-
         </Box>
-
-
-
-
       </Flex>
 
+      <Box
+        position="fixed"
+        bottom="6"
+        right="6"
+        zIndex="overlay"
+        display="flex"
+        flexDirection="row"
+        gap="4"
+        alignItems="center"
+      >
+        <Button
+          size="lg"
+          borderRadius="full"
+          shadow="lg"
+          bg="white"
+          color="tema.intenso"
+          gap="2"
+          px="4"
+          py="2"
+        >
+          <Text fontWeight="light" fontSize="sm">
+            Un desarrollo de
+          </Text>
+          <Image
+            src="/imagenes/LogoELDOCsm.png"
+            alt="Logo ELDOC"
+            borderRadius="md"
+            bg="white"
+            h="10"
+            w="10"
+          />
+        </Button>
 
-
-   <Box
-  position="fixed"
-  bottom="6"
-  right="6"
-  zIndex="overlay"
-  display="flex"
-  flexDirection="row"
-  gap="4"
-  alignItems="center"
->
-  <Button
-    size="lg"
-    borderRadius="full"
-    shadow="lg"
-    bg="white"
-    color="tema.intenso"
-    gap="2"
-    px="4"
-    py="2"
-  >
-    <Text fontWeight="light" fontSize="sm">
-      Un desarrollo de
-    </Text>
-    <Image
-      src="/imagenes/LogoELDOCsm.png"
-      alt="Logo ELDOC"
-      borderRadius="md"
-      bg="white"
-      h="10"
-      w="10"
-    />
-  </Button>
-
-  <Box
-    onClick={() => signIn('google')}
-    borderRadius="full"
-    shadow="lg"
-    bg="tema.intenso"
-    color="white"
-    _hover={{ bg: 'tema.llamativo' }}
-    px="6"
-    py="3"
-  >
-    <Icon as={LogIn} boxSize="4" mr="2" />
-    ¿Usuario beta?
-  </Box>
-</Box>
-
-     
+        <Box
+          onClick={() => signIn("google")}
+          borderRadius="full"
+          shadow="lg"
+          bg="tema.intenso"
+          color="white"
+          _hover={{ bg: "tema.llamativo" }}
+          px="6"
+          py="3"
+        >
+          <Icon as={LogIn} boxSize="4" mr="2" />
+          ¿Usuario beta?
+        </Box>
+      </Box>
     </Box>
   );
 }

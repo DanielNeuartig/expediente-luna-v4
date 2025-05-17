@@ -6,58 +6,187 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id              Int       @id @default(autoincrement())
-  activo          Boolean   @default(true)
-  email           String?   @unique
-  name            String?
-  image           String?
-  emailVerified   DateTime?
+  id            Int         @id @default(autoincrement())
+  activo        Boolean     @default(false)
+  email         String?     @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  tipoUsuario   TipoUsuario @default(PROPIETARIO)
 
-  perfil          Perfil?       @relation("UserAPerfil")
-
+  perfil          Perfil?          @relation("UserAPerfil")
+  perfilesCreados Perfil[]         @relation("PerfilCreadoPor")
   usuarioClinicas UsuarioClinica[]
   accesos         Acceso[]
-  perfilesCreados Perfil[]      @relation("UserCreoPerfil")
-
   accounts        Account[]
   sessions        Session[]
-  tipoUsuario     TipoUsuario @default(PROPIETARIO) // ✅ este es el nuevo "rol"
+
+  mascotasCreadas    Mascota[]          @relation("MascotaCreadaPor")
+  expedientesCreados ExpedienteMedico[] @relation("ExpedienteAutor")
 }
 
 model Perfil {
-  id       Int      @id @default(autoincrement())
-  nombre   String
-  creadoEn DateTime @default(now())
-  
-
-
-  
-  clave String // Ej. +52
-  telefonoPrincipal   String  @unique
-
-  telefonoVerificado Boolean @default(false)
-
-  
+  id                  Int      @id @default(autoincrement())
+  prefijo             String? @default("Tutor")
+  nombre              String
+  clave               String
+  telefonoPrincipal   String @unique
   telefonoSecundario1 String?
   telefonoSecundario2 String?
+  telefonoVerificado  Boolean  @default(false)
+  documentoId         String?
+  activo              Boolean  @default(true)
+  fechaCreacion       DateTime @default(now())
+  actualizadoEn       DateTime @updatedAt
 
-usuarioId Int? @unique
-usuario   User? @relation("UserAPerfil", fields: [usuarioId], references: [id])
+  usuarioId Int?  @unique
+  usuario   User? @relation("UserAPerfil", fields: [usuarioId], references: [id])
+  autorId   Int?
+  autor     User? @relation("PerfilCreadoPor", fields: [autorId], references: [id])
 
-  creadoPor   User? @relation("UserCreoPerfil", fields: [creadoPorId], references: [id])
-  creadoPorId Int?
+  mascotas        Mascota[]
+  aplicacionesMed AplicacionMedicamento[] @relation("EjecutorMedicamento")
+  aplicacionesInd AplicacionIndicacion[]  @relation("EjecutorIndicacion")
+}
+
+model Mascota {
+  id              Int            @id @default(autoincrement())
+  nombre          String
+  especie         Especie
+  sexo            Sexo
+  esterilizado    Esterilizacion
+  color           String?
+  señas          String?
+  fechaNacimiento DateTime?
+  microchip       String?        @unique
+  alergias        String?
+  imagen          String?
+  activo          Boolean        @default(true)
+  fechaCreacion   DateTime       @default(now())
+  actualizadoEn   DateTime       @updatedAt
+  
+  razaId   Int?
+  raza     Raza?  @relation(fields: [razaId], references: [id])
+  perfilId Int
+  perfil   Perfil @relation(fields: [perfilId], references: [id])
+  autorId  Int?
+  autor    User?  @relation("MascotaCreadaPor", fields: [autorId], references: [id])
+
+  expedientes ExpedienteMedico[]
+}
+
+model ExpedienteMedico {
+  id                Int            @id @default(autoincrement())
+  mascotaId         Int
+  mascota           Mascota        @relation(fields: [mascotaId], references: [id])
+  autorId           Int
+  autor             User           @relation("ExpedienteAutor", fields: [autorId], references: [id])
+  clinicaId         Int?
+  clinica           Clinica?       @relation(fields: [clinicaId], references: [id])
+  tipo              TipoExpediente
+  contenidoAdaptado String?
+  notasGenerales    String?
+  visibleParaTutor  Boolean        @default(false)
+  borrado           Boolean        @default(false)
+  fechaCreacion     DateTime       @default(now())
+  actualizadoEn     DateTime       @updatedAt
+
+  notasClinicas NotaClinica[]
+}
+
+model NotaClinica {
+  id                     Int                     @id @default(autoincrement())
+  expedienteId           Int
+  expediente             ExpedienteMedico        @relation(fields: [expedienteId], references: [id])
+  historiaClinica        String?
+  exploracionFisica      String?
+  temperatura            Float?
+  peso                   Float?
+  frecuenciaCardiaca     Int?
+  frecuenciaRespiratoria Int?
+  diagnosticoPresuntivo  String?
+  pronostico             String?
+  medicamentos           Medicamento[]
+  indicaciones           Indicacion[]
+  aplicacionesMed        AplicacionMedicamento[] @relation("AplicacionesMedNota")
+  aplicacionesInd        AplicacionIndicacion[]  @relation("AplicacionesIndNota")
+  archivos               String?
+  laboratoriales         String?
+  extras                 String?
+  fechaCreacion          DateTime                @default(now())
+}
+
+model Medicamento {
+  id              Int            @id @default(autoincrement())
+  notaClinicaId   Int
+  notaClinica     NotaClinica    @relation(fields: [notaClinicaId], references: [id])
+  nombre          String
+  dosis           String
+  via             ViaMedicamento
+  veces           Int?
+  desde           DateTime?
+  incluirEnReceta Boolean        @default(false)
+  creadoEn        DateTime       @default(now())
+}
+
+model AplicacionMedicamento {
+  id            Int         @id @default(autoincrement())
+  notaClinicaId Int
+  notaClinica   NotaClinica @relation("AplicacionesMedNota", fields: [notaClinicaId], references: [id])
+  fecha         DateTime
+  dosis         String?
+  ejecutorId    Int?
+  ejecutor      Perfil?     @relation("EjecutorMedicamento", fields: [ejecutorId], references: [id])
+  observaciones String?
+  omitida       Boolean     @default(false)
+  creadoEn      DateTime    @default(now())
+}
+
+model Indicacion {
+  id              Int         @id @default(autoincrement())
+  notaClinicaId   Int
+  notaClinica     NotaClinica @relation(fields: [notaClinicaId], references: [id])
+  descripcion     String
+  cada            String?
+  desde           DateTime?
+  veces           Int?
+  incluirEnReceta Boolean     @default(false)
+  creadoEn        DateTime    @default(now())
+}
+
+model AplicacionIndicacion {
+  id            Int         @id @default(autoincrement())
+  notaClinicaId Int
+  notaClinica   NotaClinica @relation("AplicacionesIndNota", fields: [notaClinicaId], references: [id])
+  fecha         DateTime
+  ejecutorId    Int?
+  ejecutor      Perfil?     @relation("EjecutorIndicacion", fields: [ejecutorId], references: [id])
+  observaciones String?
+  omitida       Boolean     @default(false)
+  creadoEn      DateTime    @default(now())
+}
+
+model Raza {
+  id       Int       @id @default(autoincrement())
+  nombre   String
+  especie  Especie
+  mascotas Mascota[]
+
+  @@unique([nombre, especie])
 }
 
 model Clinica {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  direccion String
-  telefono  String
-  tipo      String
-  creadoEn  DateTime @default(now())
+  id            Int         @id @default(autoincrement())
+  nombre        String
+  direccion     String
+  telefono      String
+  tipo          TipoClinica
+  fechaCreacion DateTime    @default(now())
 
   usuarioClinicas UsuarioClinica[]
+  expedientes     ExpedienteMedico[]
 }
 
 model UsuarioClinica {
@@ -72,18 +201,56 @@ model UsuarioClinica {
 }
 
 model Acceso {
-  id           Int         @id @default(autoincrement())
-  usuarioId    Int?
-  ip           String
-  fecha        DateTime    @default(now())
-  tipoAcceso   TipoAcceso
-  detalle      String?
-  userAgent    String?
+  id         Int        @id @default(autoincrement())
+  usuarioId  Int?
+  ip         String
+  fecha      DateTime   @default(now())
+  tipoAcceso TipoAcceso
+  detalle    String?
+  userAgent  String?
 
   usuario User? @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId, tipoAcceso, fecha])
 }
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ENUMS
 
 enum TipoUsuario {
   CEO
@@ -103,36 +270,51 @@ enum TipoAcceso {
   GET_USUARIO_ACTUAL
 }
 
-model Account {
-  id                Int    @id @default(autoincrement())
-  userId            Int
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+enum Especie {
+  CANINO
+  FELINO
+  AVE
+  REPTIL
+  ROEDOR
+  OTRO
 }
 
-model Session {
-  id           Int      @id @default(autoincrement())
-  sessionToken String   @unique
-  userId       Int
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum Sexo {
+  MACHO
+  HEMBRA
+  DESCONOCIDO
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+enum Esterilizacion {
+  ESTERILIZADO
+  NO_ESTERILIZADO
+  DESCONOCIDO
+}
 
-  @@unique([identifier, token])
+
+
+enum TipoExpediente {
+  CONSULTA
+  CIRUGIA
+  HOSPITALIZACION
+  LABORATORIO
+  OTRO
+}
+
+enum TipoClinica {
+  PRIVADA
+  PUBLICA
+  MOVIL
+  OTRO
+}
+
+enum ViaMedicamento {
+  ORAL
+  SC
+  IM
+  IV
+  OTICA
+  OFTALMICA
+  TOPICA
+  OTRO
 }

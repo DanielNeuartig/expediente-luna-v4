@@ -1,79 +1,82 @@
 // src/components/formulario/FormularioPerfil.tsx
-'use client'
+"use client";
 
-import {
-  Fieldset,
-  Button,
-  Stack,
-} from '@chakra-ui/react'
-import { FormProvider, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { perfilSchema, PerfilFormData } from '@/lib/validadores/perfilSchema'
-import { useRouter } from 'next/navigation'
-import { useMutation } from '@tanstack/react-query'
-import { crearPerfil } from '@/lib/api/crearPerfil'
-import { toaster } from '@/components/ui/toaster'
-import InputNombre from './InputNombre'
-import InputTelefonoConClave from './InputTelefonoConClave'
-import VerificacionSMS from './VerificacionSMS'
-import InputTelefonosAdicionales from './InputTelefonosAdicionales'
-import TarjetaBase from './TarjetaBase'
+import { Fieldset, Button, Stack } from "@chakra-ui/react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { perfilSchema, PerfilFormData } from "@/lib/validadores/perfilSchema";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { crearPerfil } from "@/lib/api/crearPerfil";
+import { toaster } from "@/components/ui/toaster";
+import InputNombre from "./InputNombre";
+import InputTelefonoConClave from "./InputTelefonoConClave";
+import VerificacionSMS from "./VerificacionSMS";
+import InputTelefonosAdicionales from "./InputTelefonosAdicionales";
+import TarjetaBase from "./TarjetaBase";
+import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
 
 interface FormularioPerfilProps {
-  mostrarVerificacionSMS?: boolean
+  mostrarVerificacionSMS?: boolean;
 }
 
-export default function FormularioPerfil({ mostrarVerificacionSMS = true }: FormularioPerfilProps) {
-  const router = useRouter()
+export default function FormularioPerfil({
+  mostrarVerificacionSMS = true,
+}: FormularioPerfilProps) {
+  const router = useRouter();
 
   const methods = useForm<PerfilFormData>({
     resolver: zodResolver(perfilSchema),
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      clave: '+52',
+      clave: "+52",
     },
-  })
+  });
 
-  const { handleSubmit, formState: { isValid } } = methods
+  const {
+    handleSubmit,
+    formState: { isValid },
+  } = methods;
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: crearPerfil,
     onSuccess: () => {
       toaster.create({
-        description: 'Perfil creado exitosamente',
-        type: 'success',
-      })
-      router.push('/dashboard')
+        description: "Perfil creado exitosamente",
+        type: "success",
+      });
+      router.push("/dashboard");
     },
     onError: (error: unknown) => {
-      const mensaje = error instanceof Error ? error.message : 'Error desconocido'
+      const mensaje =
+        error instanceof Error ? error.message : "Error desconocido";
       toaster.create({
         description: mensaje,
-        type: 'error',
-      })
+        type: "error",
+      });
     },
-  })
+  });
 
   const onSubmit = async (data: PerfilFormData) => {
-    const datosAEnviar = { ...data }
+    const datosAEnviar = { ...data };
 
     if (!mostrarVerificacionSMS) {
-      delete datosAEnviar.codigoVerificacion
+      delete datosAEnviar.codigoVerificacion;
     }
 
-    await mutateAsync(datosAEnviar)
-  }
+    await mutateAsync(datosAEnviar);
+  };
 
   return (
     <TarjetaBase>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Fieldset.Root size="lg" maxW="md">
+          <Fieldset.Root /*size="lg" maxW="md"*/>
             <Stack gap={4}>
               <Stack>
-                <Fieldset.Legend>Crear perfil</Fieldset.Legend>
-                <Fieldset.HelperText>
-                  Completa los campos obligatorios para continuar.
+                <Fieldset.Legend color="tema.intenso" fontWeight={"bold"}>Crear perfil</Fieldset.Legend>
+                <Fieldset.HelperText >
+
                 </Fieldset.HelperText>
               </Stack>
 
@@ -85,9 +88,8 @@ export default function FormularioPerfil({ mostrarVerificacionSMS = true }: Form
               </Fieldset.Content>
 
               <Button
+            {...estilosBotonEspecial}
                 type="submit"
-                alignSelf="flex-start"
-                colorScheme="blue"
                 loading={isPending}
                 disabled={!isValid}
               >
@@ -98,5 +100,5 @@ export default function FormularioPerfil({ mostrarVerificacionSMS = true }: Form
         </form>
       </FormProvider>
     </TarjetaBase>
-  )
+  );
 }

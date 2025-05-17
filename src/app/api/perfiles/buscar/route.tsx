@@ -10,21 +10,18 @@ export async function GET(req: Request) {
   }
 
   const resultados = await prisma.perfil.findMany({
-    where: {
-      OR: [
-        {
+    where: isNaN(Number(q))
+      ? {
           nombre: {
             contains: q,
             mode: 'insensitive',
           },
-        },
-        {
+        }
+      : {
           telefonoPrincipal: {
-            contains: q.replace(/\D/g, ''), // limpia si el usuario escribe espacios o guiones
+            contains: q.replace(/\D/g, ''),
           },
         },
-      ],
-    },
     orderBy: { nombre: 'asc' },
     take: 10,
     select: {

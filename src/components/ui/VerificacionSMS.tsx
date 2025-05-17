@@ -12,6 +12,9 @@ import { useFormContext } from 'react-hook-form'
 import { PerfilFormData } from '@/lib/validadores/perfilSchema'
 import { useState } from 'react'
 import { toaster } from '@/components/ui/toaster'
+import { estilosTituloInput } from './config/estilosTituloInput'
+import { estilosBotonEspecial } from './config/estilosBotonEspecial'
+import { estilosInputBase } from './config/estilosInputBase'
 
 export default function VerificacionSMS() {
   const {
@@ -62,10 +65,22 @@ export default function VerificacionSMS() {
 
   return (
     <HStack gap={2} align="end" mt={2}>
+            <Button
+        {...estilosBotonEspecial}
+        disabled={
+          enviando ||
+          !/^\+\d{1,3}$/.test(clave) ||
+          !/^\d{2}(?: \d{2}){4}$/.test(telefonoPrincipal)
+        }
+        onClick={enviarCodigo}
+      >
+        Enviar código
+      </Button>
       <Field.Root required maxW="xs" invalid={!!errors.codigoVerificacion}>
-        <Field.Label>Código de verificación</Field.Label>
+        <Field.Label {...estilosTituloInput}>Código de verificación</Field.Label>
         <Input
           {...register('codigoVerificacion')}
+          {...estilosInputBase}
           placeholder="1234"
           inputMode="numeric"
           autoComplete="off"
@@ -81,17 +96,7 @@ export default function VerificacionSMS() {
         )}
       </Field.Root>
 
-      <Button
-        size="sm"
-        disabled={
-          enviando ||
-          !/^\+\d{1,3}$/.test(clave) ||
-          !/^\d{2}(?: \d{2}){4}$/.test(telefonoPrincipal)
-        }
-        onClick={enviarCodigo}
-      >
-        Enviar código
-      </Button>
+
     </HStack>
   )
 }

@@ -8,6 +8,8 @@ import {
 } from '@chakra-ui/react'
 import { useFormContext } from 'react-hook-form'
 import { PerfilFormData } from '@/lib/validadores/perfilSchema'
+import { estilosInputBase } from './config/estilosInputBase'
+import { estilosTituloInput } from './config/estilosTituloInput'
 
 export default function InputTelefonoConClave() {
   const {
@@ -23,52 +25,46 @@ export default function InputTelefonoConClave() {
   }
 
   return (
-    <HStack align="start" gap={2} w="full">
-      <Field.Root required flex="1" invalid={!!errors.clave}>
-        <Field.Label color="tema.claro">Clave telefónica</Field.Label>
+    <HStack align="stretch" gap={2} w="full">
+      <Field.Root
+        required
+        flex="1"
+        invalid={!!errors.clave}
+        display="flex"
+        flexDirection="column"
+        justifyContent="stretch"
+      >
+        <Field.Label {...estilosTituloInput}>Clave</Field.Label>
         <Input
+          {...estilosInputBase}
           {...register('clave')}
           placeholder="Ej. +52"
           autoComplete="off"
-          bg="tema.suave"
-          color="tema.intenso"
-          border="none"
-          borderRadius="md"
-          _focus={{
-            bg: 'whiteAlpha.900',
-            boxShadow: 'sm',
-            border: 'none',
-          }}
         />
         {errors.clave && (
-          <FieldErrorText color="tema.llamativo">
-            {errors.clave.message}
-          </FieldErrorText>
+          <FieldErrorText>{errors.clave.message}</FieldErrorText>
         )}
       </Field.Root>
 
-      <Field.Root required flex="3" invalid={!!errors.telefonoPrincipal}>
-        <Field.Label color="tema.claro">Teléfono principal</Field.Label>
+      <Field.Root
+        required
+        flex="3"
+        invalid={!!errors.telefonoPrincipal}
+        display="flex"
+        flexDirection="column"
+        justifyContent="stretch"
+      >
+        <Field.Label {...estilosTituloInput}>Teléfono principal</Field.Label>
         <Input
+          {...estilosInputBase}
           {...register('telefonoPrincipal')}
           placeholder="Ej. 33 12 34 56 78"
           inputMode="numeric"
           autoComplete="off"
           onChange={(e) => formatearTelefono(e.target.value)}
-          bg="tema.suave"
-          color="tema.intenso"
-          border="none"
-          borderRadius="md"
-          _focus={{
-            bg: 'whiteAlpha.900',
-            boxShadow: 'sm',
-            border: 'none',
-          }}
         />
         {errors.telefonoPrincipal && (
-          <FieldErrorText color="tema.llamativo">
-            {errors.telefonoPrincipal.message}
-          </FieldErrorText>
+          <FieldErrorText>{errors.telefonoPrincipal.message}</FieldErrorText>
         )}
       </Field.Root>
     </HStack>
