@@ -1,4 +1,3 @@
-// src/components/ui/FormularioMascotaVisual.tsx
 "use client";
 
 import {
@@ -10,7 +9,7 @@ import {
   Stack,
   Textarea,
 } from "@chakra-ui/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +18,7 @@ import { estilosTituloInput } from "@/components/ui/config/estilosTituloInput";
 import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
 import { mascotaSchema } from "@/lib/validadores/mascotaSchema";
 import { toaster } from "@/components/ui/toaster";
+import { useRegistrarMascota } from "@/hooks/useRegistrarMascota";
 import {
   differenceInYears,
   differenceInMonths,
@@ -30,57 +30,63 @@ type FormValues = z.infer<typeof mascotaSchema>;
 
 export default function FormularioMascotaVisual() {
   const params = useParams();
+  const router = useRouter();
   const perfilId = Number(params?.id);
-
-  const {
-    register,
-    handleSubmit,
-    getValues,
-    watch,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(mascotaSchema),
-    mode: "onTouched",
-    reValidateMode: "onChange",
-  });
-
-  const onSubmit = handleSubmit(async (data) => {
-
-    if (!perfilId || isNaN(perfilId)) {
-      toaster.create({ type: "error", description: "ID de perfil no disponible" });
-      return;
-    }
-
-    const datosFormateados = {
-      ...data,
-      perfilId,
-    };
-console.log("🧪 El submit se ejecutó");
-alert("🚀 Enviando al backend"); // ← prueba visual definitiva
-    try {
-      const res = await fetch("/api/mascota", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(datosFormateados),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        toaster.create({ type: "error", description: json.error || "Error al registrar mascota" });
-        return;
-      }
-
-      toaster.create({ type: "success", description: "Mascota registrada con éxito" });
-    } catch (error) {
-      toaster.create({ type: "error", description: "No se pudo conectar al servidor" });
-    }
-  });
+  const registrarMascota = useRegistrarMascota();
 
   const handleVerDatos = () => {
     const datos = getValues();
     console.log("📋 Datos actuales del formulario:", { ...datos, perfilId });
   };
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(mascotaSchema),
+    defaultValues: {
+      especie: "CANINO",
+      alergias: "Negadas",
+      señas: "Ninguna",
+    },
+    mode: "onTouched",
+    reValidateMode: "onChange",
+  });
+
+  const onSubmit = handleSubmit((data) => {
+    if (!perfilId || isNaN(perfilId)) {
+      toaster.create({
+        type: "error",
+        description: "ID de perfil no disponible",
+      });
+      return;
+    }
+
+    const datos = { ...data, perfilId };
+
+    registrarMascota.mutate(datos, {
+      onSuccess: () => {
+        toaster.create({
+          type: "success",
+          description: "Mascota registrada con éxito",
+        });
+        reset(); // ✅ Limpia el formulario
+        router.refresh(); // ✅ Refresca todos los componentes del layout
+      },
+      onError: (err: unknown) => {
+        const error =
+          err instanceof Error ? err.message : "Error al registrar mascota";
+        toaster.create({
+          type: "error",
+          description: error,
+        });
+      },
+    });
+  });
 
   const fechaNacimiento = watch("fechaNacimiento");
 
@@ -96,7 +102,11 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
 
   return (
     <Box as="form" onSubmit={onSubmit}>
-      <input type="hidden" value={perfilId} {...register("perfilId", { value: perfilId })} />
+      <input
+        type="hidden"
+        value={perfilId}
+        {...register("perfilId", { value: perfilId })}
+      />
       <Stack gap="4" align="flex-start">
         <Field.Root invalid={!!errors.nombre}>
           <Field.Label {...estilosTituloInput}>Nombre</Field.Label>
@@ -113,12 +123,18 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
                 {...register("especie")}
                 {...estilosInputBase}
               >
-                <option value="CANINO">Canino</option>
-                <option value="FELINO">Felino</option>
-                <option value="AVE">Ave</option>
-                <option value="REPTIL">Reptil</option>
-                <option value="ROEDOR">Roedor</option>
-                <option value="OTRO">Otro</option>
+                <option value="CANINO">Canino 🐶 </option>
+                <option value="FELINO">Felino 🐱 </option>
+                <option value="AVE_PSITACIDA">Ave psitácida 🦜 </option>
+                <option value="AVE_OTRA">Otra ave 🐦</option>
+                <option value="OFIDIO">Ofidio 🐍</option>
+                <option value="QUELONIO">Quelonio 🐢</option>
+                <option value="LAGARTIJA">Lagartija 🦎</option>
+                <option value="ROEDOR">Roedor 🐹</option>
+                <option value="LAGOMORFO">Lagomorfo 🐰</option>
+                <option value="HURON">Hurón 🦡</option>
+                <option value="PORCINO">Porcino 🐷</option>
+                <option value="OTRO">Otro ❓</option>
               </NativeSelect.Field>
               <NativeSelect.Indicator />
             </NativeSelect.Root>
@@ -142,9 +158,9 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
                 {...register("sexo")}
                 {...estilosInputBase}
               >
-                <option value="MACHO">Macho</option>
-                <option value="HEMBRA">Hembra</option>
-                <option value="DESCONOCIDO">Desconocido</option>
+                <option value="MACHO">Macho 🔵</option>
+                <option value="HEMBRA">Hembra 🟣</option>
+                <option value="DESCONOCIDO">Desconocido ⚫️</option>
               </NativeSelect.Field>
               <NativeSelect.Indicator />
             </NativeSelect.Root>
@@ -165,9 +181,7 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
               {...register("fechaNacimiento")}
               {...estilosInputBase}
             />
-            <Field.ErrorText>
-              {errors.fechaNacimiento?.message}
-            </Field.ErrorText>
+            <Field.ErrorText>{errors.fechaNacimiento?.message}</Field.ErrorText>
           </Field.Root>
 
           <Field.Root invalid={!!errors.esterilizado} flex="1">
@@ -178,9 +192,9 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
                 {...register("esterilizado")}
                 {...estilosInputBase}
               >
-                <option value="ESTERILIZADO">Esterilizado</option>
-                <option value="NO_ESTERILIZADO">No esterilizado</option>
-                <option value="DESCONOCIDO">Desconocido</option>
+                <option value="ESTERILIZADO">Esterilizado ✅</option>
+                <option value="NO_ESTERILIZADO">No esterilizado ❌</option>
+                <option value="DESCONOCIDO">Desconocido ❓</option>
               </NativeSelect.Field>
               <NativeSelect.Indicator />
             </NativeSelect.Root>
@@ -209,17 +223,13 @@ alert("🚀 Enviando al backend"); // ← prueba visual definitiva
         </Field.Root>
 
         <Stack direction="row" gap="3" pt="2">
-          <Button type="submit" >
+          <Button
+            type="submit"
+            disabled={registrarMascota.isPending}
+            {...estilosBotonEspecial}
+          >
             Registrar mascota
           </Button>
-          <Button
-  onClick={() => {
-    const result = getValues();
-    console.log("🌐 getValues():", result);
-  }}
->
-  Mostrar valores
-</Button>
           <Button onClick={handleVerDatos} {...estilosBotonEspecial}>
             Ver datos en consola
           </Button>

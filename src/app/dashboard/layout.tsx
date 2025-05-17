@@ -32,6 +32,7 @@ export default async function DashboardLayout({
       <Sidebar />
       <DashboardHeader />
       <Box
+
         as="main"
         ml="60"
 minH="100%"
@@ -40,6 +41,7 @@ minH="100%"
         pb="6"
         pt="20"
         bg="gray.200"
+        
       >
         <DashboardGrid>{children}</DashboardGrid>
       </Box>

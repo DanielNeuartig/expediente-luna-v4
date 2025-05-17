@@ -1,18 +1,18 @@
 // src/app/dashboard/perfiles/[id]/page.tsx
-
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { differenceInYears, differenceInMonths } from "date-fns";
 import {
-  Heading,
+
   Text,
   Spinner,
   Box,
   List,
-  Center,
+
   HStack,
-  Tooltip,
-  IconButton,
+
+  Button,
 } from "@chakra-ui/react";
 import {
   Phone,
@@ -21,23 +21,44 @@ import {
   CircleUserRound,
   UserPlus,
   CalendarDays,
-  ClipboardCopy,
   User,
-  UserRound,
   Album,
 } from "lucide-react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
-import { saveAs } from "file-saver";
-import { pdf } from "@react-pdf/renderer";
-import { PerfilPDF } from "@/components/pdf/PerfilPDF";
-import VerPerfilPDF from "@/components/pdf/VerPerfilPDF";
-import { toaster } from "@/components/ui/toaster";
 import FormularioMascotaVisual from "@/components/ui/FormularioMascotaVisual";
+import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
+//import { useRouter } from 'next/navigation'
+import Link from "next/link";
 
+//const router = useRouter();
+function calcularEdad(fecha?: string | Date | null) {
+  if (!fecha) return null;
+  const nacimiento = new Date(fecha);
+  const hoy = new Date();
+  const años = differenceInYears(hoy, nacimiento);
+  const meses = differenceInMonths(hoy, nacimiento) % 12;
+  return `${años}A ${meses}M`;
+}
+const iconoEspecie: Record<string, string> = {
+  CANINO: "🐶",
+  FELINO: "🐱",
+  AVE_PSITACIDA: "🦜",
+  AVE_OTRA: "🐦",
+  OFIDIO: "🐍",
+  QUELONIO: "🐢",
+  LAGARTIJA: "🦎",
+  ROEDOR: "🐹",
+  LAGOMORFO: "🐰",
+  HURON: "🦡",
+  PORCINO: "🐷",
+  OTRO: "❓",
+};
+
+/*
 const handleDescargarPDF = async (perfil: any) => {
   const blob = await pdf(<PerfilPDF perfil={perfil} />).toBlob();
   saveAs(blob, `perfil_${perfil.nombre}.pdf`);
-};
+};*/
 
 export default async function Page({
   params,
@@ -45,22 +66,22 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   return (
-   // <Center>
-      <Suspense
-        fallback={
-          <Box p="4">
-            <Spinner
-              animationDuration=".7s"
-              borderWidth="2px"
-              size="xl"
-              color="tema.llamativo"
-            />
-          </Box>
-        }
-      >
-        <AsyncPerfilComponent params={params} />
-      </Suspense>
-   // </Center>
+    // <Center>
+    <Suspense
+      fallback={
+        <Box p="4">
+          <Spinner
+            animationDuration=".7s"
+            borderWidth="2px"
+            size="xl"
+            color="tema.llamativo"
+          />
+        </Box>
+      }
+    >
+      <AsyncPerfilComponent params={params} />
+    </Suspense>
+    // </Center>
   );
 }
 
@@ -82,7 +103,11 @@ async function AsyncPerfilComponent({
           perfil: true,
         },
       },
-      mascotas: true, // ✅ ahora sí se descar
+      mascotas: {
+        include: {
+          raza: true, // 👈 necesario para acceder a mascota.raza.nombre
+        },
+      },
     },
   });
 
@@ -265,9 +290,9 @@ async function AsyncPerfilComponent({
       </Box>
       <Box gridColumn="2" gridRow="1">
         <TarjetaBase>
-          <Heading size="sm" mb="3" color="tema.intenso">
-            Mascotas registradas
-          </Heading>
+          <Text color="tema.suave" fontWeight={"bold"} fontSize={"2xl"}>
+            Mascotas
+          </Text>
 
           {perfil.mascotas.length === 0 ? (
             <Text color="tema.suave" fontWeight="light">
@@ -277,15 +302,26 @@ async function AsyncPerfilComponent({
             <List.Root gap="3" variant="plain">
               {perfil.mascotas.map((mascota) => (
                 <List.Item key={mascota.id}>
-                  <HStack>
-                    <Text color="tema.suave" fontWeight="medium">
-                      {mascota.nombre}
-                    </Text>
-                    <Text color="tema.suave" fontWeight="light">
-                      ({mascota.especie ?? "Especie desconocida"})
-                    </Text>
-                  </HStack>
-                </List.Item>
+  <Link href={`/dashboard/mascotas/${mascota.id}`}>
+    <Button {...estilosBotonEspecial} borderRadius="full" as="div">
+      <HStack>
+        <Text color="tema.claro" fontWeight="bold">
+          {mascota.nombre}{" "}
+          {mascota.fechaNacimiento
+            ? `· ${calcularEdad(mascota.fechaNacimiento)}`
+            : ""}
+        </Text>
+        <Text color="tema.claro" fontWeight="light">
+          {iconoEspecie[mascota.especie] ?? "❓"} {mascota.especie}
+          {mascota.raza?.nombre ? ` · ${mascota.raza.nombre}` : ""}
+        </Text>
+        <Text color="tema.claro" fontWeight="bold">
+          {mascota.activo ? "🟢" : "🔴"}
+        </Text>
+      </HStack>
+    </Button>
+  </Link>
+</List.Item>
               ))}
             </List.Root>
           )}
@@ -294,9 +330,10 @@ async function AsyncPerfilComponent({
 
       <Box gridColumn="1" gridRow="2">
         <TarjetaBase>
-          <FormularioMascotaVisual>
-            
-          </FormularioMascotaVisual>
+          <Text color="tema.suave" fontWeight={"bold"} fontSize={"2xl"}>
+            Registrar mascota
+          </Text>
+          <FormularioMascotaVisual></FormularioMascotaVisual>
         </TarjetaBase>
       </Box>
     </>

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { mascotaSchema } from "@/lib/validadores/mascotaSchema";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
   const data = parsed.data;
 
   // 🧼 Transformaciones necesarias (porque Zod no aplica cambios en profundidad como Date o formateo profundo)
-  const mascotaData: any = {
+  const mascotaData: Prisma.MascotaCreateInput = {
     nombre: data.nombre.trim(),
     especie: data.especie,
     sexo: data.sexo,
@@ -54,9 +55,9 @@ export async function POST(req: Request) {
   if (data.microchip)
     mascotaData.microchip = data.microchip.replace(/\s+/g, "").toUpperCase();
 
-if (data.razaId !== undefined) {
-  mascotaData.raza = { connect: { id: data.razaId } }
-}
+  if (data.razaId !== undefined) {
+    mascotaData.raza = { connect: { id: data.razaId } };
+  }
 
   if (data.imagen) mascotaData.imagen = data.imagen;
 
@@ -66,12 +67,10 @@ if (data.razaId !== undefined) {
       data: mascotaData,
     });
 
-     return NextResponse.json({ mensaje: "Mascota creada", mascota })
-  } catch (err: any) {
-    console.error("🐞 Error en creación de mascota:", err)
-    return NextResponse.json(
-      { error: err.message || "Error al crear mascota" },
-      { status: 500 }
-    )
+    return NextResponse.json({ mensaje: "Mascota creada", mascota });
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "Error desconocido";
+    console.error("🐞 Error en creación de mascota:", err);
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

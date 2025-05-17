@@ -273,9 +273,15 @@ enum TipoAcceso {
 enum Especie {
   CANINO
   FELINO
-  AVE
-  REPTIL
+  AVE_PSITACIDA
+  AVE_OTRA
+  OFIDIO
+  QUELONIO
+  LAGARTIJA
   ROEDOR
+  LAGOMORFO
+  HURON
+  PORCINO
   OTRO
 }
 

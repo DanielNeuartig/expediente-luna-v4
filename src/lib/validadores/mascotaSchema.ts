@@ -24,7 +24,18 @@ export const mascotaSchema = z.object({
       message: "Debe contener al menos dos palabras",
     }),
 
-  especie: z.enum(["CANINO", "FELINO", "AVE", "REPTIL", "ROEDOR", "OTRO"], {
+  especie: z.enum(["CANINO",
+  "FELINO",
+  "AVE_PSITACIDA",
+  "AVE_OTRA",
+  "OFIDIO",
+  "QUELONIO",
+  "LAGARTIJA",
+  "ROEDOR",
+  "LAGOMORFO",
+  "HURON",
+  "PORCINO",
+  "OTRO"], {
     errorMap: () => ({ message: "Selecciona una especie válida" }),
   }),
 

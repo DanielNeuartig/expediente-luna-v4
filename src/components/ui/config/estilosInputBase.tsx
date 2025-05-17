@@ -7,7 +7,9 @@ export const estilosInputBase = {
     color: "gray.300",
   },
   _focus: {
-    borderColor: "transparent",
-    boxShadow: "none",
+       boxShadow: "none",
+      border: "none",
+      outline: "4px solid",
+      outlineColor: "tema.llamativo", // 🎨 token del tema Chakra
   },
 }

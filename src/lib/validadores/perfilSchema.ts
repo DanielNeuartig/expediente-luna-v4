@@ -47,6 +47,8 @@ const codigoVerificacionSchema = z
 export const perfilSchema = z.object({
   nombre: nombreSchema,
   clave: claveSchema,
+  prefijo: z.string().min(1, { message: 'El prefijo es obligatorio' }), // ✅ AÑADIDO
+  documentoId: z.string().optional(), // ✅ AÑADIDO
   telefonoPrincipal: telefonoSchema,
   codigoVerificacion: codigoVerificacionSchema
     .optional()
