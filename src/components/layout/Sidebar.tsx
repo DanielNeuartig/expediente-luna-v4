@@ -94,7 +94,7 @@ export default function Sidebar() {
                     : undefined
                 }
               >
-                <Icon size={22} />
+                <Icon size={40} />
                 <Text color="tema.claro"fontSize="sm">{label}</Text>
               </Box>
             </Link>
