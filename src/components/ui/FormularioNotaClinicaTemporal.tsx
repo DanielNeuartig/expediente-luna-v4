@@ -14,16 +14,85 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 
+const formatoDatetimeLocal = (date: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes())
+  );
+};
+
+const now = new Date();
+const fechaAhora = formatoDatetimeLocal(now);
+
+type MedicamentoHorario = {
+  frecuenciaHoras: string;
+  veces: string;
+  desde: string;
+};
+
 export default function FormularioNotaClinicaVisual() {
-  const [medicamentos, setMedicamentos] = useState([{}]);
-  const [indicaciones, setIndicaciones] = useState([{}]);
+  // Inicializan VACÍOS, no hay ningún medicamento ni indicación al inicio
+  const [medicamentos, setMedicamentos] = useState<object[]>([]);
+  const [indicaciones, setIndicaciones] = useState<object[]>([]);
+  const [medHorarios, setMedHorarios] = useState<MedicamentoHorario[]>([]);
 
   const handleAddMedicamento = () => {
     setMedicamentos((prev) => [...prev, {}]);
+    setMedHorarios((prev) => [
+      ...prev,
+      { frecuenciaHoras: "", veces: "", desde: fechaAhora },
+    ]);
   };
 
   const handleAddIndicacion = () => {
     setIndicaciones((prev) => [...prev, {}]);
+  };
+
+  const handleHorarioChange = (
+    idx: number,
+    campo: keyof MedicamentoHorario,
+    valor: string
+  ) => {
+    setMedHorarios((prev) =>
+      prev.map((h, i) =>
+        i === idx ? { ...h, [campo]: valor } : h
+      )
+    );
+  };
+
+  const calcularFechas = (desde: string, frecuenciaHoras: string, veces: string) => {
+    const fechas: string[] = [];
+    if (
+      desde &&
+      frecuenciaHoras &&
+      veces &&
+      !isNaN(Number(frecuenciaHoras)) &&
+      !isNaN(Number(veces))
+    ) {
+      const base = new Date(desde);
+      for (let i = 0; i < Number(veces); i++) {
+        const fecha = new Date(base);
+        fecha.setHours(fecha.getHours() + i * Number(frecuenciaHoras));
+        fechas.push(
+          fecha.toLocaleString("es-MX", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        );
+      }
+    }
+    return fechas;
   };
 
   type NestedFormValue = string | number | boolean;
@@ -79,12 +148,9 @@ export default function FormularioNotaClinicaVisual() {
         <Fieldset.Content>
           <HStack>
             <Field.Root>
-              <Field.Label color="tema.suave" >
-                Historia clínica
-              </Field.Label>
+              <Field.Label color="tema.suave">Historia clínica</Field.Label>
               <Textarea color="tema.suave" name="historiaClinica" />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">Exploración física</Field.Label>
               <Textarea color="tema.suave" name="exploracionFisica" />
@@ -100,12 +166,10 @@ export default function FormularioNotaClinicaVisual() {
                 step="0.1"
               />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">Peso (kg)</Field.Label>
               <Input color="tema.suave" name="peso" type="number" step="0.1" />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">FC</Field.Label>
               <Input
@@ -114,7 +178,6 @@ export default function FormularioNotaClinicaVisual() {
                 type="number"
               />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">FR</Field.Label>
               <Input
@@ -126,12 +189,9 @@ export default function FormularioNotaClinicaVisual() {
           </HStack>
           <HStack>
             <Field.Root>
-              <Field.Label color="tema.suave">
-                Diagnóstico presuntivo
-              </Field.Label>
+              <Field.Label color="tema.suave">Diagnóstico presuntivo</Field.Label>
               <Textarea color="tema.suave" name="diagnosticoPresuntivo" />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">Pronóstico</Field.Label>
               <Textarea color="tema.suave" name="pronostico" />
@@ -142,13 +202,13 @@ export default function FormularioNotaClinicaVisual() {
               <Field.Label color="tema.suave">Laboratoriales</Field.Label>
               <Textarea color="tema.suave" name="laboratoriales" />
             </Field.Root>
-
             <Field.Root>
               <Field.Label color="tema.suave">Extras</Field.Label>
               <Textarea color="tema.suave" name="extras" />
             </Field.Root>
           </HStack>
 
+          {/* Medicamentos dinámicos (si hay alguno) */}
           {medicamentos.map((_, index) => (
             <Box key={index} borderWidth="1px" p="4" rounded="md">
               <Fieldset.Legend color="tema.intenso">
@@ -157,20 +217,12 @@ export default function FormularioNotaClinicaVisual() {
               <HStack>
                 <Field.Root>
                   <Field.Label color="tema.suave">Nombre</Field.Label>
-                  <Input
-                    color="tema.suave"
-                    name={`medicamentos[${index}].nombre`}
-                  />
+                  <Input color="tema.suave" name={`medicamentos[${index}].nombre`} />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Dosis</Field.Label>
-                  <Input
-                    color="tema.suave"
-                    name={`medicamentos[${index}].dosis`}
-                  />
+                  <Input color="tema.suave" name={`medicamentos[${index}].dosis`} />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Vía</Field.Label>
                   <NativeSelect.Root>
@@ -194,38 +246,66 @@ export default function FormularioNotaClinicaVisual() {
 
               <HStack>
                 <Field.Root>
-                  <Field.Label color="tema.suave">
-                    Cada cuántas horas
-                  </Field.Label>
+                  <Field.Label color="tema.suave">Cada cuántas horas</Field.Label>
                   <Input
                     color="tema.suave"
                     name={`medicamentos[${index}].frecuenciaHoras`}
                     type="number"
+                    value={medHorarios[index]?.frecuenciaHoras || ""}
+                    onChange={e =>
+                      handleHorarioChange(index, "frecuenciaHoras", e.target.value)
+                    }
                   />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Veces</Field.Label>
                   <Input
                     color="tema.suave"
                     name={`medicamentos[${index}].veces`}
                     type="number"
+                    value={medHorarios[index]?.veces || ""}
+                    onChange={e =>
+                      handleHorarioChange(index, "veces", e.target.value)
+                    }
                   />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Desde</Field.Label>
                   <Input
                     color="tema.suave"
                     name={`medicamentos[${index}].desde`}
                     type="datetime-local"
+                    value={medHorarios[index]?.desde || fechaAhora}
+                    onChange={e =>
+                      handleHorarioChange(index, "desde", e.target.value)
+                    }
                   />
                 </Field.Root>
               </HStack>
+
+              {/* Fechas calculadas de aplicación */}
+              <Stack gap={0} mb={2} mt={-2}>
+                {calcularFechas(
+                  medHorarios[index]?.desde,
+                  medHorarios[index]?.frecuenciaHoras,
+                  medHorarios[index]?.veces
+                ).map((fecha, i) => (
+                  <Box key={i} color="#00ADB5" fontSize="sm">
+                    {`Aplicación #${i + 1}: ${fecha}`}
+                  </Box>
+                ))}
+              </Stack>
+
               <Field.Root>
-                <Field.Label color="tema.suave">
-                  ¿Incluir en receta?
-                </Field.Label>
+                <Field.Label color="tema.suave">Observaciones</Field.Label>
+                <Textarea
+                  color="tema.suave"
+                  name={`medicamentos[${index}].observaciones`}
+                  placeholder="Observaciones sobre el medicamento"
+                />
+              </Field.Root>
+              <Field.Root>
+                <Field.Label color="tema.suave">¿Incluir en receta?</Field.Label>
                 <RadioCard.Root
                   color="tema.suave"
                   name={`medicamentos[${index}].incluirEnReceta`}
@@ -250,10 +330,11 @@ export default function FormularioNotaClinicaVisual() {
             </Box>
           ))}
 
-          <Button onClick={handleAddMedicamento} type="button">
+          <Button onClick={handleAddMedicamento} type="button" mb={2}>
             Añadir medicamento
           </Button>
 
+          {/* Indicaciones dinámicas */}
           {indicaciones.map((_, index) => (
             <Box key={index} borderWidth="1px" p="4" rounded="md">
               <Fieldset.Legend color="tema.intenso">
@@ -278,7 +359,6 @@ export default function FormularioNotaClinicaVisual() {
                     type="number"
                   />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Veces</Field.Label>
                   <Input
@@ -287,16 +367,24 @@ export default function FormularioNotaClinicaVisual() {
                     type="number"
                   />
                 </Field.Root>
-
                 <Field.Root>
                   <Field.Label color="tema.suave">Desde</Field.Label>
                   <Input
                     color="tema.suave"
                     name={`indicaciones[${index}].desde`}
                     type="datetime-local"
+                    defaultValue={fechaAhora}
                   />
                 </Field.Root>
               </HStack>
+              <Field.Root>
+                <Field.Label color="tema.suave">Observaciones</Field.Label>
+                <Textarea
+                  color="tema.suave"
+                  name={`indicaciones[${index}].observaciones`}
+                  placeholder="Observaciones sobre la indicación"
+                />
+              </Field.Root>
               <Field.Root>
                 <Field.Label color="tema.suave">
                   ¿Incluir en receta?
@@ -325,11 +413,10 @@ export default function FormularioNotaClinicaVisual() {
             </Box>
           ))}
 
-          <Button onClick={handleAddIndicacion} type="button">
+          <Button onClick={handleAddIndicacion} type="button" mb={4}>
             Añadir indicación
           </Button>
         </Fieldset.Content>
-
         <Button type="submit">Guardar nota clínica</Button>
       </Fieldset.Root>
     </form>

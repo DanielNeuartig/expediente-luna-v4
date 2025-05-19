@@ -135,6 +135,7 @@ model Medicamento {
   incluirEnReceta Boolean        @default(false)
   fechaCreacion        DateTime       @default(now())
   aplicaciones AplicacionMedicamento[] // Campo inverso para la relación
+  observaciones String?
 }
 
 model AplicacionMedicamento {
