@@ -68,7 +68,7 @@ export default function Sidebar() {
                 borderRadius="lg"
                 transition="all 0.2s"
                 position="relative"
-                bg={isActive ? '#1A1E24' : "transparent"}
+                bg={isActive ? "#1A1E24" : "transparent"}
                 color={isActive ? "tema.llamativo" : "inherit"}
                 //fontWeight={isActive ? "bold" : "normal"}
                 _hover={
@@ -95,7 +95,7 @@ export default function Sidebar() {
                 }
               >
                 <Icon size={22} />
-                <Text fontSize="sm">{label}</Text>
+                <Text color="tema.claro"fontSize="sm">{label}</Text>
               </Box>
             </Link>
           );
@@ -103,11 +103,7 @@ export default function Sidebar() {
       </VStack>
 
       {/* Footer opcional */}
-      <Box
-        mt="auto"
-        textAlign="center"
-
-      >
+      <Box mt="auto" textAlign="center">
         Expediente Luna © 2025
       </Box>
     </Box>
