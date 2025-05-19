@@ -49,6 +49,10 @@ model Perfil {
   mascotas        Mascota[]
   aplicacionesMed AplicacionMedicamento[] @relation("EjecutorMedicamento")
   aplicacionesInd AplicacionIndicacion[]  @relation("EjecutorIndicacion")
+  aplicacionesMedCreadas AplicacionMedicamento[] @relation("CreadorMedicamento")
+  aplicacionesIndCreadas AplicacionIndicacion[] @relation("CreadorIndicacion")
+
+  
 }
 
 model Mascota {
@@ -125,23 +129,42 @@ model Medicamento {
   nombre          String
   dosis           String
   via             ViaMedicamento
+  frecuenciaHoras Int?
   veces           Int?
   desde           DateTime?
   incluirEnReceta Boolean        @default(false)
-  creadoEn        DateTime       @default(now())
+  fechaCreacion        DateTime       @default(now())
+  aplicaciones AplicacionMedicamento[] // Campo inverso para la relación
 }
 
 model AplicacionMedicamento {
-  id            Int         @id @default(autoincrement())
-  notaClinicaId Int
-  notaClinica   NotaClinica @relation("AplicacionesMedNota", fields: [notaClinicaId], references: [id])
-  fecha         DateTime
-  dosis         String?
-  ejecutorId    Int?
-  ejecutor      Perfil?     @relation("EjecutorMedicamento", fields: [ejecutorId], references: [id])
-  observaciones String?
-  omitida       Boolean     @default(false)
-  creadoEn      DateTime    @default(now())
+  id                      Int              @id @default(autoincrement())
+  notaClinicaId           Int
+  notaClinica             NotaClinica      @relation("AplicacionesMedNota", fields: [notaClinicaId], references: [id])
+
+  medicamentoId           Int?
+  medicamento             Medicamento?     @relation(fields: [medicamentoId], references: [id])
+  nombreMedicamentoManual String?          // Usado en aplicaciones de urgencia o sin medicamento predefinido
+
+  via                     ViaMedicamento
+
+  fechaProgramada         DateTime
+  fechaReal               DateTime?        // Se registra cuando `estado` cambia a REALIZADA
+
+  dosis                   String?
+
+  ejecutorId              Int?
+  ejecutor                Perfil?          @relation("EjecutorMedicamento", fields: [ejecutorId], references: [id])
+
+  creadorId               Int
+  creador                 Perfil           @relation("CreadorMedicamento", fields: [creadorId], references: [id])
+
+  observaciones           String?
+  
+  estado                  EstadoAplicacion @default(PENDIENTE)
+
+  fechaCreacion           DateTime         @default(now())
+  @@index([notaClinicaId, estado, fechaProgramada])
 }
 
 model Indicacion {
@@ -149,23 +172,37 @@ model Indicacion {
   notaClinicaId   Int
   notaClinica     NotaClinica @relation(fields: [notaClinicaId], references: [id])
   descripcion     String
-  cada            String?
+  frecuenciaHoras Int?
   desde           DateTime?
   veces           Int?
   incluirEnReceta Boolean     @default(false)
-  creadoEn        DateTime    @default(now())
+  fechaCreacion        DateTime    @default(now())
+  aplicaciones AplicacionIndicacion[] // Campo inverso para la relación
 }
 
 model AplicacionIndicacion {
-  id            Int         @id @default(autoincrement())
-  notaClinicaId Int
-  notaClinica   NotaClinica @relation("AplicacionesIndNota", fields: [notaClinicaId], references: [id])
-  fecha         DateTime
-  ejecutorId    Int?
-  ejecutor      Perfil?     @relation("EjecutorIndicacion", fields: [ejecutorId], references: [id])
-  observaciones String?
-  omitida       Boolean     @default(false)
-  creadoEn      DateTime    @default(now())
+  id                     Int         @id @default(autoincrement())
+  notaClinicaId          Int
+  notaClinica            NotaClinica @relation("AplicacionesIndNota", fields: [notaClinicaId], references: [id])
+
+  indicacionId           Int?
+  indicacion             Indicacion? @relation(fields: [indicacionId], references: [id])
+  descripcionManual      String?
+
+  fechaProgramada        DateTime
+  fechaReal              DateTime?
+
+  ejecutorId             Int?
+  ejecutor               Perfil?     @relation("EjecutorIndicacion", fields: [ejecutorId], references: [id])
+
+  creadorId              Int
+  creador                Perfil       @relation("CreadorIndicacion", fields: [creadorId], references: [id])
+
+  observaciones          String?
+  estado                 EstadoAplicacion @default(PENDIENTE)
+
+  fechaCreacion          DateTime    @default(now())
+  @@index([notaClinicaId, estado, fechaProgramada])
 }
 
 model Raza {
@@ -301,6 +338,7 @@ enum Esterilizacion {
 
 enum TipoExpediente {
   CONSULTA
+  SEGUIMIENTO
   CIRUGIA
   HOSPITALIZACION
   LABORATORIO
@@ -323,4 +361,12 @@ enum ViaMedicamento {
   OFTALMICA
   TOPICA
   OTRO
+}
+
+
+enum EstadoAplicacion {
+  PENDIENTE     // Aplicación programada, aún no realizada
+  REALIZADA     // Se aplicó exitosamente
+  OMITIDA       // Se omitió por decisión médica o administrativa
+  CANCELADA     // Cancelada por alguna razón (alta, cambio de plan, error)
 }
