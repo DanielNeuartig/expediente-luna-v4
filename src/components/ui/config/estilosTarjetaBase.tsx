@@ -1,6 +1,6 @@
 // src/components/ui/config/estiloTajetaBase.ts
 export const estilosTarjetaBase = {
-  bg: "tema.suave",
+  bg: "white",
   borderRadius: "2xl",
   borderWidth: "2px",
   borderColor: "gray.300",
