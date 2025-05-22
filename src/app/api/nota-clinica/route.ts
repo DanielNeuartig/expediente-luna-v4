@@ -17,8 +17,6 @@ export async function POST(req: Request) {
   const data = notaClinicaSchema.parse(body);
 
   const expedienteId = body.expedienteId as number;
-   //const mascotaId = body.mascotaId as number;
- 
 
   const perfilDb = await prisma.perfil.findUnique({
     where: { telefonoPrincipal: session.user.perfil.telefonoPrincipal },
@@ -52,7 +50,8 @@ export async function POST(req: Request) {
       },
     });
 
-    /*const medicamentos = */await Promise.all(
+    // Medicamentos
+    await Promise.all(
       (data.medicamentos ?? []).map(async (med) => {
         const medDb = await prisma.medicamento.create({
           data: {
@@ -69,34 +68,36 @@ export async function POST(req: Request) {
           },
         });
 
-        if (
-          med.incluirEnReceta === "false" &&
-          med.frecuenciaHoras &&
-          med.veces &&
-          med.veces > 0
-        ) {
-          const fechas = calcularFechasAplicacion(
-            med.desde,
-            med.frecuenciaHoras,
-            med.veces
-          );
+        const frecuencia = Number(med.frecuenciaHoras);
+        const veces = Number(med.veces);
 
-          await prisma.aplicacionMedicamento.createMany({
-            data: fechas.map((fecha) => ({
-              notaClinicaId: nota.id,
-              medicamentoId: medDb.id,
-              fechaProgramada: fecha,
-              via: med.via,
-              creadorId: perfilId,
-              ejecutorId: perfilId,
-            })),
-          });
+        if (med.incluirEnReceta === "false" && veces >= 1) {
+          let fechas: Date[] = [];
+          if (veces === 1) {
+            fechas = [new Date(med.desde)];
+          } else if (!isNaN(frecuencia) && frecuencia > 0) {
+            fechas = calcularFechasAplicacion(med.desde, frecuencia, veces);
+          }
+
+          // Filtra fechas inválidas por seguridad
+          fechas = fechas.filter((f) => !isNaN(f.getTime()));
+
+          if (fechas.length > 0) {
+            await prisma.aplicacionMedicamento.createMany({
+              data: fechas.map((fecha) => ({
+                notaClinicaId: nota.id,
+                medicamentoId: medDb.id,
+                fechaProgramada: fecha,
+                via: med.via,
+                creadorId: perfilId,
+                ejecutorId: perfilId,
+              })),
+            });
+          }
         }
       })
     );
-
-
-    /*const indicaciones = */await Promise.all(
+    await Promise.all(
       (data.indicaciones ?? []).map(async (ind) => {
         const indDb = await prisma.indicacion.create({
           data: {
@@ -110,17 +111,16 @@ export async function POST(req: Request) {
           },
         });
 
+        const frecuencia = Number(ind.frecuenciaHoras);
+        const veces = Number(ind.veces);
+
         if (
           ind.incluirEnReceta === "false" &&
-          ind.frecuenciaHoras &&
-          ind.veces &&
-          ind.veces > 0
+          !isNaN(veces) &&
+          veces >= 1 &&
+          (veces === 1 || (!isNaN(frecuencia) && frecuencia >= 1))
         ) {
-          const fechas = calcularFechasAplicacion(
-            ind.desde,
-            ind.frecuenciaHoras,
-            ind.veces
-          );
+          const fechas = calcularFechasAplicacion(ind.desde, frecuencia, veces);
 
           await prisma.aplicacionIndicacion.createMany({
             data: fechas.map((fecha) => ({

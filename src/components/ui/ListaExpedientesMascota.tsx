@@ -105,10 +105,9 @@ export default function ListaExpedientesMascota({
     queryFn: async () => {
       const res = await fetch(`/api/mascotas/${mascotaId}/expedientes`);
       if (!res.ok) throw new Error("Error al cargar expedientes");
-      
+
       return res.json();
     },
-    
   });
   useEffect(() => {
     if (data?.aplicacionesMedicamentos) {
@@ -184,7 +183,16 @@ export default function ListaExpedientesMascota({
                 <HStack>
                   <CalendarDays size={14} />
                   <Text fontSize="xs">
-                    {new Date(exp.fechaCreacion).toLocaleString()}
+                    {new Date(exp.fechaCreacion).toLocaleString("es-MX", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                      // NO incluyas "second"
+                    })}
                   </Text>
                 </HStack>
               </Badge>
@@ -233,7 +241,19 @@ export default function ListaExpedientesMascota({
                         <HStack>
                           <CalendarDays size={14} />
                           <Text fontSize="sm">
-                            {new Date(nota.fechaCreacion).toLocaleString()}
+                            {new Date(nota.fechaCreacion).toLocaleString(
+                              "es-MX",
+                              {
+                                weekday: "short", 
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                                // NO incluyas "second"
+                              }
+                            )}
                           </Text>
                         </HStack>
                       </Badge>
@@ -321,19 +341,31 @@ export default function ListaExpedientesMascota({
                         pb="1"
                         pt="1"
                       >
-                        <Text fontWeight="semibold">💊 Medicamentos:</Text>
+                        <Text fontWeight="semibold"></Text>
                         {(nota.medicamentos ?? []).map((m) => (
                           <Box key={m.id} fontSize="sm" pl="2">
-                            <Text>---</Text>
+                 
                             <Text>
-                              Nombre: {m.nombre}--{m.dosis}--{m.via}
+                              💊({m.nombre}) ({m.dosis}) ({m.via})
                             </Text>
                             {m.frecuenciaHoras !== null && (
-                              <Text>Frecuencia (h): {m.frecuenciaHoras}</Text>
+                              <Text>Cada {m.frecuenciaHoras} horas</Text>
                             )}
-                            {m.veces !== null && <Text>Veces: {m.veces}</Text>}
+                            {m.veces !== null && (
+                              <Text>Durante: {m.veces} veces</Text>
+                            )}
                             <Text>
-                              Desde: {new Date(m.desde).toLocaleString()}
+                              Desde:{" "}
+                              {new Date(m.desde).toLocaleString("es-MX", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                                // NO incluyas "second"
+                              })}
                             </Text>
                             {m.observaciones && (
                               <Text>Observaciones: {m.observaciones}</Text>
@@ -386,7 +418,7 @@ export default function ListaExpedientesMascota({
         aplicacionesIndicaciones.length > 0) && (
         <Box mt="6" width="full">
           <Text fontWeight="bold" fontSize="lg" color="tema.suave">
-          Historial farmacológico 
+            Historial farmacológico
           </Text>
           <VStack align="start" gap="2" mt="2">
             {aplicacionesMedicamentos.map((a) => (

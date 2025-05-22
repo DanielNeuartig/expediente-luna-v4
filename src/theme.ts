@@ -80,6 +80,12 @@ export const system = createSystem(defaultConfig, {
           suave: { value: "#393E46" },
           llamativo: { value: "#00ADB5" },
           claro: { value: "#EEEEEE" },
+          rojo: { value: "#E63946" } ,
+          naranja: { value: "#FF9300 " },
+          amarillo:{value:"#FFA500"},
+          verde: { value: "#00B894" },
+          gris: { value: "#222831" },
+          
         },
         fondo: {
           base: { value: "#f7f8fa" },
@@ -92,6 +98,7 @@ export const system = createSystem(defaultConfig, {
           secundario: { value: "#393E46" },
           claro: { value: "#EEEEEE" },
         },
+        
         estado: {
           success: { value: "#38A169" }, // verde
           error: { value: "#E53E3E" }, // rojo

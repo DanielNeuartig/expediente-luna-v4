@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, Tabs } from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
 import BotoneraExpediente from "@/components/ui/BotonesCrearExpediente";
@@ -12,8 +12,7 @@ import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaCli
 import { Sexo, Esterilizacion, Especie } from "@prisma/client";
 import ListaAplicacionesMedicamento from "@/components/ui/aplicaciones/ListaAplicacionesMedicamento";
 import type { Aplicacion } from "@/components/ui/aplicaciones/aplicaciones";
-//import { useEffect } from "react";
-
+import { LuFileText, LuCircleCheck } from "react-icons/lu";
 
 type Mascota = {
   id: number;
@@ -30,15 +29,14 @@ type Mascota = {
 
 export default function MascotaDetalleClient({
   mascota,
-  
 }: {
-  
   mascota: Mascota;
 }) {
   const [expedienteSeleccionado, setExpedienteSeleccionado] =
     useState<ExpedienteConNotas | null>(null);
   const [mostrarFormularioNota, setMostrarFormularioNota] = useState(true);
-const [aplicacionesMedicamentos, setAplicacionesMedicamentos] = useState<Aplicacion[]>([]); 
+  const [aplicacionesMedicamentos, setAplicacionesMedicamentos] = useState<Aplicacion[]>([]);
+
   return (
     <>
       <Box gridColumn="1" gridRow="1">
@@ -70,7 +68,7 @@ const [aplicacionesMedicamentos, setAplicacionesMedicamentos] = useState<Aplicac
                 setExpedienteSeleccionado(expediente);
                 setMostrarFormularioNota(true);
               }}
-              setAplicacionesMedicamentos={setAplicacionesMedicamentos} //
+              setAplicacionesMedicamentos={setAplicacionesMedicamentos}
             />
           </TarjetaBase>
         </TarjetaBase>
@@ -79,20 +77,35 @@ const [aplicacionesMedicamentos, setAplicacionesMedicamentos] = useState<Aplicac
       {(mostrarFormularioNota || aplicacionesMedicamentos.length > 0) && (
         <Box gridColumn="2" gridRow="1">
           <TarjetaBase>
-            <ListaAplicacionesMedicamento
-              aplicaciones={aplicacionesMedicamentos}
-            />
+            <Tabs.Root defaultValue="aplicaciones" variant="enclosed">
+              <Tabs.List>
+                <Tabs.Trigger value="aplicaciones" fontWeight="bold">
+                  <LuCircleCheck style={{ marginRight: 6 }} />
+                  Aplicaciones clínicas
+                </Tabs.Trigger>
+                <Tabs.Trigger value="nota" fontWeight="bold" disabled={!expedienteSeleccionado}>
+                  <LuFileText style={{ marginRight: 6 }} />
+                  Nueva nota clínica
+                </Tabs.Trigger>
+              </Tabs.List>
+              <Tabs.Content value="aplicaciones">
+                <ListaAplicacionesMedicamento aplicaciones={aplicacionesMedicamentos} />
+              </Tabs.Content>
+              <Tabs.Content value="nota">
+                {expedienteSeleccionado ? (
+                  <FormularioNotaClinica
+                    expedienteSeleccionado={expedienteSeleccionado}
+                    mascotaId={mascota.id}
+                    onClose={() => setMostrarFormularioNota(false)}
+                  />
+                ) : (
+                  <Box py={4} color="tema.suave">
+                    Selecciona un expediente para registrar una nota clínica.
+                  </Box>
+                )}
+              </Tabs.Content>
+            </Tabs.Root>
           </TarjetaBase>
-
-          {mostrarFormularioNota && expedienteSeleccionado && (
-            <TarjetaBase>
-              <FormularioNotaClinica
-                expedienteSeleccionado={expedienteSeleccionado}
-                mascotaId={mascota.id}
-                onClose={() => setMostrarFormularioNota(false)}
-              />
-            </TarjetaBase>
-          )}
         </Box>
       )}
     </>
