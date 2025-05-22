@@ -2,13 +2,7 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import {
-  Text,
-  Spinner,
-  Box,
-  List,
-  HStack,
-} from "@chakra-ui/react";
+import { Text, Spinner, Box, List, HStack } from "@chakra-ui/react";
 import {
   Phone,
   PhoneForwarded,
@@ -111,12 +105,19 @@ async function AsyncPerfilComponent({
 
           <List.Root gap="3" variant="plain">
             <List.Item>
-              <List.Indicator asChild color={perfil.documentoId ? "cyan.500" : "red.500"}>
+              <List.Indicator
+                asChild
+                color={perfil.documentoId ? "cyan.500" : "red.500"}
+              >
                 <User />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Documento ID:</Text>
-                <Text color="tema.suave" fontWeight="light">{perfil.documentoId ?? "—"}</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Documento ID:
+                </Text>
+                <Text color="tema.suave" fontWeight="light">
+                  {perfil.documentoId ?? "—"}
+                </Text>
               </HStack>
             </List.Item>
 
@@ -125,9 +126,13 @@ async function AsyncPerfilComponent({
                 <Phone />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Teléfono principal:</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Teléfono principal:
+                </Text>
                 <Text color="tema.suave" fontWeight="light">
-                  {perfil.clave + " " + formatearTelefono(perfil.telefonoPrincipal)}
+                  {perfil.clave +
+                    " " +
+                    formatearTelefono(perfil.telefonoPrincipal)}
                 </Text>
               </HStack>
             </List.Item>
@@ -138,7 +143,9 @@ async function AsyncPerfilComponent({
                   <PhoneForwarded />
                 </List.Indicator>
                 <HStack>
-                  <Text color="tema.suave" fontWeight="medium">Tel. secundario 1:</Text>
+                  <Text color="tema.suave" fontWeight="medium">
+                    Tel. secundario 1:
+                  </Text>
                   <Text color="tema.suave" fontWeight="light">
                     {formatearTelefono(perfil.telefonoSecundario1)}
                   </Text>
@@ -152,7 +159,9 @@ async function AsyncPerfilComponent({
                   <PhoneForwarded />
                 </List.Indicator>
                 <HStack>
-                  <Text color="tema.suave" fontWeight="medium">Tel. secundario 2:</Text>
+                  <Text color="tema.suave" fontWeight="medium">
+                    Tel. secundario 2:
+                  </Text>
                   <Text color="tema.suave" fontWeight="light">
                     {formatearTelefono(perfil.telefonoSecundario2)}
                   </Text>
@@ -161,11 +170,16 @@ async function AsyncPerfilComponent({
             )}
 
             <List.Item>
-              <List.Indicator asChild color={perfil.telefonoVerificado ? "green.500" : "red.500"}>
+              <List.Indicator
+                asChild
+                color={perfil.telefonoVerificado ? "green.500" : "red.500"}
+              >
                 <CheckCircle />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Teléfono verificado:</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Teléfono verificado:
+                </Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.telefonoVerificado ? "Sí" : "No"}
                 </Text>
@@ -177,7 +191,9 @@ async function AsyncPerfilComponent({
                 <User />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Tiene usuario:</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Tiene usuario:
+                </Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.usuario ? "Sí" : "No"}
                 </Text>
@@ -189,7 +205,9 @@ async function AsyncPerfilComponent({
                 <UserPlus />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Creado por:</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Creado por:
+                </Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.autor?.perfil?.nombre ?? "—"}
                 </Text>
@@ -201,13 +219,22 @@ async function AsyncPerfilComponent({
                 <CalendarDays />
               </List.Indicator>
               <HStack>
-                <Text color="tema.suave" fontWeight="medium">Creado en:</Text>
+                <Text color="tema.suave" fontWeight="medium">
+                  Creado en:
+                </Text>
                 <Text color="tema.suave" fontWeight="light">
                   {perfil.fechaCreacion.toLocaleString()}
                 </Text>
               </HStack>
             </List.Item>
           </List.Root>
+          <Box
+          bg="gray.100"
+          p="4"
+            borderRadius="xl">
+            <Text color="tema.suave">Registrar una mascota nueva:</Text>
+            <FormularioMascotaVisual />
+          </Box>
         </TarjetaBase>
       </Box>
 
@@ -245,15 +272,6 @@ async function AsyncPerfilComponent({
               ))}
             </List.Root>
           )}
-        </TarjetaBase>
-      </Box>
-
-      <Box gridColumn="1" gridRow="2">
-        <TarjetaBase>
-          <Text color="tema.suave" fontWeight={"bold"} fontSize={"2xl"}>
-            Registrar mascota
-          </Text>
-          <FormularioMascotaVisual />
         </TarjetaBase>
       </Box>
     </>

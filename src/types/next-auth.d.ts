@@ -7,7 +7,9 @@ declare module 'next-auth' {
       id: number
       tipoUsuario: TipoUsuario
       activo: boolean
+      perfilid?: number | null
       perfil?: {
+        id: number
         nombre: string
         telefonoPrincipal: string
       }
@@ -27,5 +29,6 @@ declare module 'next-auth/jwt' {
     tipoUsuario: TipoUsuario
     activo: boolean
     email: string
+    perfilid?: number | null // ✅ necesario para que pase a session
   }
 }

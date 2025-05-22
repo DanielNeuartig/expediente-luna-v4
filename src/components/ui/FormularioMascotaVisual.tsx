@@ -55,7 +55,6 @@ export default function FormularioMascotaVisual() {
     register,
     handleSubmit,
     getValues,
-    reset,
     watch,
     formState: { errors },
   } = methods;
@@ -72,13 +71,14 @@ export default function FormularioMascotaVisual() {
     const datos = { ...data, perfilId };
 
     registrarMascota.mutate(datos, {
-      onSuccess: () => {
+      onSuccess: (mascota) => {
         toaster.create({
           type: "success",
           description: "Mascota registrada con éxito",
         });
-        reset(); // ✅ Limpia el formulario
-        router.refresh(); // ✅ Refresca todos los componentes del layout
+        if (mascota?.id) {
+          router.push(`/dashboard/mascotas/${mascota.id}`);
+        }
       },
       onError: (err: unknown) => {
         const error =
@@ -193,8 +193,8 @@ export default function FormularioMascotaVisual() {
                   {...register("esterilizado")}
                   {...estilosInputBase}
                 >
-                  <option value="ESTERILIZADO">Esterilizado ✅</option>
-                  <option value="NO_ESTERILIZADO">No esterilizado ❌</option>
+                  <option value="ESTERILIZADO">SÍ ✅</option>
+                  <option value="NO_ESTERILIZADO">NO ❌</option>
                   <option value="DESCONOCIDO">Desconocido ❓</option>
                 </NativeSelect.Field>
                 <NativeSelect.Indicator />

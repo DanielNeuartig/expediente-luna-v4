@@ -1,7 +1,13 @@
-// src/components/formulario/FormularioPerfil.tsx
 "use client";
 
-import { Fieldset, Button, Stack } from "@chakra-ui/react";
+import {
+  Fieldset,
+  Button,
+  Stack,
+  Field,
+  Input,
+  HStack,
+} from "@chakra-ui/react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { perfilSchema, PerfilFormData } from "@/lib/validadores/perfilSchema";
@@ -15,6 +21,8 @@ import VerificacionSMS from "./VerificacionSMS";
 import InputTelefonosAdicionales from "./InputTelefonosAdicionales";
 import TarjetaBase from "./TarjetaBase";
 import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
+import { estilosInputBase } from "./config/estilosInputBase";
+import { estilosTituloInput } from "./config/estilosTituloInput";
 
 interface FormularioPerfilProps {
   mostrarVerificacionSMS?: boolean;
@@ -35,7 +43,8 @@ export default function FormularioPerfil({
 
   const {
     handleSubmit,
-    formState: { isValid },
+    register,
+    formState: { errors, isValid },
   } = methods;
 
   const { mutateAsync, isPending } = useMutation({
@@ -71,24 +80,38 @@ export default function FormularioPerfil({
     <TarjetaBase>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Fieldset.Root /*size="lg" maxW="md"*/>
+          <Fieldset.Root>
             <Stack gap={4}>
               <Stack>
-                <Fieldset.Legend color="tema.intenso" fontWeight={"bold"}>Crear perfil</Fieldset.Legend>
-                <Fieldset.HelperText >
-
-                </Fieldset.HelperText>
+                <Fieldset.Legend color="tema.intenso" fontWeight="bold">
+                  Crear perfil
+                </Fieldset.Legend>
               </Stack>
 
               <Fieldset.Content>
                 <InputNombre />
+
                 <InputTelefonoConClave />
                 {mostrarVerificacionSMS && <VerificacionSMS />}
                 <InputTelefonosAdicionales />
               </Fieldset.Content>
 
+              <HStack>
+                <Field.Root invalid={!!errors.prefijo}>
+                  <Field.Label {...estilosTituloInput}>Prefijo</Field.Label>
+                  <Input {...estilosInputBase} {...register("prefijo")} />
+                  <Field.ErrorText>{errors.prefijo?.message}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label {...estilosTituloInput}>
+                    Documento de identificación
+                  </Field.Label>
+                  <Input {...estilosInputBase} {...register("documentoId")} />
+                </Field.Root>
+              </HStack>
               <Button
-            {...estilosBotonEspecial}
+                {...estilosBotonEspecial}
                 type="submit"
                 loading={isPending}
                 disabled={!isValid}

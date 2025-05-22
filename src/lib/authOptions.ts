@@ -59,11 +59,13 @@ export const authOptions: AuthOptions = {
            const perfil = await prisma.perfil.findUnique({
       where: { usuarioId: token.id },
       select: {
+         id: true, // ✅ ahora se incluye el ID real del perfil
         nombre: true,
         telefonoPrincipal: true,
       },
     })
-   session.user.perfil = perfil ?? undefined
+session.user.perfil = perfil ?? undefined
+session.user.perfilid = perfil?.id ?? null
     console.log('📋 Perfil recuperado de la base de datos:', session.user.perfil)
 
 

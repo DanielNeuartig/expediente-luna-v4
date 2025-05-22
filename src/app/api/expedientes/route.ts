@@ -1,4 +1,4 @@
-// src/app/dashboard/expedientes/route.ts
+// src/app/api/expedientes/route.ts
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -14,17 +14,29 @@ const expedienteSchema = z.object({
 
 export async function POST(req: Request) {
   const session = await auth()
+
   if (!session?.user?.id) {
-        console.warn('🚫 No autorizado, sesión faltante') // 👈
+    console.warn('🚫 No autorizado, sesión faltante')
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
-  const json = await req.json()
-    console.log('📩 Datos recibidos en API:', json) // 👈
-  const parse = expedienteSchema.safeParse(json)
+  if (!session.user.perfilid) {
+    console.warn('🚫 Usuario autenticado sin perfilid')
+    return NextResponse.json({ error: 'Perfil no vinculado' }, { status: 403 })
+  }
 
+  let json: unknown
+  try {
+    json = await req.json()
+    console.log('📩 Datos recibidos en API:', json)
+  } catch (err) {
+    console.error('❌ Error al parsear JSON:', err)
+    return NextResponse.json({ error: 'Formato JSON inválido' }, { status: 400 })
+  }
+
+  const parse = expedienteSchema.safeParse(json)
   if (!parse.success) {
-        console.error('❌ Validación Zod fallida:', parse.error.flatten()) // 👈
+    console.error('❌ Validación Zod fallida:', parse.error.flatten())
     return NextResponse.json({ error: parse.error.flatten() }, { status: 400 })
   }
 
@@ -34,7 +46,7 @@ export async function POST(req: Request) {
     const expediente = await prisma.expedienteMedico.create({
       data: {
         mascotaId: datos.mascotaId,
-        autorId: session.user.id,
+        autorId: session.user.perfilid,
         tipo: datos.tipo,
         contenidoAdaptado: datos.contenidoAdaptado ?? null,
         notasGenerales: datos.notasGenerales ?? null,
@@ -42,15 +54,23 @@ export async function POST(req: Request) {
       },
       include: {
         mascota: true,
-        autor: true,
-        notasClinicas: true,
+        autor: {
+          select: {
+            id: true,
+            nombre: true,
+            prefijo: true,
+          },
+        },
+        notasClinicas: {
+          orderBy: { fechaCreacion: 'desc' },
+        },
       },
     })
-    console.log('✅ Expediente creado:', expediente) // 👈
+
+    console.log('✅ Expediente creado:', expediente)
     return NextResponse.json(expediente)
   } catch (err) {
-        console.error('💥 Error en prisma.create:', err) // 👈
-    console.error('❌ Error al crear expediente:', err)
+    console.error('💥 Error en prisma.create:', err)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }

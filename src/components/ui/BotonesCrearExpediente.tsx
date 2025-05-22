@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import {
-  Box,
   Button,
   HStack,
   VStack,
@@ -15,19 +13,20 @@ import {
   Hospital,
   FlaskConical,
   AlertTriangle,
+  Scissors,
 } from 'lucide-react'
 import { toaster } from '@/components/ui/toaster'
 import { z } from 'zod'
 
-// Tipo mínimo para lo que usamos en expedienteCreado
 type ExpedienteMedico = {
   id: number
-  tipo: 'CONSULTA' | 'CIRUGIA' | 'HOSPITALIZACION' | 'LABORATORIO' | 'OTRO'
+  tipo: 'CONSULTA' | 'SEGUIMIENTO' | 'CIRUGIA' | 'HOSPITALIZACION' | 'LABORATORIO' | 'OTRO'
   fechaCreacion: string
 }
 
 const tiposExpediente = [
   { tipo: 'CONSULTA', icono: <Stethoscope size={16} />, texto: 'Consulta' },
+  { tipo: 'SEGUIMIENTO', icono: <Scissors size={16} />, texto: 'Seguimiento' },
   { tipo: 'CIRUGIA', icono: <ClipboardList size={16} />, texto: 'Cirugía' },
   { tipo: 'HOSPITALIZACION', icono: <Hospital size={16} />, texto: 'Hospitalización' },
   { tipo: 'LABORATORIO', icono: <FlaskConical size={16} />, texto: 'Laboratorio' },
@@ -35,7 +34,7 @@ const tiposExpediente = [
 ]
 
 const schema = z.object({
-  tipo: z.enum(['CONSULTA', 'CIRUGIA', 'HOSPITALIZACION', 'LABORATORIO', 'OTRO']),
+  tipo: z.enum(['CONSULTA', 'SEGUIMIENTO','CIRUGIA', 'HOSPITALIZACION', 'LABORATORIO', 'OTRO']),
   mascotaId: z.number(),
   contenidoAdaptado: z.string().optional(),
   notasGenerales: z.string().optional(),
@@ -43,7 +42,7 @@ const schema = z.object({
 })
 
 export default function BotoneraExpediente({ mascotaId }: { mascotaId: number }) {
-  const [expedienteCreado, setExpedienteCreado] = useState<ExpedienteMedico | null>(null)
+  const queryClient = useQueryClient()
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (tipo: string): Promise<ExpedienteMedico> => {
@@ -56,9 +55,9 @@ export default function BotoneraExpediente({ mascotaId }: { mascotaId: number })
       if (!res.ok) throw new Error('Error al crear expediente')
       return res.json()
     },
-    onSuccess: (data) => {
-      setExpedienteCreado(data)
+    onSuccess: () => {
       toaster.create({ description: 'Expediente creado', type: 'success' })
+      queryClient.invalidateQueries({ queryKey: ['expedientes', mascotaId] })
     },
     onError: () => {
       toaster.create({ description: 'Error al crear expediente', type: 'error' })
@@ -88,14 +87,6 @@ export default function BotoneraExpediente({ mascotaId }: { mascotaId: number })
           </Button>
         ))}
       </HStack>
-
-      {expedienteCreado && (
-        <Box w="full" bg="gray.900" borderRadius="lg" p="4">
-          <Text fontWeight="bold">Expediente #{expedienteCreado.id}</Text>
-          <Text>Tipo: {expedienteCreado.tipo}</Text>
-          <Text>Fecha: {new Date(expedienteCreado.fechaCreacion).toLocaleString()}</Text>
-        </Box>
-      )}
     </VStack>
   )
 }
