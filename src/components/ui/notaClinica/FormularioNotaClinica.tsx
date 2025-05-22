@@ -15,6 +15,7 @@ import CamposClinicos from "./CamposClinicos";
 import ListaMedicamentos from "./ListaMedicamentos";
 import ListaIndicaciones from "./ListaIndicaciones";
 import { useCrearNotaClinica } from "@/hooks/useCrearNotaClinica";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Expediente = {
   id: number;
@@ -45,6 +46,7 @@ export default function FormularioNotaClinica({
 
   const { handleSubmit, reset } = methods;
   const crearNota = useCrearNotaClinica();
+  const queryClient = useQueryClient();
 
   if (!expedienteSeleccionado) {
     return (
@@ -65,6 +67,9 @@ export default function FormularioNotaClinica({
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["expedientes", mascotaId],
+          });
           reset();
           onClose?.();
         },
@@ -88,7 +93,12 @@ export default function FormularioNotaClinica({
             <ListaMedicamentos fechaBase={formatoDatetimeLocal(new Date())} />
             <ListaIndicaciones fechaBase={formatoDatetimeLocal(new Date())} />
           </Fieldset.Content>
-          <Button {...estilosBotonEspecial} type="submit">
+          <Button
+            {...estilosBotonEspecial}
+            type="submit"
+            disabled={crearNota.isPending}
+            loading={crearNota.isPending}
+          >
             Guardar nota clínica
           </Button>
         </Fieldset.Root>

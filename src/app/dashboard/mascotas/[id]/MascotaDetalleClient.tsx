@@ -1,7 +1,9 @@
+// src/components/ui/MascotaDetalleClient.tsx
 "use client";
 
 import { useState } from "react";
-import { Box, Tabs } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+import { Box, Tabs, Spinner, Text } from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
 import BotoneraExpediente from "@/components/ui/BotonesCrearExpediente";
@@ -27,6 +29,17 @@ type Mascota = {
   perfil?: { id: number; nombre: string } | null;
 };
 
+// --- TIPADO AUXILIAR para aplicaciones e indicaciones ---
+type AplicacionIndicacion = {
+  id: number;
+  descripcionManual?: string | null;
+  descripcion?: string | null;
+  fechaProgramada: string;
+  estado: string;
+  indicacionId?: number;
+  // ...otros campos si los usas
+};
+
 export default function MascotaDetalleClient({
   mascota,
 }: {
@@ -35,7 +48,45 @@ export default function MascotaDetalleClient({
   const [expedienteSeleccionado, setExpedienteSeleccionado] =
     useState<ExpedienteConNotas | null>(null);
   const [mostrarFormularioNota, setMostrarFormularioNota] = useState(true);
-  const [aplicacionesMedicamentos, setAplicacionesMedicamentos] = useState<Aplicacion[]>([]);
+
+  // --- FETCH CENTRALIZADO ---
+  const { data, isLoading, isError } = useQuery<{
+    expedientes: ExpedienteConNotas[];
+    aplicacionesMedicamentos: Aplicacion[];
+    aplicacionesIndicaciones: AplicacionIndicacion[];
+  }>({
+    queryKey: ["expedientes", mascota.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/mascotas/${mascota.id}/expedientes`);
+      if (!res.ok) throw new Error("Error al cargar expedientes");
+      return res.json();
+    },
+  });
+
+  // --- TRANSFORMACIÓN (si la necesitas, ajústala aquí) ---
+  const expedientes = data?.expedientes ?? [];
+  const aplicacionesMedicamentos = data?.aplicacionesMedicamentos ?? [];
+  const aplicacionesIndicaciones = data?.aplicacionesIndicaciones ?? [];
+
+  // --- CARGANDO / ERROR ---
+  if (isLoading) {
+    return (
+      <Box gridColumn="1 / span 2" gridRow="1">
+        <TarjetaBase>
+          <Spinner size="lg" color="tema.llamativo" />
+        </TarjetaBase>
+      </Box>
+    );
+  }
+  if (isError) {
+    return (
+      <Box gridColumn="1 / span 2" gridRow="1">
+        <TarjetaBase>
+          <Text color="red.500">Error al cargar datos clínicos.</Text>
+        </TarjetaBase>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -59,55 +110,53 @@ export default function MascotaDetalleClient({
             }}
           />
           <BotoneraExpediente mascotaId={mascota.id} />
-
           <TarjetaBase>
             <ListaExpedientesMascota
-              mascotaId={mascota.id}
+              expedientes={expedientes}
               expedienteSeleccionado={expedienteSeleccionado}
               setExpedienteSeleccionado={(expediente) => {
                 setExpedienteSeleccionado(expediente);
                 setMostrarFormularioNota(true);
               }}
-              setAplicacionesMedicamentos={setAplicacionesMedicamentos}
+              aplicacionesMedicamentos={aplicacionesMedicamentos}
+              aplicacionesIndicaciones={aplicacionesIndicaciones}
             />
           </TarjetaBase>
         </TarjetaBase>
       </Box>
-
-      {(mostrarFormularioNota || aplicacionesMedicamentos.length > 0) && (
-        <Box gridColumn="2" gridRow="1">
-          <TarjetaBase>
-            <Tabs.Root defaultValue="aplicaciones" variant="enclosed">
-              <Tabs.List>
-                <Tabs.Trigger value="aplicaciones" fontWeight="bold">
-                  <LuCircleCheck style={{ marginRight: 6 }} />
-                  Aplicaciones clínicas
-                </Tabs.Trigger>
-                <Tabs.Trigger value="nota" fontWeight="bold" disabled={!expedienteSeleccionado}>
-                  <LuFileText style={{ marginRight: 6 }} />
-                  Nueva nota clínica
-                </Tabs.Trigger>
-              </Tabs.List>
-              <Tabs.Content value="aplicaciones">
-                <ListaAplicacionesMedicamento aplicaciones={aplicacionesMedicamentos} />
-              </Tabs.Content>
-              <Tabs.Content value="nota">
-                {expedienteSeleccionado ? (
-                  <FormularioNotaClinica
-                    expedienteSeleccionado={expedienteSeleccionado}
-                    mascotaId={mascota.id}
-                    onClose={() => setMostrarFormularioNota(false)}
-                  />
-                ) : (
-                  <Box py={4} color="tema.suave">
-                    Selecciona un expediente para registrar una nota clínica.
-                  </Box>
-                )}
-              </Tabs.Content>
-            </Tabs.Root>
-          </TarjetaBase>
-        </Box>
-      )}
+      <Box gridColumn="2" gridRow="1">
+        <TarjetaBase>
+          <Tabs.Root defaultValue="aplicaciones" variant="enclosed">
+            <Tabs.List>
+              <Tabs.Trigger value="aplicaciones" fontWeight="bold">
+                <LuCircleCheck style={{ marginRight: 6 }} />
+                Aplicaciones clínicas
+              </Tabs.Trigger>
+              <Tabs.Trigger value="nota" fontWeight="bold" disabled={!expedienteSeleccionado}>
+                <LuFileText style={{ marginRight: 6 }} />
+                Nueva nota clínica
+              </Tabs.Trigger>
+            </Tabs.List>
+            <Tabs.Content value="aplicaciones">
+              <ListaAplicacionesMedicamento aplicaciones={aplicacionesMedicamentos} />
+              {/* Si quieres mostrar indicaciones aquí, añade un componente */}
+            </Tabs.Content>
+            <Tabs.Content value="nota">
+              {expedienteSeleccionado ? (
+                <FormularioNotaClinica
+                  expedienteSeleccionado={expedienteSeleccionado}
+                  mascotaId={mascota.id}
+                  onClose={() => setMostrarFormularioNota(false)}
+                />
+              ) : (
+                <Box py={4} color="tema.suave">
+                  Selecciona un expediente para registrar una nota clínica.
+                </Box>
+              )}
+            </Tabs.Content>
+          </Tabs.Root>
+        </TarjetaBase>
+      </Box>
     </>
   );
 }

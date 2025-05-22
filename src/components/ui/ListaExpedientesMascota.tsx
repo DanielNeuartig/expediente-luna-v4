@@ -1,15 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { VStack, Box, Text, Spinner, HStack, Badge } from "@chakra-ui/react";
+import { VStack, Box, Text, HStack, Badge } from "@chakra-ui/react";
 import { CalendarDays, FileText } from "lucide-react";
-import type {
-  /*AplicacionMedicamento,*/
-  AplicacionIndicacion,
-} from "@prisma/client";
-//import { TemplateContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type { AplicacionIndicacion } from "@prisma/client";
 import type { Aplicacion } from "@/components/ui/aplicaciones/aplicaciones";
-import { useEffect } from "react";
+
+// Tipos exportados igual, para mantener compatibilidad
 export type NotaClinicaExtendida = {
   id: number;
   historiaClinica?: string | null;
@@ -65,91 +61,20 @@ export type ExpedienteConNotas = {
   notasClinicas: NotaClinicaExtendida[];
 };
 
-type AplicacionMedicamentoExtendida = Aplicacion & {
-  medicamento: {
-    nombre: string;
-    dosis: string;
-    via: string;
-  } | null;
-  ejecutor: {
-    id: number;
-    nombre: string;
-  } | null;
-};
-
-/*type ApiResponse = {
-  expedientes: ExpedienteConNotas[];
-  aplicacionesMedicamentos: AplicacionMedicamento[];
-  aplicacionesIndicaciones: AplicacionIndicacion[];
-};*/
-
 type Props = {
-  mascotaId: number;
+  expedientes: ExpedienteConNotas[];
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  setAplicacionesMedicamentos: (apps: Aplicacion[]) => void;
+  aplicacionesMedicamentos: Aplicacion[];
+  aplicacionesIndicaciones: AplicacionIndicacion[];
 };
 
 export default function ListaExpedientesMascota({
-  mascotaId,
-  //expedienteSeleccionado,
+  expedientes,
   setExpedienteSeleccionado,
-  setAplicacionesMedicamentos, //
+  aplicacionesMedicamentos,
+  aplicacionesIndicaciones,
 }: Props) {
-  const { data, isLoading, isError } = useQuery<{
-    expedientes: ExpedienteConNotas[];
-    aplicacionesMedicamentos: AplicacionMedicamentoExtendida[];
-    aplicacionesIndicaciones: AplicacionIndicacion[];
-  }>({
-    queryKey: ["expedientes", mascotaId],
-    queryFn: async () => {
-      const res = await fetch(`/api/mascotas/${mascotaId}/expedientes`);
-      if (!res.ok) throw new Error("Error al cargar expedientes");
-
-      return res.json();
-    },
-  });
-  useEffect(() => {
-    if (data?.aplicacionesMedicamentos) {
-      const transformadas: Aplicacion[] = data.aplicacionesMedicamentos.map(
-        (a) => ({
-          id: a.id,
-          fechaProgramada: new Date(a.fechaProgramada).toISOString(),
-          fechaReal: a.fechaReal ? new Date(a.fechaReal).toISOString() : null, // ✅ AÑADIDO
-          estado: a.estado,
-          medicamento: a.medicamento
-            ? {
-                nombre: a.medicamento.nombre,
-                dosis: a.medicamento.dosis,
-                via: a.medicamento.via,
-              }
-            : null,
-          nombreMedicamentoManual: a.nombreMedicamentoManual ?? null,
-          dosis: a.dosis ?? undefined,
-          via: a.via ?? undefined,
-          observaciones: a.observaciones ?? "",
-          ejecutor: a.ejecutor
-            ? {
-                id: a.ejecutor.id,
-                nombre: a.ejecutor.nombre,
-              }
-            : null,
-        })
-      );
-
-      setAplicacionesMedicamentos(transformadas);
-    }
-  }, [data?.aplicacionesMedicamentos, setAplicacionesMedicamentos]);
-
-  if (isLoading) return <Spinner />;
-  if (isError) return <Text>Error al cargar los expedientes.</Text>;
-
-  const expedientes = data?.expedientes ?? [];
-  const aplicacionesMedicamentos = data?.aplicacionesMedicamentos ?? [];
-  const aplicacionesIndicaciones = data?.aplicacionesIndicaciones ?? [];
-
-  // ...
-
   return (
     <VStack alignItems="start" gap="4" width="full">
       <Text fontSize="xl" fontWeight="bold" color="tema.suave">
@@ -171,6 +96,7 @@ export default function ListaExpedientesMascota({
             border="1px solid"
             borderColor="tema.borde"
             onClick={() => setExpedienteSeleccionado(exp)}
+            cursor="pointer"
           >
             <HStack justifyContent="space-between" mb="2">
               <HStack gap="2">
@@ -191,7 +117,6 @@ export default function ListaExpedientesMascota({
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: false,
-                      // NO incluyas "second"
                     })}
                   </Text>
                 </HStack>
@@ -244,14 +169,13 @@ export default function ListaExpedientesMascota({
                             {new Date(nota.fechaCreacion).toLocaleString(
                               "es-MX",
                               {
-                                weekday: "short", 
+                                weekday: "short",
                                 year: "numeric",
                                 month: "2-digit",
                                 day: "2-digit",
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: false,
-                                // NO incluyas "second"
                               }
                             )}
                           </Text>
@@ -275,56 +199,46 @@ export default function ListaExpedientesMascota({
                           Historia clínica: {nota.historiaClinica}
                         </Text>
                       )}
-
                       {nota.exploracionFisica && (
                         <Text fontSize="sm" color="tema.claro">
                           Exploración física: {nota.exploracionFisica}
                         </Text>
                       )}
-
                       {typeof nota.temperatura === "number" && (
                         <Text fontSize="sm" color="tema.claro">
                           Temperatura: {nota.temperatura} °C
                         </Text>
                       )}
-
                       {typeof nota.peso === "number" && (
                         <Text fontSize="sm" color="tema.claro">
                           Peso: {nota.peso} kg
                         </Text>
                       )}
-
                       {typeof nota.frecuenciaCardiaca === "number" && (
                         <Text fontSize="sm" color="tema.claro">
                           Frecuencia cardiaca: {nota.frecuenciaCardiaca} lpm
                         </Text>
                       )}
-
                       {typeof nota.frecuenciaRespiratoria === "number" && (
                         <Text fontSize="sm" color="tema.claro">
-                          Frecuencia respiratoria: {nota.frecuenciaRespiratoria}{" "}
-                          rpm
+                          Frecuencia respiratoria: {nota.frecuenciaRespiratoria} rpm
                         </Text>
                       )}
-
                       {nota.diagnosticoPresuntivo && (
                         <Text fontSize="sm" color="tema.claro">
                           Diagnóstico presuntivo: {nota.diagnosticoPresuntivo}
                         </Text>
                       )}
-
                       {nota.pronostico && (
                         <Text fontSize="sm" color="tema.claro">
                           Pronóstico: {nota.pronostico}
                         </Text>
                       )}
-
                       {nota.laboratoriales && (
                         <Text fontSize="sm" color="tema.claro">
                           Laboratoriales: {nota.laboratoriales}
                         </Text>
                       )}
-
                       {nota.extras && (
                         <Text fontSize="sm" color="tema.claro">
                           Extras: {nota.extras}
@@ -341,10 +255,8 @@ export default function ListaExpedientesMascota({
                         pb="1"
                         pt="1"
                       >
-                        <Text fontWeight="semibold"></Text>
                         {(nota.medicamentos ?? []).map((m) => (
                           <Box key={m.id} fontSize="sm" pl="2">
-                 
                             <Text>
                               💊({m.nombre}) ({m.dosis}) ({m.via})
                             </Text>
@@ -364,7 +276,6 @@ export default function ListaExpedientesMascota({
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: false,
-                                // NO incluyas "second"
                               })}
                             </Text>
                             {m.observaciones && (
