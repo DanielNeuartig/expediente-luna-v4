@@ -150,11 +150,11 @@ export default function ListaIndicaciones({ fechaBase }: Props) {
 
             <Field.Root>
               <Field.Label {...estilosTituloInput}>
-                ¿Incluir en receta?
+                 ¿Para casa?
               </Field.Label>
               <Controller
                 control={control}
-                name={`indicaciones.${index}.incluirEnReceta`}
+                name={`indicaciones.${index}.paraCasa`}
                 rules={{ required: "Selecciona si se incluye en receta" }}
                 render={({ field }) => (
                   <SegmentGroup.Root
@@ -207,9 +207,9 @@ export default function ListaIndicaciones({ fechaBase }: Props) {
                       field.onChange(value);
 
                       if (value === "true") {
-                        if (item?.incluirEnReceta === "false") {
+                        if (item?.paraCasa === "false") {
                           setValue(
-                            `indicaciones.${index}.incluirEnReceta`,
+                            `indicaciones.${index}.paraCasa`,
                             "true",
                             {
                               shouldValidate: true,
@@ -258,7 +258,7 @@ export default function ListaIndicaciones({ fechaBase }: Props) {
         onClick={() =>
           append({
             descripcion: "",
-            incluirEnReceta: "false",
+            paraCasa: "false",
             tiempoIndefinido: "false",
             frecuenciaHoras: undefined,
             veces: undefined,

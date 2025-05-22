@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { AplicacionMedicamento } from "@prisma/client";
 
-
 type AplicacionMedicamentoExtendida = AplicacionMedicamento & {
   medicamento: {
     nombre: string;
@@ -13,9 +12,11 @@ type AplicacionMedicamentoExtendida = AplicacionMedicamento & {
   ejecutor: {
     id: number;
     nombre: string;
+    usuario: {
+      image: string | null;
+    } | null;
   } | null;
 };
-
 
 export async function GET(
   _req: Request,
@@ -40,6 +41,11 @@ export async function GET(
           select: {
             id: true,
             nombre: true,
+            usuario: {
+              select: {
+                image: true,
+              },
+            },
           },
         },
         notasClinicas: {
@@ -61,6 +67,11 @@ export async function GET(
               select: {
                 id: true,
                 nombre: true,
+                usuario: {
+                  select: {
+                    image: true,
+                  },
+                },
               },
             },
             medicamentos: {
@@ -73,7 +84,7 @@ export async function GET(
                 veces: true,
                 desde: true,
                 observaciones: true,
-                incluirEnReceta: true,
+                paraCasa: true,
                 tiempoIndefinido: true,
               },
             },
@@ -85,7 +96,7 @@ export async function GET(
                 veces: true,
                 desde: true,
                 observaciones: true,
-                incluirEnReceta: true,
+                paraCasa: true,
               },
             },
           },
@@ -94,27 +105,45 @@ export async function GET(
     });
 
     const [aplicacionesMedicamentos, aplicacionesIndicaciones] =
-  await Promise.all([
-    prisma.aplicacionMedicamento.findMany({
-      where: { notaClinica: { expediente: { mascotaId } } },
-      include: {
-        medicamento: true,
-        ejecutor: {
-          select: {
-            id: true,
-            nombre: true,
+      await Promise.all([
+        prisma.aplicacionMedicamento.findMany({
+          where: { notaClinica: { expediente: { mascotaId } } },
+          include: {
+            medicamento: true,
+            ejecutor: {
+              select: {
+                id: true,
+                nombre: true,
+                usuario: {
+                  select: {
+                    image: true,
+                  },
+                },
+              },
+            },
           },
-        },
-      },
-      orderBy: { fechaProgramada: "desc" },
-    }) as Promise<AplicacionMedicamentoExtendida[]>, // 👈 CASTEO AQUÍ
+          orderBy: { fechaProgramada: "desc" },
+        }) as Promise<AplicacionMedicamentoExtendida[]>,
         prisma.aplicacionIndicacion.findMany({
           where: { notaClinica: { expediente: { mascotaId } } },
-          include: { indicacion: true },
+          include: {
+            indicacion: true,
+            ejecutor: {
+              select: {
+                id: true,
+                nombre: true,
+                usuario: {
+                  select: {
+                    image: true,
+                  },
+                },
+              },
+            },
+          },
           orderBy: { fechaProgramada: "desc" },
         }),
       ]);
-console.log("✅ Aplicaciones medicamentos con fechaReal:", aplicacionesMedicamentos);
+
     return NextResponse.json({
       expedientes,
       aplicacionesMedicamentos,

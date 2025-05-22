@@ -1,9 +1,9 @@
-// src/hooks/useCrearNotaClinica.ts
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toaster } from "@/components/ui/toaster";
 import { z } from "zod";
 import { notaClinicaBaseSchema } from "@/lib/validadores/notaClinicaSchema";
-// Puedes crear un esquema extendido si quieres validar también IDs
+
+// Schema extendido con IDs
 export const notaClinicaConIdsSchema = notaClinicaBaseSchema.extend({
   expedienteId: z.number(),
   mascotaId: z.number(),
@@ -28,10 +28,11 @@ export const notaClinicaConIdsSchema = notaClinicaBaseSchema.extend({
   }
 );
 
-// Usa infer del schema extendido si validas antes de enviar
 export type ValoresNotaClinicaExtendida = z.infer<typeof notaClinicaConIdsSchema>;
 
 export function useCrearNotaClinica() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (datos: ValoresNotaClinicaExtendida) => {
       const res = await fetch("/api/nota-clinica", {
@@ -48,7 +49,24 @@ export function useCrearNotaClinica() {
 
       return json.notaClinica;
     },
-    onSuccess: () => {
+    onSuccess: (nuevaNota, datos) => {
+      queryClient.setQueryData(["expedientes", datos.mascotaId], (prev: any) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          expedientes: prev.expedientes.map((exp: any) => {
+            if (exp.id === datos.expedienteId) {
+              return {
+                ...exp,
+                notasClinicas: [...exp.notasClinicas, nuevaNota],
+              };
+            }
+            return exp;
+          }),
+        };
+      });
+
       toaster.create({
         type: "success",
         description: "Nota clínica guardada correctamente",

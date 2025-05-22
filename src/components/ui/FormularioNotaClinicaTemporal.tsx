@@ -373,11 +373,11 @@ export default function FormularioNotaClinicaTemporal({
               </Field.Root>
               <Field.Root>
                 <Field.Label {...estilosTituloInput}>
-                  ¿Incluir en receta?
+                  ¿Para casa?
                 </Field.Label>
                 <RadioCard.Root
                   {...estilosInputBase}
-                  name={`medicamentos[${index}].incluirEnReceta`}
+                  name={`medicamentos[${index}].paraCasa`}
                   defaultValue="false"
                 >
                   <HStack>
@@ -461,11 +461,11 @@ export default function FormularioNotaClinicaTemporal({
               </Field.Root>
               <Field.Root>
                 <Field.Label {...estilosTituloInput}>
-                  ¿Incluir en receta?
+                   ¿Para casa?
                 </Field.Label>
                 <RadioCard.Root
                   {...estilosInputBase}
-                  name={`indicaciones[${index}].incluirEnReceta`}
+                  name={`indicaciones[${index}].paraCasa`}
                   defaultValue="false"
                 >
                   <HStack>

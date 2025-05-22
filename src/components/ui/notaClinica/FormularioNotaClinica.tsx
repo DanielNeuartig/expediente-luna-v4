@@ -82,7 +82,9 @@ export default function FormularioNotaClinica({
       <form onSubmit={handleSubmit(onSubmit)}>
         <Fieldset.Root size="lg" width="full">
           <Stack>
-            <Fieldset.Legend color="tema.intenso">Nota clínica</Fieldset.Legend>
+            {
+              //<Fieldset.Legend color="tema.intenso">Nota clínica</Fieldset.Legend>
+            }
             <Fieldset.HelperText>
               Registrando en expediente #{expedienteSeleccionado.id} ·{" "}
               {expedienteSeleccionado.tipo}

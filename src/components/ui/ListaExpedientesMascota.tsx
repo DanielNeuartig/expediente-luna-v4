@@ -1,11 +1,26 @@
 "use client";
 
-import { VStack, Box, Text, HStack, Badge } from "@chakra-ui/react";
-import { CalendarDays, FileText } from "lucide-react";
+import {
+  Timeline,
+  Icon,
+  Avatar,
+  Card,
+  Text,
+  Box,
+  Span,
+  Button,
+  HStack,
+} from "@chakra-ui/react";
+import {
+  LuFileText,
+  LuStethoscope,
+  LuSyringe,
+  LuScrollText,
+} from "react-icons/lu";
+import PopOverReceta from "@/components/ui/PopOverReceta";
 import type { AplicacionIndicacion } from "@prisma/client";
 import type { Aplicacion } from "@/components/ui/aplicaciones/aplicaciones";
 
-// Tipos exportados igual, para mantener compatibilidad
 export type NotaClinicaExtendida = {
   id: number;
   historiaClinica?: string | null;
@@ -22,6 +37,9 @@ export type NotaClinicaExtendida = {
   autor?: {
     id: number;
     nombre: string;
+    usuario?: {
+      image?: string | null;
+    };
   };
   medicamentos?: {
     id: number;
@@ -32,8 +50,9 @@ export type NotaClinicaExtendida = {
     veces?: number | null;
     desde: string;
     observaciones?: string | null;
-    incluirEnReceta: boolean;
+    paraCasa: boolean;
     tiempoIndefinido: boolean;
+    ejecutor?: { id: number; nombre: string } | null;
   }[];
   indicaciones?: {
     id: number;
@@ -42,7 +61,8 @@ export type NotaClinicaExtendida = {
     veces?: number | null;
     desde: string;
     observaciones?: string | null;
-    incluirEnReceta: boolean;
+    paraCasa: boolean;
+    ejecutor?: { id: number; nombre: string } | null;
   }[];
 };
 
@@ -57,304 +77,257 @@ export type ExpedienteConNotas = {
   autor?: {
     id: number;
     nombre: string;
+    usuario?: {
+      image?: string | null;
+    };
   };
   notasClinicas: NotaClinicaExtendida[];
 };
 
 type Props = {
   expedientes: ExpedienteConNotas[];
+  imagenUsuario: string;
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  aplicacionesMedicamentos: Aplicacion[];
-  aplicacionesIndicaciones: AplicacionIndicacion[];
+  mascota: {
+    nombre: string;
+    especie: string;
+    raza?: { nombre: string } | null;
+    fechaNacimiento?: string;
+    sexo: string;
+    esterilizado: string;
+  };
 };
 
 export default function ListaExpedientesMascota({
   expedientes,
+  imagenUsuario,
+  expedienteSeleccionado,
   setExpedienteSeleccionado,
-  aplicacionesMedicamentos,
-  aplicacionesIndicaciones,
+  mascota, // ✅ aquí está la clave
 }: Props) {
   return (
-    <VStack alignItems="start" gap="4" width="full">
-      <Text fontSize="xl" fontWeight="bold" color="tema.suave">
-        Expedientes previos
-      </Text>
+    <Timeline.Root size="lg" variant="solid">
+      {expedientes.map((exp) => {
+        const esSeleccionado = expedienteSeleccionado?.id === exp.id;
 
-      {expedientes.length === 0 ? (
-        <Text fontStyle="italic" color="tema.suave">
-          No hay expedientes registrados.
-        </Text>
-      ) : (
-        expedientes.map((exp) => (
-          <Box
-            key={exp.id}
-            backgroundColor="tema.intenso"
-            padding="4"
-            borderRadius="xl"
-            width="full"
-            border="1px solid"
-            borderColor="tema.borde"
-            onClick={() => setExpedienteSeleccionado(exp)}
-            cursor="pointer"
-          >
-            <HStack justifyContent="space-between" mb="2">
-              <HStack gap="2">
-                <FileText size={20} />
-                <Text fontWeight="bold">
-                  Expediente #{exp.id} · {exp.tipo}
-                </Text>
-              </HStack>
-              <Badge>
-                <HStack>
-                  <CalendarDays size={14} />
-                  <Text fontSize="xs">
-                    {new Date(exp.fechaCreacion).toLocaleString("es-MX", {
-                      weekday: "short",
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })}
-                  </Text>
-                </HStack>
-              </Badge>
-            </HStack>
-
-            {exp.autor && (
-              <Text fontSize="sm" mb="1">
-                {exp.autor.nombre} (ID: {exp.autor.id})
-              </Text>
-            )}
-            {exp.contenidoAdaptado && (
-              <Text fontSize="sm">
-                Contenido adaptado: {exp.contenidoAdaptado}
-              </Text>
-            )}
-            {exp.notasGenerales && (
-              <Text fontSize="sm">Notas generales: {exp.notasGenerales}</Text>
-            )}
-            <Text fontSize="sm">
-              Visible para tutor: {exp.visibleParaTutor ? "Sí" : "No"}
-            </Text>
-            <Text fontSize="sm">¿Borrado?: {exp.borrado ? "Sí" : "No"}</Text>
-
-            {exp.notasClinicas.length > 0 && (
-              <VStack
-                align="start"
-                gap="3"
-                mt="3"
-                bg="tema.fondo"
-                p="3"
-                borderRadius="md"
+        return (
+          <Timeline.Item key={`exp-${exp.id}`}>
+            <Timeline.Connector>
+              <Timeline.Separator />
+              <Timeline.Indicator
+                borderColor="tema.intenso"
+                bg={esSeleccionado ? "tema.llamativo" : "tema.suave"}
+                color="tema.claro"
               >
-                {exp.notasClinicas.map((nota) => (
-                  <Box
-                    bg="tema.suave"
-                    borderRadius="xl"
-                    key={nota.id}
-                    width="full"
-                    borderBottom="1px solid #ccc"
-                    pb="2"
-                    pt="2"
-                  >
-                    <HStack>
-                      <Text fontWeight="bold">🗒️ {nota.id}</Text>
-                      <Badge>
-                        <HStack>
-                          <CalendarDays size={14} />
-                          <Text fontSize="sm">
-                            {new Date(nota.fechaCreacion).toLocaleString(
-                              "es-MX",
-                              {
-                                weekday: "short",
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              }
-                            )}
-                          </Text>
-                        </HStack>
-                      </Badge>
-                    </HStack>
-                    {nota.autor && (
-                      <Text fontSize="sm" mt="1">
-                        {nota.autor.nombre} (ID: {nota.autor.id})
-                      </Text>
-                    )}
-                    <Box
-                      border="4px"
-                      borderColor="tema.llamativo"
-                      p="4"
-                      bg="tema.suave"
-                      borderRadius="sm"
-                    >
-                      {nota.historiaClinica && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Historia clínica: {nota.historiaClinica}
-                        </Text>
-                      )}
-                      {nota.exploracionFisica && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Exploración física: {nota.exploracionFisica}
-                        </Text>
-                      )}
-                      {typeof nota.temperatura === "number" && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Temperatura: {nota.temperatura} °C
-                        </Text>
-                      )}
-                      {typeof nota.peso === "number" && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Peso: {nota.peso} kg
-                        </Text>
-                      )}
-                      {typeof nota.frecuenciaCardiaca === "number" && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Frecuencia cardiaca: {nota.frecuenciaCardiaca} lpm
-                        </Text>
-                      )}
-                      {typeof nota.frecuenciaRespiratoria === "number" && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Frecuencia respiratoria: {nota.frecuenciaRespiratoria} rpm
-                        </Text>
-                      )}
-                      {nota.diagnosticoPresuntivo && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Diagnóstico presuntivo: {nota.diagnosticoPresuntivo}
-                        </Text>
-                      )}
-                      {nota.pronostico && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Pronóstico: {nota.pronostico}
-                        </Text>
-                      )}
-                      {nota.laboratoriales && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Laboratoriales: {nota.laboratoriales}
-                        </Text>
-                      )}
-                      {nota.extras && (
-                        <Text fontSize="sm" color="tema.claro">
-                          Extras: {nota.extras}
-                        </Text>
-                      )}
-                    </Box>
+                <Icon as={LuFileText} fontSize="xs" />
+              </Timeline.Indicator>
+            </Timeline.Connector>
 
-                    {(nota.medicamentos ?? []).length > 0 && (
-                      <Box
-                        mt="2"
-                        gap="4"
-                        bg="tema.llamativo"
-                        borderRadius="xl"
-                        pb="1"
-                        pt="1"
-                      >
-                        {(nota.medicamentos ?? []).map((m) => (
-                          <Box key={m.id} fontSize="sm" pl="2">
-                            <Text>
-                              💊({m.nombre}) ({m.dosis}) ({m.via})
-                            </Text>
-                            {m.frecuenciaHoras !== null && (
-                              <Text>Cada {m.frecuenciaHoras} horas</Text>
-                            )}
-                            {m.veces !== null && (
-                              <Text>Durante: {m.veces} veces</Text>
-                            )}
-                            <Text>
-                              Desde:{" "}
-                              {new Date(m.desde).toLocaleString("es-MX", {
-                                weekday: "short",
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              })}
-                            </Text>
-                            {m.observaciones && (
-                              <Text>Observaciones: {m.observaciones}</Text>
-                            )}
-                            <Text>
-                              Para receta: {m.incluirEnReceta ? "Sí" : "No"}
-                            </Text>
-                            <Text>
-                              Indefinido: {m.tiempoIndefinido ? "Sí" : "No"}
-                            </Text>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-
-                    {nota.indicaciones && nota.indicaciones.length > 0 && (
-                      <Box mt="2">
-                        <Text fontWeight="semibold">📋 Indicaciones:</Text>
-                        {nota.indicaciones.map((i) => (
-                          <Box key={i.id} fontSize="sm" pl="2">
-                            <Text>Descripción: {i.descripcion}</Text>
-                            {i.frecuenciaHoras !== null && (
-                              <Text>Frecuencia (h): {i.frecuenciaHoras}</Text>
-                            )}
-                            {i.veces !== null && <Text>Veces: {i.veces}</Text>}
-                            {i.desde && (
-                              <Text>
-                                Desde: {new Date(i.desde).toLocaleString()}
-                              </Text>
-                            )}
-                            {i.observaciones && (
-                              <Text>Observaciones: {i.observaciones}</Text>
-                            )}
-                            <Text>
-                              Para receta: {i.incluirEnReceta ? "Sí" : "No"}
-                            </Text>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
+            <Timeline.Content
+              //bg={esSeleccionado ? "tema.llamativo" : undefined}
+              borderRadius="xl"
+              px="2"
+              pt="2"
+              pb="1"
+            >
+              <Timeline.Title fontWeight="bold" color="tema.suave">
+                <HStack justify="space-between" align="center">
+                  <Box>
+                    #{exp.id} · {exp.tipo}
+                    <Span color="tema.suave" ml="2">
+                      {new Date(exp.fechaCreacion).toLocaleString("es-MX", {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
+                    </Span>
+                    <Avatar.Root size="2xs" ml="3">
+                      <Avatar.Image src={exp.autor?.usuario?.image ?? ""} />
+                      <Avatar.Fallback />
+                    </Avatar.Root>
+                    <Span ml="2">{exp.autor?.nombre ?? "—"}</Span>
                   </Box>
-                ))}
-              </VStack>
-            )}
-          </Box>
-        ))
-      )}
 
-      {(aplicacionesMedicamentos.length > 0 ||
-        aplicacionesIndicaciones.length > 0) && (
-        <Box mt="6" width="full">
-          <Text fontWeight="bold" fontSize="lg" color="tema.suave">
-            Historial farmacológico
-          </Text>
-          <VStack align="start" gap="2" mt="2">
-            {aplicacionesMedicamentos.map((a) => (
-              <Box key={`med-${a.id}`} fontSize="sm" color="tema.suave">
-                💊{" "}
-                {a.nombreMedicamentoManual ||
-                  a.medicamento?.nombre ||
-                  "Sin nombre"}
-                · {new Date(a.fechaProgramada).toLocaleString()} · Estado:{" "}
-                {a.estado}
-              </Box>
-            ))}
-            {aplicacionesIndicaciones.map((a) => (
-              <Box key={`ind-${a.id}`} fontSize="sm">
-                📋{" "}
-                {a.descripcionManual ||
-                  `Indicacion ID: ${a.indicacionId}` ||
-                  "Sin descripción"}{" "}
-                · {new Date(a.fechaProgramada).toLocaleString()} · Estado:{" "}
-                {a.estado}
-              </Box>
-            ))}
-          </VStack>
-        </Box>
-      )}
-    </VStack>
+                  <Button
+                    size="xs"
+                    bg={esSeleccionado ? "tema.llamativo" : "tema.suave"}
+                    color="white"
+                    onClick={() => setExpedienteSeleccionado(exp)}
+                  >
+                    {esSeleccionado ? "Seleccionado" : "Seleccionar"}
+                  </Button>
+                </HStack>
+              </Timeline.Title>
+
+              {exp.notasClinicas.map((nota) => (
+                <Timeline.Item key={`nota-${nota.id}`} ml="6">
+                  <Timeline.Connector>
+                    <Timeline.Separator />
+                    <Timeline.Indicator bg="tema.llamativo" color="tema.claro">
+                      <Icon as={LuStethoscope} fontSize="xs" />
+                    </Timeline.Indicator>
+                  </Timeline.Connector>
+                  <Timeline.Content gap="3">
+                    <Timeline.Title color="tema.suave">
+                      <Avatar.Root size="2xs">
+                        <Avatar.Image src={nota.autor?.usuario?.image ?? ""} />
+                        <Avatar.Fallback />
+                      </Avatar.Root>
+                      {nota.autor?.nombre ?? "Sin autor"}
+                      <Span color="tema.suave" ml="2">
+                        {new Date(nota.fechaCreacion).toLocaleString("es-MX", {
+                          weekday: "short",
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                      </Span>
+                    </Timeline.Title>
+                    <PopOverReceta
+                      medicamentos={nota.medicamentos ?? []}
+                      datosClinicos={{
+                        historiaClinica: nota.historiaClinica ?? undefined,
+                        exploracionFisica: nota.exploracionFisica ?? undefined,
+                        temperatura: nota.temperatura ?? undefined,
+                        peso: nota.peso ?? undefined,
+                        frecuenciaCardiaca:
+                          nota.frecuenciaCardiaca ?? undefined,
+                        frecuenciaRespiratoria:
+                          nota.frecuenciaRespiratoria ?? undefined,
+                        diagnosticoPresuntivo:
+                          nota.diagnosticoPresuntivo ?? undefined,
+                        pronostico: nota.pronostico ?? undefined,
+                        laboratoriales: nota.laboratoriales ?? undefined,
+                        extras: nota.extras ?? undefined,
+                      }}
+                      fechaNota={nota.fechaCreacion}
+                      datosMascota={{
+                        nombre: mascota.nombre,
+                        especie: mascota.especie,
+                        raza: mascota.raza?.nombre,
+                        fechaNacimiento: mascota.fechaNacimiento,
+                        sexo: mascota.sexo,
+                        esterilizado: mascota.esterilizado,
+                      }}
+                    />
+                    <Card.Root bg="white" color="tema.suave">
+                      <Card.Body textStyle="sm">
+                        {nota.historiaClinica && (
+                          <Text>Historia clínica: {nota.historiaClinica}</Text>
+                        )}
+                        {nota.exploracionFisica && (
+                          <Text>
+                            Exploración física: {nota.exploracionFisica}
+                          </Text>
+                        )}
+                        {nota.temperatura != null && (
+                          <Text>Temperatura: {nota.temperatura} °C</Text>
+                        )}
+                        {nota.peso != null && <Text>Peso: {nota.peso} kg</Text>}
+                        {nota.frecuenciaCardiaca != null && (
+                          <Text>FC: {nota.frecuenciaCardiaca} lpm</Text>
+                        )}
+                        {nota.frecuenciaRespiratoria != null && (
+                          <Text>FR: {nota.frecuenciaRespiratoria} rpm</Text>
+                        )}
+                        {nota.diagnosticoPresuntivo && (
+                          <Text>Diagnóstico: {nota.diagnosticoPresuntivo}</Text>
+                        )}
+                        {nota.pronostico && (
+                          <Text>Pronóstico: {nota.pronostico}</Text>
+                        )}
+                        {nota.laboratoriales && (
+                          <Text>Laboratoriales: {nota.laboratoriales}</Text>
+                        )}
+                        {nota.extras && <Text>Extras: {nota.extras}</Text>}
+                      </Card.Body>
+                    </Card.Root>
+
+                    {(nota.medicamentos ?? []).map((m) => (
+                      <Timeline.Item key={`med-${m.id}`} ml="0">
+                        <Timeline.Connector>
+                          <Timeline.Separator />
+                          <Timeline.Indicator
+                            borderColor="tema.intenso"
+                            bg="tema.llamativo"
+                            color="white"
+                          >
+                            <Icon as={LuSyringe} fontSize="xs" />
+                          </Timeline.Indicator>
+                        </Timeline.Connector>
+                        <Timeline.Content>
+                          <Card.Root bg="white" size="sm" color="tema.suave">
+                            <Card.Body textStyle="sm">
+                              <Text>
+                                {m.nombre} ({m.dosis}) · {m.via}
+                              </Text>
+                              {m.frecuenciaHoras != null && (
+                                <Text>Cada {m.frecuenciaHoras}h</Text>
+                              )}
+                              {m.veces != null && <Text>{m.veces} veces</Text>}
+                              {m.observaciones && (
+                                <Text>Observaciones: {m.observaciones}</Text>
+                              )}
+                              <Text>
+                                Para casa?: {m.paraCasa ? "Sí" : "No"}
+                              </Text>
+                              <Text>
+                                Indefinido: {m.tiempoIndefinido ? "Sí" : "No"}
+                              </Text>
+                            </Card.Body>
+                          </Card.Root>
+                        </Timeline.Content>
+                      </Timeline.Item>
+                    ))}
+
+                    {(nota.indicaciones ?? []).map((i) => (
+                      <Timeline.Item key={`ind-${i.id}`} ml="12">
+                        <Timeline.Connector>
+                          <Timeline.Separator />
+                          <Timeline.Indicator bg="green.700" color="white">
+                            <Icon as={LuScrollText} fontSize="xs" />
+                          </Timeline.Indicator>
+                        </Timeline.Connector>
+                        <Timeline.Content>
+                          <Timeline.Title color="tema.suave">
+                            {i.ejecutor?.nombre ?? "—"}
+                            <Span color="tema.suave" ml="2">
+                              {new Date(i.desde).toLocaleString("es-MX")}
+                            </Span>
+                          </Timeline.Title>
+                          <Card.Root size="sm" color="tema.suave">
+                            <Card.Body textStyle="sm">
+                              <Text>{i.descripcion}</Text>
+                              {i.frecuenciaHoras != null && (
+                                <Text>Cada {i.frecuenciaHoras}h</Text>
+                              )}
+                              {i.veces != null && <Text>{i.veces} veces</Text>}
+                              {i.observaciones && (
+                                <Text>Observaciones: {i.observaciones}</Text>
+                              )}
+                              <Text>
+                                Para casa?: {i.paraCasa ? "Sí" : "No"}
+                              </Text>
+                            </Card.Body>
+                          </Card.Root>
+                        </Timeline.Content>
+                      </Timeline.Item>
+                    ))}
+                  </Timeline.Content>
+                </Timeline.Item>
+              ))}
+            </Timeline.Content>
+          </Timeline.Item>
+        );
+      })}
+    </Timeline.Root>
   );
 }

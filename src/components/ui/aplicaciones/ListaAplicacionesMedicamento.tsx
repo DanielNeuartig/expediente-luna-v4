@@ -5,6 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import AplicacionMedicamentoItem from "./AplicacionMedicamentoItem";
 import type { Aplicacion } from "./aplicaciones";
 import { LuClock, LuCircleCheck, LuArchive } from "react-icons/lu";
+import { useEffect, useMemo } from "react";
 
 type Props = {
   aplicaciones: Aplicacion[];
@@ -12,20 +13,41 @@ type Props = {
 
 export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
   const aplicacionesSeguras = aplicaciones ?? [];
-  // Para defaultValues: orden original, solo limpiando nulos
-  const aplicacionesOrdenadas = [...aplicacionesSeguras].filter((a) => a && a.id);
 
-  // PENDIENTES: estado PENDIENTE, más próximas primero
+  const aplicacionesOrdenadas = useMemo(
+    () => [...aplicacionesSeguras].filter((a) => a && a.id),
+    [aplicacionesSeguras]
+  );
+
+  const defaultAplicaciones = useMemo(
+    () =>
+      aplicacionesOrdenadas.map((app) => ({
+        nombreMedicamentoManual: app.nombreMedicamentoManual ?? app.medicamento?.nombre ?? "",
+        dosis: app.dosis ?? app.medicamento?.dosis ?? "",
+        via: app.via ?? app.medicamento?.via ?? "",
+        estado: app.estado,
+        observaciones: app.observaciones ?? "",
+      })),
+    [aplicacionesOrdenadas]
+  );
+
+  const methods = useForm({
+    defaultValues: {
+      aplicaciones: defaultAplicaciones,
+    },
+  });
+
+  const { reset } = methods;
+
+  useEffect(() => {
+    reset({ aplicaciones: defaultAplicaciones });
+  }, [defaultAplicaciones, reset]);
+
   const pendientes = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
     .filter((a) => a.estado === "PENDIENTE")
-    .sort((a, b) => {
-      const fechaA = new Date(a.fechaProgramada).getTime();
-      const fechaB = new Date(b.fechaProgramada).getTime();
-      return fechaA - fechaB;
-    });
+    .sort((a, b) => new Date(a.fechaProgramada).getTime() - new Date(b.fechaProgramada).getTime());
 
-  // REALIZADAS: estado REALIZADA, más recientes primero (fechaReal descendente)
   const realizadas = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
     .filter((a) => a.estado === "REALIZADA")
@@ -39,7 +61,6 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
       return fechaB - fechaA;
     });
 
-  // ARCHIVADAS: estado CANCELADA u OMITIDA, más recientes primero
   const archivadas = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
     .filter((a) => a.estado === "CANCELADA" || a.estado === "OMITIDA")
@@ -52,40 +73,39 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
         : new Date(b.fechaProgramada).getTime();
       return fechaB - fechaA;
     });
-
-  const methods = useForm({
-    defaultValues: {
-      aplicaciones: aplicacionesOrdenadas.map((app) => ({
-        nombreMedicamentoManual:
-          app.nombreMedicamentoManual ?? app.medicamento?.nombre ?? "",
-        dosis: app.dosis ?? app.medicamento?.dosis ?? "",
-        via: app.via ?? app.medicamento?.via ?? "",
-        estado: app.estado,
-        observaciones: app.observaciones ?? "",
-      })),
-    },
-  });
-
   return (
     <FormProvider {...methods}>
       <form>
         <Tabs.Root defaultValue="pendientes" variant="outline">
           <Tabs.List>
-            <Tabs.Trigger value="pendientes" color="tema.suave" fontWeight={"bold"}>
+            <Tabs.Trigger
+              value="pendientes"
+              color="tema.suave"
+              fontWeight={"bold"}
+            >
               <LuClock style={{ marginRight: 6 }} />
               Pendientes ({pendientes.length})
             </Tabs.Trigger>
-            <Tabs.Trigger value="realizadas" color="tema.suave" fontWeight={"bold"}>
+            <Tabs.Trigger
+              value="realizadas"
+              color="tema.suave"
+              fontWeight={"bold"}
+            >
               <LuCircleCheck style={{ marginRight: 6 }} />
               Realizadas ({realizadas.length})
             </Tabs.Trigger>
-            <Tabs.Trigger value="archivadas" color="tema.suave" fontWeight={"bold"}>
+            <Tabs.Trigger
+              value="archivadas"
+              color="tema.suave"
+              fontWeight={"bold"}
+            >
               <LuArchive style={{ marginRight: 6 }} />
               Archivadas ({archivadas.length})
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Tabs.Content value="pendientes"
+          <Tabs.Content
+            value="pendientes"
             _open={{
               animationName: "fade-in, scale-in",
               animationDuration: "300ms",
@@ -124,7 +144,8 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
             </VStack>
           </Tabs.Content>
 
-          <Tabs.Content value="realizadas"
+          <Tabs.Content
+            value="realizadas"
             _open={{
               animationName: "fade-in, scale-in",
               animationDuration: "300ms",
@@ -163,7 +184,8 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
             </VStack>
           </Tabs.Content>
 
-          <Tabs.Content value="archivadas"
+          <Tabs.Content
+            value="archivadas"
             _open={{
               animationName: "fade-in, scale-in",
               animationDuration: "300ms",

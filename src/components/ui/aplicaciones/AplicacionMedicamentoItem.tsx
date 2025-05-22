@@ -18,6 +18,53 @@ import { actualizarAplicacionMedicamento } from "@/lib/api/aplicaciones";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toaster } from "@/components/ui/toaster";
 
+function calcularTiempoRestante(fechaProgramada: string) {
+  const ahora = new Date();
+  const objetivo = new Date(fechaProgramada);
+  const enRetraso = objetivo.getTime() < ahora.getTime();
+
+  const [mayor, menor] = enRetraso ? [ahora, objetivo] : [objetivo, ahora];
+
+  const diff = {
+    years: mayor.getFullYear() - menor.getFullYear(),
+    months: mayor.getMonth() - menor.getMonth(),
+    days: mayor.getDate() - menor.getDate(),
+    hours: mayor.getHours() - menor.getHours(),
+    minutes: mayor.getMinutes() - menor.getMinutes(),
+  };
+
+  if (diff.minutes < 0) {
+    diff.minutes += 60;
+    diff.hours -= 1;
+  }
+  if (diff.hours < 0) {
+    diff.hours += 24;
+    diff.days -= 1;
+  }
+  if (diff.days < 0) {
+    diff.months -= 1;
+    diff.days += 30;
+  }
+  if (diff.months < 0) {
+    diff.months += 12;
+    diff.years -= 1;
+  }
+
+  const partes = [];
+  if (diff.years > 0)
+    partes.push(`${diff.years} año${diff.years !== 1 ? "s" : ""}`);
+  if (diff.months > 0)
+    partes.push(`${diff.months} mes${diff.months !== 1 ? "es" : ""}`);
+  if (diff.days > 0)
+    partes.push(`${diff.days} día${diff.days !== 1 ? "s" : ""}`);
+  if (diff.hours > 0) partes.push(`${diff.hours} h`);
+  if (diff.minutes > 0 || partes.length === 0)
+    partes.push(`${diff.minutes} min`);
+
+  const texto = partes.slice(0, 2).join(", ");
+  return enRetraso ? `🕒 Retraso: ${texto}⚠️⚠️⚠️` : `🕒 Faltan: ${texto}⏳`;
+}
+
 function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
   if (estado === "REALIZADA") return "tema.verde";
   if (estado !== "PENDIENTE") return "tema.suave";
@@ -150,7 +197,7 @@ export default function AplicacionMedicamentoItem({
           </Text>
         )}
         <Text fontWeight="light">
-          📅{" "}
+          📅
           {new Date(fechaProgramada).toLocaleString("es-MX", {
             weekday: "short",
             year: "numeric",
@@ -160,6 +207,9 @@ export default function AplicacionMedicamentoItem({
             minute: "2-digit",
             hour12: false,
           })}
+          {"  "}{" "}
+          {estado === "PENDIENTE" &&
+            ` · ${calcularTiempoRestante(fechaProgramada)}`}
         </Text>
       </HStack>
 
@@ -184,7 +234,7 @@ export default function AplicacionMedicamentoItem({
         <Field.Root>
           {isEditable ? (
             <Input
-                          borderRadius="lg"
+              borderRadius="lg"
               fontSize="xs"
               size="xs"
               {...estilosInputBase}
@@ -201,7 +251,7 @@ export default function AplicacionMedicamentoItem({
         <Field.Root>
           {isEditable ? (
             <Input
-                          borderRadius="lg"
+              borderRadius="lg"
               fontSize="xs"
               size="xs"
               {...estilosInputBase}
@@ -220,7 +270,7 @@ export default function AplicacionMedicamentoItem({
       <Field.Root>
         {isEditable ? (
           <Textarea
-                        borderRadius="lg"
+            borderRadius="lg"
             size="xs"
             {...estilosInputBase}
             {...register(`aplicaciones.${index}.observaciones`)}
@@ -278,7 +328,7 @@ export default function AplicacionMedicamentoItem({
           <Button
             size="xs"
             mt="1"
-                          borderRadius="lg"
+            borderRadius="lg"
             colorScheme="green"
             onClick={() => mutation.mutate()}
             loading={mutation.isPending}

@@ -4,32 +4,47 @@ import { ViaMedicamento } from "@prisma/client";
 
 // Utilidad para evitar NaN con campos numéricos opcionales
 const safeNumber = () =>
-  z.preprocess(
-    (val) => {
-      if (typeof val === "string" && val.trim() === "") return undefined;
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    },
-    z.number().nonnegative().optional()
-  );
+  z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().min(0.01).optional());
 
 const safeInt = () =>
-  z.preprocess(
-    (val) => {
-      if (typeof val === "string" && val.trim() === "") return undefined;
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    },
-    z.number().int().nonnegative().optional()
-  );
+  z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().int().min(1).optional());
+
+// Transformación de texto para observaciones
+const formatObservaciones = (val: unknown) => {
+  if (typeof val !== "string") return undefined;
+  const trimmed = val.trim();
+  if (!trimmed) return undefined;
+  const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return capitalized.endsWith(".") ? capitalized : capitalized + ".";
+};
 
 // ------------------------------
 // MEDICAMENTO
 // ------------------------------
 const medicamentoObligatorioSchema = z
   .object({
-    nombre: z.string().min(1),
-    dosis: z.string().min(1),
+    nombre: z
+      .string()
+      .min(1)
+      .transform((val) =>
+        val
+          .trim()
+          .split(/\s+/)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(" ")
+      ),
+    dosis: z
+      .string()
+      .min(1)
+      .transform((val) => val.trim().toUpperCase()),
     via: z.nativeEnum(ViaMedicamento),
     frecuenciaHoras: safeInt(),
     veces: safeInt(),
@@ -38,8 +53,8 @@ const medicamentoObligatorioSchema = z
       (val) => (val === "" ? undefined : new Date(val as string)),
       z.date()
     ),
-    observaciones: z.string().optional(),
-    incluirEnReceta: z.enum(["true", "false"]),
+    observaciones: z.preprocess(formatObservaciones, z.string().optional()),
+    paraCasa: z.enum(["true", "false"]),
   })
   .refine(
     (data) => {
@@ -66,17 +81,20 @@ const medicamentoObligatorioSchema = z
     }
   )
   .refine(
-    (data) =>
-      data.tiempoIndefinido === "false" || data.incluirEnReceta === "true",
+    (data) => data.tiempoIndefinido === "false" || data.paraCasa === "true",
     {
-      path: ["incluirEnReceta"],
+      path: ["paraCasa"],
       message:
         "Los medicamentos por tiempo indefinido deben ser para casa (incluidos en receta)",
     }
   )
   .refine(
     (data) =>
-      !(data.tiempoIndefinido === "false" && data.veces === 1 && data.frecuenciaHoras !== undefined),
+      !(
+        data.tiempoIndefinido === "false" &&
+        data.veces === 1 &&
+        data.frecuenciaHoras !== undefined
+      ),
     {
       path: ["frecuenciaHoras"],
       message: "No debes indicar frecuencia si es una sola vez",
@@ -96,8 +114,8 @@ const indicacionObligatoriaSchema = z
       (val) => (val === "" ? undefined : new Date(val as string)),
       z.date()
     ),
-    observaciones: z.string().optional(),
-    incluirEnReceta: z.enum(["true", "false"]),
+    observaciones: z.preprocess(formatObservaciones, z.string().optional()),
+    paraCasa: z.enum(["true", "false"]),
   })
   .refine(
     (data) => {
@@ -124,17 +142,20 @@ const indicacionObligatoriaSchema = z
     }
   )
   .refine(
-    (data) =>
-      data.tiempoIndefinido === "false" || data.incluirEnReceta === "true",
+    (data) => data.tiempoIndefinido === "false" || data.paraCasa === "true",
     {
-      path: ["incluirEnReceta"],
+      path: ["paraCasa"],
       message:
         "Las indicaciones por tiempo indefinido deben ser para casa (incluidas en receta)",
     }
   )
   .refine(
     (data) =>
-      !(data.tiempoIndefinido === "false" && data.veces === 1 && data.frecuenciaHoras !== undefined),
+      !(
+        data.tiempoIndefinido === "false" &&
+        data.veces === 1 &&
+        data.frecuenciaHoras !== undefined
+      ),
     {
       path: ["frecuenciaHoras"],
       message: "No debes indicar frecuencia si es una sola vez",
@@ -159,11 +180,9 @@ export const notaClinicaBaseSchema = z.object({
   indicaciones: z.array(indicacionObligatoriaSchema).optional(),
 });
 
-// Tipos de entrada y salida
 export type NotaClinicaInput = z.input<typeof notaClinicaBaseSchema>;
 export type NotaClinicaValues = z.infer<typeof notaClinicaBaseSchema>;
 
-// El schema final incluye tus refinamientos
 export const notaClinicaSchema = notaClinicaBaseSchema.refine(
   (data) =>
     !!data.historiaClinica?.trim() ||

@@ -51,7 +51,7 @@ model Perfil {
   aplicacionesMedCreadas AplicacionMedicamento[] @relation("CreadorMedicamento")
   aplicacionesIndCreadas AplicacionIndicacion[]  @relation("CreadorIndicacion")
   expedientesCreados     ExpedienteMedico[]      @relation("ExpedienteAutor")
-    notasClinicasCreadas NotaClinica[] @relation("NotaClinicaToPerfil")
+  notasClinicasCreadas   NotaClinica[]           @relation("NotaClinicaToPerfil")
 }
 
 model Mascota {
@@ -101,7 +101,7 @@ model ExpedienteMedico {
 
 model NotaClinica {
   autorId                Int
-  autor Perfil @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
+  autor                  Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
   id                     Int                     @id @default(autoincrement())
   expedienteId           Int
   expediente             ExpedienteMedico        @relation(fields: [expedienteId], references: [id])
@@ -134,7 +134,7 @@ model Medicamento {
   veces            Int?
   desde            DateTime?
   tiempoIndefinido Boolean                 @default(false)
-  incluirEnReceta  Boolean                 @default(false)
+  paraCasa         Boolean                 @default(false)
   fechaCreacion    DateTime                @default(now())
   aplicaciones     AplicacionMedicamento[] // Campo inverso para la relación
   observaciones    String?
@@ -179,7 +179,7 @@ model Indicacion {
   frecuenciaHoras Int? // null = indicación única
   veces           Int? // null = indefinido si hay frecuencia
   desde           DateTime? // si es única o inicio del esquema periódico
-  incluirEnReceta Boolean                @default(false)
+  paraCasa        Boolean                @default(false)
   fechaCreacion   DateTime               @default(now())
   observaciones   String? // opcional, para más contexto
   aplicaciones    AplicacionIndicacion[] // Campo inverso para programación clínica

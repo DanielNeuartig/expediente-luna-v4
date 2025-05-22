@@ -5,7 +5,7 @@ CREATE TYPE "TipoUsuario" AS ENUM ('CEO', 'ADMINISTRADOR', 'MEDICO', 'AUXILIAR',
 CREATE TYPE "TipoAcceso" AS ENUM ('SMS_ENVIO', 'SMS_VERIFICACION', 'LOGIN', 'REGISTRO', 'REGISTRO_PERFIL', 'SMS_DISPONIBILIDAD', 'GET_USUARIO_ACTUAL');
 
 -- CreateEnum
-CREATE TYPE "Especie" AS ENUM ('CANINO', 'FELINO', 'AVE', 'REPTIL', 'ROEDOR', 'OTRO');
+CREATE TYPE "Especie" AS ENUM ('CANINO', 'FELINO', 'AVE_PSITACIDA', 'AVE_OTRA', 'OFIDIO', 'QUELONIO', 'LAGARTIJA', 'ROEDOR', 'LAGOMORFO', 'HURON', 'PORCINO', 'OTRO');
 
 -- CreateEnum
 CREATE TYPE "Sexo" AS ENUM ('MACHO', 'HEMBRA', 'DESCONOCIDO');
@@ -14,13 +14,16 @@ CREATE TYPE "Sexo" AS ENUM ('MACHO', 'HEMBRA', 'DESCONOCIDO');
 CREATE TYPE "Esterilizacion" AS ENUM ('ESTERILIZADO', 'NO_ESTERILIZADO', 'DESCONOCIDO');
 
 -- CreateEnum
-CREATE TYPE "TipoExpediente" AS ENUM ('CONSULTA', 'CIRUGIA', 'HOSPITALIZACION', 'LABORATORIO', 'OTRO');
+CREATE TYPE "TipoExpediente" AS ENUM ('CONSULTA', 'SEGUIMIENTO', 'CIRUGIA', 'HOSPITALIZACION', 'LABORATORIO', 'OTRO');
 
 -- CreateEnum
 CREATE TYPE "TipoClinica" AS ENUM ('PRIVADA', 'PUBLICA', 'MOVIL', 'OTRO');
 
 -- CreateEnum
 CREATE TYPE "ViaMedicamento" AS ENUM ('ORAL', 'SC', 'IM', 'IV', 'OTICA', 'OFTALMICA', 'TOPICA', 'OTRO');
+
+-- CreateEnum
+CREATE TYPE "EstadoAplicacion" AS ENUM ('PENDIENTE', 'REALIZADA', 'OMITIDA', 'CANCELADA');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -38,7 +41,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Perfil" (
     "id" SERIAL NOT NULL,
-    "prefijo" TEXT,
+    "prefijo" TEXT DEFAULT 'Tutor',
     "nombre" TEXT NOT NULL,
     "clave" TEXT NOT NULL,
     "telefonoPrincipal" TEXT NOT NULL,
@@ -97,6 +100,7 @@ CREATE TABLE "ExpedienteMedico" (
 
 -- CreateTable
 CREATE TABLE "NotaClinica" (
+    "autorId" INTEGER NOT NULL,
     "id" SERIAL NOT NULL,
     "expedienteId" INTEGER NOT NULL,
     "historiaClinica" TEXT,
@@ -122,10 +126,13 @@ CREATE TABLE "Medicamento" (
     "nombre" TEXT NOT NULL,
     "dosis" TEXT NOT NULL,
     "via" "ViaMedicamento" NOT NULL,
+    "frecuenciaHoras" INTEGER,
     "veces" INTEGER,
     "desde" TIMESTAMP(3),
-    "incluirEnReceta" BOOLEAN NOT NULL DEFAULT false,
-    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "tiempoIndefinido" BOOLEAN NOT NULL DEFAULT false,
+    "generarAplicaciones" BOOLEAN NOT NULL DEFAULT false,
+    "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "observaciones" TEXT,
 
     CONSTRAINT "Medicamento_pkey" PRIMARY KEY ("id")
 );
@@ -134,12 +141,17 @@ CREATE TABLE "Medicamento" (
 CREATE TABLE "AplicacionMedicamento" (
     "id" SERIAL NOT NULL,
     "notaClinicaId" INTEGER NOT NULL,
-    "fecha" TIMESTAMP(3) NOT NULL,
+    "medicamentoId" INTEGER,
+    "nombreMedicamentoManual" TEXT,
+    "via" "ViaMedicamento" NOT NULL,
+    "fechaProgramada" TIMESTAMP(3) NOT NULL,
+    "fechaReal" TIMESTAMP(3),
     "dosis" TEXT,
     "ejecutorId" INTEGER,
+    "creadorId" INTEGER NOT NULL,
     "observaciones" TEXT,
-    "omitida" BOOLEAN NOT NULL DEFAULT false,
-    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "estado" "EstadoAplicacion" NOT NULL DEFAULT 'PENDIENTE',
+    "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AplicacionMedicamento_pkey" PRIMARY KEY ("id")
 );
@@ -149,11 +161,12 @@ CREATE TABLE "Indicacion" (
     "id" SERIAL NOT NULL,
     "notaClinicaId" INTEGER NOT NULL,
     "descripcion" TEXT NOT NULL,
-    "cada" TEXT,
-    "desde" TIMESTAMP(3),
+    "frecuenciaHoras" INTEGER,
     "veces" INTEGER,
-    "incluirEnReceta" BOOLEAN NOT NULL DEFAULT false,
-    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "desde" TIMESTAMP(3),
+    "generarAplicaciones" BOOLEAN NOT NULL DEFAULT false,
+    "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "observaciones" TEXT,
 
     CONSTRAINT "Indicacion_pkey" PRIMARY KEY ("id")
 );
@@ -162,11 +175,15 @@ CREATE TABLE "Indicacion" (
 CREATE TABLE "AplicacionIndicacion" (
     "id" SERIAL NOT NULL,
     "notaClinicaId" INTEGER NOT NULL,
-    "fecha" TIMESTAMP(3) NOT NULL,
+    "indicacionId" INTEGER,
+    "descripcionManual" TEXT,
+    "fechaProgramada" TIMESTAMP(3) NOT NULL,
+    "fechaReal" TIMESTAMP(3),
     "ejecutorId" INTEGER,
+    "creadorId" INTEGER NOT NULL,
     "observaciones" TEXT,
-    "omitida" BOOLEAN NOT NULL DEFAULT false,
-    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "estado" "EstadoAplicacion" NOT NULL DEFAULT 'PENDIENTE',
+    "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AplicacionIndicacion_pkey" PRIMARY KEY ("id")
 );
@@ -262,6 +279,12 @@ CREATE UNIQUE INDEX "Perfil_usuarioId_key" ON "Perfil"("usuarioId");
 CREATE UNIQUE INDEX "Mascota_microchip_key" ON "Mascota"("microchip");
 
 -- CreateIndex
+CREATE INDEX "AplicacionMedicamento_notaClinicaId_estado_fechaProgramada_idx" ON "AplicacionMedicamento"("notaClinicaId", "estado", "fechaProgramada");
+
+-- CreateIndex
+CREATE INDEX "AplicacionIndicacion_notaClinicaId_estado_fechaProgramada_idx" ON "AplicacionIndicacion"("notaClinicaId", "estado", "fechaProgramada");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Raza_nombre_especie_key" ON "Raza"("nombre", "especie");
 
 -- CreateIndex
@@ -301,10 +324,13 @@ ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_autorId_fkey" FOREIGN KEY ("autorI
 ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_mascotaId_fkey" FOREIGN KEY ("mascotaId") REFERENCES "Mascota"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_clinicaId_fkey" FOREIGN KEY ("clinicaId") REFERENCES "Clinica"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN KEY ("expedienteId") REFERENCES "ExpedienteMedico"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -316,7 +342,13 @@ ALTER TABLE "Medicamento" ADD CONSTRAINT "Medicamento_notaClinicaId_fkey" FOREIG
 ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_medicamentoId_fkey" FOREIGN KEY ("medicamentoId") REFERENCES "Medicamento"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_ejecutorId_fkey" FOREIGN KEY ("ejecutorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_creadorId_fkey" FOREIGN KEY ("creadorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Indicacion" ADD CONSTRAINT "Indicacion_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -325,7 +357,13 @@ ALTER TABLE "Indicacion" ADD CONSTRAINT "Indicacion_notaClinicaId_fkey" FOREIGN 
 ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_indicacionId_fkey" FOREIGN KEY ("indicacionId") REFERENCES "Indicacion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_ejecutorId_fkey" FOREIGN KEY ("ejecutorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_creadorId_fkey" FOREIGN KEY ("creadorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
