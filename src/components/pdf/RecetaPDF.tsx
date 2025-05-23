@@ -63,7 +63,10 @@ function calcularFechas(
   return fechas;
 }
 
-function calcularEdad(fechaNacimiento: string, fechaReferencia: string): string {
+function calcularEdad(
+  fechaNacimiento: string,
+  fechaReferencia: string
+): string {
   const nacimiento = new Date(fechaNacimiento);
   const ref = new Date(fechaReferencia);
 
@@ -106,17 +109,20 @@ export default function RecetaPDF({
       <Page style={styles.page}>
         <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
         <Text style={styles.subheader}>
-          Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara, Jal.
+          Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara,
+          Jal.
         </Text>
         <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
         <Text style={styles.subheader}>
-          Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 · domingos de 11 a 1
+          Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 ·
+          domingos de 11 a 1
         </Text>
         <Text style={styles.subheader}>www.eldoc.vet · contacto@eldoc.vet</Text>
 
         <View style={styles.linea} />
         <Text style={styles.fecha}>
-          Fecha de la nota: {new Date(fechaNota).toLocaleString("es-MX", {
+          Fecha de la nota:{" "}
+          {new Date(fechaNota).toLocaleString("es-MX", {
             weekday: "short",
             year: "numeric",
             month: "2-digit",
@@ -136,10 +142,14 @@ export default function RecetaPDF({
             {datosMascota.fechaNacimiento && (
               <>
                 <Text>
-                  Fecha de nacimiento: {new Date(datosMascota.fechaNacimiento).toLocaleDateString("es-MX")}
+                  Fecha de nacimiento:{" "}
+                  {new Date(datosMascota.fechaNacimiento).toLocaleDateString(
+                    "es-MX"
+                  )}
                 </Text>
                 <Text>
-                  Edad al momento de la nota: {calcularEdad(datosMascota.fechaNacimiento, fechaNota)}
+                  Edad al momento de la nota:{" "}
+                  {calcularEdad(datosMascota.fechaNacimiento, fechaNota)}
                 </Text>
               </>
             )}
@@ -180,7 +190,9 @@ export default function RecetaPDF({
             {datosClinicos.laboratoriales && (
               <Text>Laboratoriales: {datosClinicos.laboratoriales}</Text>
             )}
-            {datosClinicos.extras && <Text>Extras: {datosClinicos.extras}</Text>}
+            {datosClinicos.extras && (
+              <Text>Extras: {datosClinicos.extras}</Text>
+            )}
             <View style={styles.linea} />
           </View>
         )}
@@ -190,7 +202,9 @@ export default function RecetaPDF({
             <Text style={styles.medicamentoTitulo}>{m.nombre}:</Text>
             <Text style={styles.medicamentoTexto}>
               Administrar {m.dosis} vía {m.via.toLowerCase()}
-              {m.frecuenciaHoras && m.veces
+              {m.frecuenciaHoras && (!m.veces || m.veces === 0)
+                ? ` cada ${m.frecuenciaHoras} horas durante tiempo indefinido.`
+                : m.frecuenciaHoras && m.veces
                 ? ` cada ${m.frecuenciaHoras} horas durante ${m.veces} aplicaciones.`
                 : "."}
             </Text>
