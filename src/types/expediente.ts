@@ -1,7 +1,7 @@
-import { EstadoAplicacion } from "@prisma/client";
+import { EstadoAplicacion, EstadoNotaClinica } from "@prisma/client";
 
 export type UsuarioMini = {
-  image: string; // ✅ obligatorio
+  image: string;
 };
 
 export type PerfilMini = {
@@ -18,18 +18,11 @@ export type Aplicacion = {
   estado: EstadoAplicacion;
   observaciones?: string | null;
 
-  nombreMedicamentoManual?: string | null; // ✅ nombre real
-  dosis?: string | null;                   // ✅ dosis real
-  via?: string | null;                     // ✅ vía real
+  nombreMedicamentoManual?: string | null;
+  dosis?: string | null;
+  via?: string | null;
 
-  ejecutor?: {
-    id: number;
-    nombre: string;
-    prefijo?: string;
-    usuario?: {
-      image: string; // ✅ obligatorio
-    } | null;
-  } | null;
+  ejecutor?: PerfilMini | null;
 
   medicamento?: {
     nombre: string;
@@ -49,7 +42,7 @@ export type Medicamento = {
   observaciones?: string | null;
   paraCasa: boolean;
   tiempoIndefinido: boolean;
-  aplicaciones: Aplicacion[]; // ✅ actualizamos para usar el tipo completo
+  aplicaciones: Aplicacion[];
 };
 
 export type NotaClinica = {
@@ -68,7 +61,7 @@ export type NotaClinica = {
   autor: PerfilMini;
   medicamentos: Medicamento[];
 
-  activa: boolean;
+  estado: EstadoNotaClinica;
   canceladaPorId?: number | null;
   fechaCancelacion?: string | null;
   anuladaPor?: PerfilMini | null;

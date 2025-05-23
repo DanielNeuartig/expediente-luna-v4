@@ -25,7 +25,7 @@ export async function GET(
           select: {
             id: true,
             nombre: true,
-            prefijo: true, // ✅ AÑADIR ESTA LÍNEA
+            prefijo: true,
             usuario: {
               select: { image: true },
             },
@@ -46,11 +46,12 @@ export async function GET(
             laboratoriales: true,
             extras: true,
             fechaCreacion: true,
+            estado: true,
             autor: {
               select: {
                 id: true,
                 nombre: true,
-                prefijo: true, // ✅ AÑADIR ESTA LÍNEA
+                prefijo: true,
                 usuario: {
                   select: { image: true },
                 },
@@ -74,8 +75,8 @@ export async function GET(
                     id: true,
                     fechaProgramada: true,
                     fechaReal: true,
-                    nombreMedicamentoManual: true, // ✅ nombre real
-                    dosis: true, // ✅ dosis real
+                    nombreMedicamentoManual: true,
+                    dosis: true,
                     via: true,
                     estado: true,
                     observaciones: true,
@@ -83,7 +84,7 @@ export async function GET(
                       select: {
                         id: true,
                         nombre: true,
-                        prefijo: true, // ✅ AÑADIR ESTA LÍNEA
+                        prefijo: true,
                         usuario: {
                           select: { image: true },
                         },
@@ -104,7 +105,6 @@ export async function GET(
                 paraCasa: true,
               },
             },
-            activa: true,
             canceladaPorId: true,
             fechaCancelacion: true,
             anuladaPor: {

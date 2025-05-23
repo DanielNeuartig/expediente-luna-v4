@@ -7,13 +7,12 @@ import { Box, Tabs, Spinner, Text } from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
 import BotoneraExpediente from "@/components/ui/BotonesCrearExpediente";
-import ListaExpedientesMascota from "@/components/ui/ListaExpedientesMascota";
-import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaClinica";
 import ListaAplicacionesMedicamento from "@/components/ui/aplicaciones/ListaAplicacionesMedicamento";
+import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaClinica";
 import { LuFileText, LuCircleCheck, LuHistory } from "react-icons/lu";
 
 import type { Mascota } from "@/types/mascota";
-import type { ExpedienteConNotas, Aplicacion } from "@/types/expediente";
+import type { ExpedienteConNotas } from "@/types/expediente";
 
 export default function MascotaDetalleClient({
   mascota,
@@ -37,36 +36,34 @@ export default function MascotaDetalleClient({
 
   const expedientes = data?.expedientes ?? [];
 
-  const aplicacionesMedicamentos: Aplicacion[] = expedientes.flatMap((exp) =>
+  const aplicacionesMedicamentos = expedientes.flatMap((exp) =>
     exp.notasClinicas.flatMap((nota) =>
       nota.medicamentos.flatMap((med) =>
-        med.aplicaciones.map((app) =>
-          ({
-            id: app.id,
-            fechaProgramada: app.fechaProgramada,
-            fechaReal: app.fechaReal ?? null,
-            estado: app.estado,
-            observaciones: app.observaciones ?? null,
-            ejecutor: app.ejecutor
-              ? {
-                  id: app.ejecutor.id,
-                  nombre: app.ejecutor.nombre,
-                  prefijo: app.ejecutor.prefijo,
-                  usuario: {
-                    image: app.ejecutor.usuario?.image ?? "",
-                  },
-                }
-              : null,
-            nombreMedicamentoManual: app.nombreMedicamentoManual ?? null,
-            dosis: app.dosis ?? null,
-            via: app.via ?? null,
-            medicamento: {
-              nombre: med.nombre,
-              dosis: med.dosis,
-              via: med.via,
-            },
-          } satisfies Aplicacion)
-        )
+        med.aplicaciones.map((app) => ({
+          id: app.id,
+          fechaProgramada: app.fechaProgramada,
+          fechaReal: app.fechaReal ?? null,
+          estado: app.estado,
+          observaciones: app.observaciones ?? null,
+          ejecutor: app.ejecutor
+            ? {
+                id: app.ejecutor.id,
+                nombre: app.ejecutor.nombre,
+                prefijo: app.ejecutor.prefijo,
+                usuario: {
+                  image: app.ejecutor.usuario?.image ?? "",
+                },
+              }
+            : null,
+          nombreMedicamentoManual: app.nombreMedicamentoManual ?? null,
+          dosis: app.dosis ?? null,
+          via: app.via ?? null,
+          medicamento: {
+            nombre: med.nombre,
+            dosis: med.dosis,
+            via: med.via,
+          },
+        }))
       )
     )
   );
@@ -86,6 +83,18 @@ export default function MascotaDetalleClient({
       <Box gridColumn="1 / span 2" gridRow="1">
         <TarjetaBase>
           <Text color="red.500">Error al cargar datos clínicos.</Text>
+        </TarjetaBase>
+      </Box>
+    );
+  }
+
+  // 🔐 Asegurar que tenemos perfil del usuario actual disponible
+  const perfilActualId = mascota.perfil?.id;
+  if (!perfilActualId) {
+    return (
+      <Box gridColumn="1 / span 2" gridRow="1">
+        <TarjetaBase>
+          <Text color="red.500">Mascota no vinculada a un perfil válido.</Text>
         </TarjetaBase>
       </Box>
     );
@@ -114,12 +123,15 @@ export default function MascotaDetalleClient({
           />
           <BotoneraExpediente mascotaId={mascota.id} />
           <HistoricoExpedientes
+            mascotaId={mascota.id}
             expedientes={expedientes}
             expedienteSeleccionado={expedienteSeleccionado}
             setExpedienteSeleccionado={(exp) => {
               setExpedienteSeleccionado(exp);
               setMostrarFormularioNota(true);
             }}
+            setMostrarFormularioNota={setMostrarFormularioNota}
+            perfilActualId={perfilActualId} // ✅ PASADO AQUÍ
             datosMascota={{
               nombre: mascota.nombre,
               especie: mascota.especie,
@@ -141,7 +153,8 @@ export default function MascotaDetalleClient({
                 value="aplicaciones"
                 fontWeight="bold"
               >
-                <LuCircleCheck style={{ marginRight: 6 }} /> Aplicaciones clínicas
+                <LuCircleCheck style={{ marginRight: 6 }} /> Aplicaciones
+                clínicas
               </Tabs.Trigger>
               <Tabs.Trigger
                 value="nota"
@@ -156,7 +169,9 @@ export default function MascotaDetalleClient({
             </Tabs.List>
 
             <Tabs.Content value="aplicaciones">
-              <ListaAplicacionesMedicamento aplicaciones={aplicacionesMedicamentos} />
+              <ListaAplicacionesMedicamento
+                aplicaciones={aplicacionesMedicamentos}
+              />
             </Tabs.Content>
 
             <Tabs.Content value="nota">

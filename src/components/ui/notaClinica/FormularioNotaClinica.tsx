@@ -34,7 +34,6 @@ export default function FormularioNotaClinica({
   mascotaId,
   onClose,
 }: Props) {
-  // El genérico aquí es el INPUT (raw values)
   const methods = useForm<NotaClinicaInput>({
     resolver: zodResolver(notaClinicaSchema),
     defaultValues: {
@@ -56,7 +55,6 @@ export default function FormularioNotaClinica({
     );
   }
 
-  // Usamos NotaClinicaInput como tipo, y antes de mutar, parseamos con el schema
   const onSubmit = (data: NotaClinicaInput) => {
     const valoresParseados: NotaClinicaValues = notaClinicaSchema.parse(data);
     crearNota.mutate(
@@ -82,9 +80,6 @@ export default function FormularioNotaClinica({
       <form onSubmit={handleSubmit(onSubmit)}>
         <Fieldset.Root size="lg" width="full">
           <Stack>
-            {
-              //<Fieldset.Legend color="tema.intenso">Nota clínica</Fieldset.Legend>
-            }
             <Fieldset.HelperText>
               Registrando en expediente #{expedienteSeleccionado.id} ·{" "}
               {expedienteSeleccionado.tipo}

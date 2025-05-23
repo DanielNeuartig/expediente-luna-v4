@@ -37,6 +37,42 @@ function calcularDiferenciaTiempo(fechaProgramada: string, fechaReal: string) {
 
   return enRetraso ? `⏱ Retraso: ${texto}` : `⏱ Adelantado: ${texto}`;
 }
+function calcularTiempoRestante(fechaProgramada: string) {
+  const ahora = new Date();
+  const fecha = new Date(fechaProgramada);
+  const msDiff = fecha.getTime() - ahora.getTime();
+
+  const minutosTotales = Math.abs(msDiff) / 60000;
+  const dias = Math.floor(minutosTotales / 1440); // 1440 = minutos en un día
+  const horas = Math.floor((minutosTotales % 1440) / 60);
+  const minutos = Math.floor(minutosTotales % 60);
+
+  let texto = "";
+
+  if (dias >= 31) {
+    const meses = Math.floor(dias / 30);
+    const diasRestantes = dias % 30;
+    texto = `${meses} mes${meses > 1 ? "es" : ""}`;
+    if (diasRestantes > 0) {
+      texto += ` y ${diasRestantes} día${diasRestantes > 1 ? "s" : ""}`;
+    }
+  } else if (dias >= 1) {
+    texto = `${dias} día${dias > 1 ? "s" : ""}`;
+    if (horas > 0) {
+      texto += ` y ${horas} hora${horas > 1 ? "s" : ""}`;
+    }
+  } else {
+    if (horas > 0) texto += `${horas} hora${horas > 1 ? "s" : ""}`;
+    if (minutos > 0) {
+      if (texto) texto += " ";
+      texto += `${minutos} minuto${minutos > 1 ? "s" : ""}`;
+    }
+  }
+
+  return msDiff < 0
+    ? `⚠️⚠️⚠️ Atrasada por ${texto}`
+    : `⏳ Faltan ${texto}`;
+}
 
 function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
   if (estado === "REALIZADA") return "tema.verde";
@@ -171,18 +207,25 @@ export default function AplicacionMedicamentoItem({
               })}
             </Text>
           )}
-          <Text fontWeight="light">
-            📅 Recetado:{" "}
-            {new Date(fechaProgramada).toLocaleString("es-MX", {
-              weekday: "short",
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}
-          </Text>
+          <HStack>
+            <Text fontWeight="light">
+              📅 Recetado:{" "}
+              {new Date(fechaProgramada).toLocaleString("es-MX", {
+                weekday: "short",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
+            </Text>
+            {estado === "PENDIENTE" && (
+              <Text fontWeight="semibold" color="white">
+                {calcularTiempoRestante(fechaProgramada)}
+              </Text>
+            )}
+          </HStack>
           {estado === "REALIZADA" && fechaReal && (
             <Text>{calcularDiferenciaTiempo(fechaProgramada, fechaReal)}</Text>
           )}

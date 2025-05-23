@@ -26,6 +26,30 @@ const formatObservaciones = (val: unknown) => {
   return capitalized.endsWith(".") ? capitalized : capitalized + ".";
 };
 
+// Validación completa para el campo 'desde'
+const desdeField = z
+  .preprocess(
+    (val) => (val === "" ? undefined : new Date(val as string)),
+    z.date()
+  )
+  .refine((fecha) => !isNaN(fecha.getTime()), {
+    message: "La fecha es inválida",
+  })
+  .refine((fecha) => {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return fecha >= hoy;
+  }, {
+    message: "La fecha no puede ser anterior a hoy",
+  })
+  .refine((fecha) => {
+    const limite = new Date();
+    limite.setFullYear(limite.getFullYear() + 1);
+    return fecha <= limite;
+  }, {
+    message: "La fecha no puede ser demasiado en el futuro",
+  });
+
 // ------------------------------
 // MEDICAMENTO
 // ------------------------------
@@ -49,10 +73,7 @@ const medicamentoObligatorioSchema = z
     frecuenciaHoras: safeInt(),
     veces: safeInt(),
     tiempoIndefinido: z.enum(["true", "false"]),
-    desde: z.preprocess(
-      (val) => (val === "" ? undefined : new Date(val as string)),
-      z.date()
-    ),
+    desde: desdeField,
     observaciones: z.preprocess(formatObservaciones, z.string().optional()),
     paraCasa: z.enum(["true", "false"]),
   })
@@ -110,10 +131,7 @@ const indicacionObligatoriaSchema = z
     frecuenciaHoras: safeInt(),
     veces: safeInt(),
     tiempoIndefinido: z.enum(["true", "false"]),
-    desde: z.preprocess(
-      (val) => (val === "" ? undefined : new Date(val as string)),
-      z.date()
-    ),
+    desde: desdeField,
     observaciones: z.preprocess(formatObservaciones, z.string().optional()),
     paraCasa: z.enum(["true", "false"]),
   })
@@ -203,3 +221,33 @@ export const notaClinicaSchema = notaClinicaBaseSchema.refine(
       "Debes llenar al menos un dato clínico o añadir un medicamento o indicación válida",
   }
 );
+
+export const notaClinicaConIdsSchema = notaClinicaBaseSchema
+  .extend({
+    expedienteId: z.number(),
+    mascotaId: z.number(),
+    anularNotaId: z.number().optional(),
+    firmarNotaId: z.number().optional(), // ✅ nuevo
+  })
+  .refine(
+    (data) =>
+      !!data.historiaClinica?.trim() ||
+      !!data.exploracionFisica?.trim() ||
+      data.temperatura !== undefined ||
+      data.peso !== undefined ||
+      data.frecuenciaCardiaca !== undefined ||
+      data.frecuenciaRespiratoria !== undefined ||
+      !!data.diagnosticoPresuntivo?.trim() ||
+      !!data.pronostico?.trim() ||
+      !!data.laboratoriales?.trim() ||
+      !!data.extras?.trim() ||
+      (data.medicamentos && data.medicamentos.length > 0) ||
+      (data.indicaciones && data.indicaciones.length > 0) ||
+      data.anularNotaId !== undefined ||
+      data.firmarNotaId !== undefined, // ✅ permite firmar sin contenido clínico
+    {
+      path: ["historiaClinica"],
+      message:
+        "Debes llenar al menos un dato clínico, anular una nota o firmar una existente",
+    }
+  );

@@ -25,6 +25,9 @@ CREATE TYPE "ViaMedicamento" AS ENUM ('ORAL', 'SC', 'IM', 'IV', 'OTICA', 'OFTALM
 -- CreateEnum
 CREATE TYPE "EstadoAplicacion" AS ENUM ('PENDIENTE', 'REALIZADA', 'OMITIDA', 'CANCELADA');
 
+-- CreateEnum
+CREATE TYPE "EstadoNotaClinica" AS ENUM ('EN_REVISION', 'FINALIZADA', 'ANULADA');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -100,7 +103,6 @@ CREATE TABLE "ExpedienteMedico" (
 
 -- CreateTable
 CREATE TABLE "NotaClinica" (
-    "autorId" INTEGER NOT NULL,
     "id" SERIAL NOT NULL,
     "expedienteId" INTEGER NOT NULL,
     "historiaClinica" TEXT,
@@ -111,10 +113,15 @@ CREATE TABLE "NotaClinica" (
     "frecuenciaRespiratoria" INTEGER,
     "diagnosticoPresuntivo" TEXT,
     "pronostico" TEXT,
-    "archivos" TEXT,
     "laboratoriales" TEXT,
     "extras" TEXT,
+    "archivos" TEXT,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "autorId" INTEGER NOT NULL,
+    "canceladaPorId" INTEGER,
+    "fechaCancelacion" TIMESTAMP(3),
+    "anuladaPorId" INTEGER,
+    "estado" "EstadoNotaClinica" NOT NULL DEFAULT 'EN_REVISION',
 
     CONSTRAINT "NotaClinica_pkey" PRIMARY KEY ("id")
 );
@@ -130,7 +137,7 @@ CREATE TABLE "Medicamento" (
     "veces" INTEGER,
     "desde" TIMESTAMP(3),
     "tiempoIndefinido" BOOLEAN NOT NULL DEFAULT false,
-    "generarAplicaciones" BOOLEAN NOT NULL DEFAULT false,
+    "paraCasa" BOOLEAN NOT NULL DEFAULT false,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "observaciones" TEXT,
 
@@ -164,7 +171,7 @@ CREATE TABLE "Indicacion" (
     "frecuenciaHoras" INTEGER,
     "veces" INTEGER,
     "desde" TIMESTAMP(3),
-    "generarAplicaciones" BOOLEAN NOT NULL DEFAULT false,
+    "paraCasa" BOOLEAN NOT NULL DEFAULT false,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "observaciones" TEXT,
 
@@ -330,10 +337,16 @@ ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_autorId_fkey" FO
 ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_clinicaId_fkey" FOREIGN KEY ("clinicaId") REFERENCES "Clinica"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN KEY ("expedienteId") REFERENCES "ExpedienteMedico"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN KEY ("expedienteId") REFERENCES "ExpedienteMedico"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_canceladaPorId_fkey" FOREIGN KEY ("canceladaPorId") REFERENCES "NotaClinica"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_anuladaPorId_fkey" FOREIGN KEY ("anuladaPorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Medicamento" ADD CONSTRAINT "Medicamento_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

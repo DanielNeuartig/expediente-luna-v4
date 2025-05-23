@@ -52,6 +52,8 @@ interface Props {
   datosClinicos?: DatosClinicos;
   datosMascota: DatosMascota;
   fechaNota: string;
+  estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA"; // ✅ aquí también
+  
 }
 
 export default function PopOverReceta({
@@ -59,6 +61,7 @@ export default function PopOverReceta({
   datosClinicos,
   datosMascota,
   fechaNota,
+  estadoNota, // ✅ aquí faltaba
 }: Props) {
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [incluirDatosClinicos, setIncluirDatosClinicos] = useState(false);
@@ -80,6 +83,7 @@ export default function PopOverReceta({
         datosClinicos={incluirDatosClinicos ? datosClinicos : undefined}
         datosMascota={datosMascota}
         fechaNota={fechaNota}
+        estadoNota={estadoNota} // ✅
       />
     ).toBlob();
 

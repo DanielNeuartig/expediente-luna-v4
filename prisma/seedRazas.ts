@@ -1,3 +1,5 @@
+//  npx tsx prisma/seedRazas.ts
+
 import { PrismaClient, Especie } from "@prisma/client";
 const prisma = new PrismaClient();
 

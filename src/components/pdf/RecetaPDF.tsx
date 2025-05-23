@@ -11,6 +11,8 @@ export type Medicamento = {
   veces?: number | null;
   desde?: string;
   observaciones?: string | null;
+  paraCasa?: boolean; // ✅ añadido aquí
+  tiempoIndefinido?: boolean; // ← Añade esto si aún no está
 };
 
 export type DatosClinicos = {
@@ -98,15 +100,20 @@ export default function RecetaPDF({
   datosClinicos,
   fechaNota,
   datosMascota,
+  estadoNota, // ✅ Aquí lo agr
 }: {
   medicamentos: Medicamento[];
   datosClinicos?: DatosClinicos;
   fechaNota: string;
   datosMascota?: DatosMascota;
+  estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA"; // ✅ esto es lo que te faltaba
 }) {
   return (
     <Document>
       <Page style={styles.page}>
+        {estadoNota === "EN_REVISION" && (
+          <Text style={styles.marcaAgua}>EN REVISIÓN</Text>
+        )}
         <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
         <Text style={styles.subheader}>
           Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara,
@@ -201,19 +208,55 @@ export default function RecetaPDF({
           <View key={i} style={styles.medicamento}>
             <Text style={styles.medicamentoTitulo}>{m.nombre}:</Text>
             <Text style={styles.medicamentoTexto}>
-              Administrar {m.dosis} vía {m.via.toLowerCase()}
-              {m.frecuenciaHoras && (!m.veces || m.veces === 0)
-                ? ` cada ${m.frecuenciaHoras} horas durante tiempo indefinido.`
+              {m.paraCasa === false
+                ? "(Administrar en clínica) "
+                : m.paraCasa === true
+                ? "(Para casa) "
+                : ""}
+              {m.tiempoIndefinido && m.frecuenciaHoras && m.desde
+                ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
+                    m.frecuenciaHoras
+                  } horas durante tiempo indefinido a partir del ${new Date(
+                    m.desde
+                  ).toLocaleString("es-MX", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}.`
+                : m.veces === 1 && m.desde
+                ? `Administrar ${
+                    m.dosis
+                  } vía ${m.via.toLowerCase()} una sola aplicación el ${new Date(
+                    m.desde
+                  ).toLocaleString("es-MX", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}.`
+                : m.frecuenciaHoras && (!m.veces || m.veces === 0)
+                ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
+                    m.frecuenciaHoras
+                  } horas durante tiempo indefinido.`
                 : m.frecuenciaHoras && m.veces
-                ? ` cada ${m.frecuenciaHoras} horas durante ${m.veces} aplicaciones.`
-                : "."}
+                ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
+                    m.frecuenciaHoras
+                  } horas durante ${m.veces} ocasiones.`
+                : `Administrar ${m.dosis} vía ${m.via.toLowerCase()}.`}
             </Text>
             {m.observaciones && (
               <Text style={styles.observaciones}>
                 Observaciones: {m.observaciones}
               </Text>
             )}
-            {m.desde && m.frecuenciaHoras && m.veces && (
+            {m.desde && m.frecuenciaHoras && m.veces && !m.tiempoIndefinido && (
               <View style={styles.aplicaciones}>
                 {calcularFechas(m.desde, m.frecuenciaHoras, m.veces).map(
                   (fecha, j) => (
@@ -279,6 +322,16 @@ const styles = StyleSheet.create({
   aplicacion: {
     fontSize: 10,
     color: "#333",
+  },
+  marcaAgua: {
+    position: "absolute",
+    top: "30%",
+    left: "1%",
+    fontSize: 92,
+    color: "#cccccc",
+    opacity: 0.5,
+    transform: "rotate(-30deg)",
+    fontWeight: "bold",
   },
   fecha: {
     fontSize: 10,

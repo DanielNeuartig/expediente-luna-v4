@@ -14,6 +14,8 @@ import { ExpedienteConNotas } from "@/types/expediente";
 import PopOverReceta from "@/components/ui/PopOverReceta";
 import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
 import MenuAccionesNota from "./MenuAccionesNota";
+import { useCrearNotaClinica } from "@/hooks/useCrearNotaClinica";
+import { EstadoNotaClinica } from "@prisma/client";
 
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString("es-MX", {
@@ -27,9 +29,11 @@ function formatearFecha(fecha: string) {
 }
 
 type Props = {
+  mascotaId: number;
   expedientes: ExpedienteConNotas[];
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
+  setMostrarFormularioNota: (mostrar: boolean) => void;
   datosMascota: {
     nombre: string;
     especie: string;
@@ -38,16 +42,21 @@ type Props = {
     sexo: string;
     esterilizado: string;
   };
+  perfilActualId: number; // ✅ Nuevo prop requerido
 };
 
 export default function HistoricoExpedientes({
+  mascotaId,
   expedientes,
   expedienteSeleccionado,
   setExpedienteSeleccionado,
+  setMostrarFormularioNota,
   datosMascota,
+  perfilActualId, // ✅ recibido aquí
 }: Props) {
-  const [filtro, setFiltro] = useState<"todas" | "activas" | "eliminadas">(
-    "todas"
+  const crearNotaClinica = useCrearNotaClinica();
+  const [filtro, setFiltro] = useState<"todas" | "activas" | "anuladas">(
+    "activas"
   );
 
   return (
@@ -57,16 +66,16 @@ export default function HistoricoExpedientes({
       </Text>
 
       <SegmentGroup.Root
-        defaultValue="todas"
+        defaultValue="activas"
         onValueChange={({ value }) =>
-          setFiltro(value as "todas" | "activas" | "eliminadas")
+          setFiltro(value as "todas" | "activas" | "anuladas")
         }
       >
         <SegmentGroup.Items
           items={[
-            { value: "todas", label: "Todas" },
-            { value: "activas", label: "Activas" },
-            { value: "eliminadas", label: "Eliminadas" },
+            { value: "activas", label: "Activas" }, // ✅ EN_REVISION + FINALIZADA
+            { value: "anuladas", label: "Anuladas" }, // ❌ Solo ANULADA
+            { value: "todas", label: "Todas" }, // 🟡 Todas sin filtro
           ]}
         />
         <SegmentGroup.Indicator />
@@ -85,9 +94,14 @@ export default function HistoricoExpedientes({
         <Table.Body>
           {expedientes.map((exp) => {
             const notasFiltradas = exp.notasClinicas.filter((nota) => {
-              if (filtro === "activas") return nota.activa;
-              if (filtro === "eliminadas") return !nota.activa;
-              return true;
+              if (filtro === "activas")
+                return (
+                  nota.estado === EstadoNotaClinica.EN_REVISION ||
+                  nota.estado === EstadoNotaClinica.FINALIZADA
+                );
+              if (filtro === "anuladas")
+                return nota.estado === EstadoNotaClinica.ANULADA;
+              return true; // todas
             });
 
             return (
@@ -114,6 +128,10 @@ export default function HistoricoExpedientes({
                       size="xs"
                       colorScheme="blue"
                       mt="2"
+                      onClick={() => {
+                        setExpedienteSeleccionado(exp);
+                        setMostrarFormularioNota(true);
+                      }}
                     >
                       Añadir nueva nota clínica
                     </Button>
@@ -123,12 +141,17 @@ export default function HistoricoExpedientes({
                 {notasFiltradas.map((nota) => (
                   <Table.Row
                     key={`nota-${nota.id}`}
-                    bg="tema.suave"
+                    bg={
+                      nota.estado === "FINALIZADA"
+                        ? "tema.intenso"
+                        : nota.estado === "ANULADA"
+                        ? "tema.rojo"
+                        : "gray.400"
+                    }
                     color="tema.claro"
                   >
                     <Table.Cell colSpan={4}>
                       <HStack justify="space-between" mb="2">
-                
                         <Text fontWeight="semibold">
                           Nota #{nota.id} - 📅{" "}
                           {formatearFecha(nota.fechaCreacion)}
@@ -153,26 +176,35 @@ export default function HistoricoExpedientes({
                           }}
                           fechaNota={nota.fechaCreacion}
                           datosMascota={datosMascota}
+                          estadoNota={nota.estado}
                         />
                         <MenuAccionesNota
-                          onAnular={() => {
-                            console.log(`Anular nota ${nota.id}`);
-                            // Aquí irá lógica real más adelante
-                          }}
-                          onReemplazar={() => {
-                            console.log(`Reemplazar nota ${nota.id}`);
-                            // Aquí se puede abrir un formulario con valores precargados
-                          }}
+                          nota={nota}
+                          perfilActualId={perfilActualId}
+                          onAnular={() =>
+                            crearNotaClinica.mutate({
+                              mascotaId,
+                              expedienteId: exp.id,
+                              anularNotaId: nota.id,
+                            })
+                          }
+                          onFirmar={() =>
+                            crearNotaClinica.mutate({
+                              mascotaId,
+                              expedienteId: exp.id,
+                              firmarNotaId: nota.id,
+                            })
+                          }
                         />
                       </HStack>
+
                       <HStack align="center" mb="2">
                         <Avatar.Root size="2xs">
                           <Avatar.Image src={nota.autor.usuario?.image ?? ""} />
                           <Avatar.Fallback />
                         </Avatar.Root>
-
                         <Text ml="2">{nota.autor.nombre}</Text>
-                        {!nota.activa && (
+                        {nota.estado === "ANULADA" && (
                           <Box
                             mt="1"
                             mb="2"
@@ -182,16 +214,11 @@ export default function HistoricoExpedientes({
                             color="red.200"
                             borderRadius="md"
                           >
-                            <Text fontWeight="bold">🛑 Nota no activa</Text>
+                            <Text fontWeight="bold">🛑 Nota anulada</Text>
                             {nota.fechaCancelacion && (
                               <Text fontSize="sm">
                                 Cancelada el{" "}
                                 {formatearFecha(nota.fechaCancelacion)}
-                              </Text>
-                            )}
-                            {nota.canceladaPorId && (
-                              <Text fontSize="sm">
-                                Reemplazada por nota #{nota.canceladaPorId}
                               </Text>
                             )}
                             {nota.anuladaPor && (
@@ -203,6 +230,7 @@ export default function HistoricoExpedientes({
                           </Box>
                         )}
                       </HStack>
+
                       {nota.historiaClinica && (
                         <Text>Historia: {nota.historiaClinica}</Text>
                       )}
@@ -232,7 +260,7 @@ export default function HistoricoExpedientes({
                       {nota.extras && <Text>Extras: {nota.extras}</Text>}
                       {nota.medicamentos.map((m) => (
                         <Box key={`med-${m.id}`} mt="2" pl="4">
-                          <Text>
+                          <Text fontWeight="medium">
                             💊 {m.nombre} ({m.dosis}) · {m.via} ·{" "}
                             {m.frecuenciaHoras
                               ? `Cada ${m.frecuenciaHoras}h`
@@ -243,8 +271,120 @@ export default function HistoricoExpedientes({
                               ? "Indefinido"
                               : "Duración fija"}
                           </Text>
+
                           {m.observaciones && (
-                            <Text>Obs: {m.observaciones}</Text>
+                            <Text fontSize="sm" fontStyle="italic" ml="2">
+                              Obs: {m.observaciones}
+                            </Text>
+                          )}
+
+                          {m.aplicaciones && m.aplicaciones.length > 0 && (
+                            <Box mt="2" pl="4">
+                              {m.aplicaciones.map((a, idx) => {
+                                const aplicadaNombre =
+                                  a.nombreMedicamentoManual || "-";
+                                const aplicadaDosis = a.dosis || "-";
+                                const aplicadaVia = a.via || "-";
+
+                                const coincideNombre =
+                                  aplicadaNombre === m.nombre;
+                                const coincideDosis = aplicadaDosis === m.dosis;
+                                const coincideVia = aplicadaVia === m.via;
+
+                                const diferencias = [
+                                  !coincideNombre && "Nombre",
+                                  !coincideDosis && "Dosis",
+                                  !coincideVia && "Vía",
+                                ].filter(Boolean);
+
+                                const mostrarDiferencia =
+                                  diferencias.length > 0
+                                    ? `⚠️ Diferencia en: ${diferencias.join(
+                                        ", "
+                                      )}`
+                                    : "✅ Coincide con lo recetado";
+
+                                const fechaReal = a.fechaReal
+                                  ? new Date(a.fechaReal)
+                                  : null;
+                                const fechaProgramada = new Date(
+                                  a.fechaProgramada
+                                );
+                                const msDiff = fechaReal
+                                  ? fechaReal.getTime() -
+                                    fechaProgramada.getTime()
+                                  : 0;
+                                const minutos = Math.abs(msDiff) / 60000;
+                                const horas = Math.floor(minutos / 60);
+                                const mins = Math.floor(minutos % 60);
+                                const tiempo = `${horas}h ${mins}min`;
+                                const diferenciaTiempo =
+                                  fechaReal &&
+                                  (msDiff > 0
+                                    ? `⏱ Retraso de ${tiempo}`
+                                    : `⏱ Adelanto de ${tiempo}`);
+
+                                return (
+                                  <Box
+                                    key={a.id}
+                                    mt="2"
+                                    pl="2"
+                                    borderLeft="2px solid gray"
+                                    ml="2"
+                                  >
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                      • Aplicación #{idx + 1} —{" "}
+                                      {formatearFecha(a.fechaProgramada)} —{" "}
+                                      {a.estado === "PENDIENTE"
+                                        ? "⏳ PENDIENTE"
+                                        : a.estado === "OMITIDA"
+                                        ? "❌ CANCELADA"
+                                        : "✅ REALIZADA"}
+                                    </Text>
+
+                                    <Text fontSize="sm">
+                                      💊 Recetado: {m.nombre} · {m.dosis} ·{" "}
+                                      {m.via}
+                                    </Text>
+                                    {a.estado === "REALIZADA" && (
+                                      <Text fontSize="sm">
+                                        💉 Aplicado: {aplicadaNombre} ·{" "}
+                                        {aplicadaDosis} · {aplicadaVia}
+                                      </Text>
+                                    )}
+
+                                    {a.estado === "REALIZADA" && (
+                                      <Text fontSize="sm">
+                                        {mostrarDiferencia}
+                                      </Text>
+                                    )}
+
+                                    {a.estado === "REALIZADA" && fechaReal && (
+                                      <Text fontSize="sm">
+                                        {diferenciaTiempo}
+                                      </Text>
+                                    )}
+
+                                    {a.ejecutor && (
+                                      <Text fontSize="sm">
+                                        👤 Ejecutado por: {a.ejecutor.prefijo}{" "}
+                                        {a.ejecutor.nombre}
+                                      </Text>
+                                    )}
+
+                                    {a.observaciones && (
+                                      <Text
+                                        fontSize="sm"
+                                        fontStyle="italic"
+                                        color="gray.200"
+                                      >
+                                        📝 {a.observaciones}
+                                      </Text>
+                                    )}
+                                  </Box>
+                                );
+                              })}
+                            </Box>
                           )}
                         </Box>
                       ))}

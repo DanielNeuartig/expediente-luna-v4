@@ -52,7 +52,7 @@ model Perfil {
   aplicacionesIndCreadas AplicacionIndicacion[]  @relation("CreadorIndicacion")
   expedientesCreados     ExpedienteMedico[]      @relation("ExpedienteAutor")
   notasClinicasCreadas   NotaClinica[]           @relation("NotaClinicaToPerfil")
-    notasAnuladas NotaClinica[] @relation("NotaAnuladaPor")
+  notasAnuladas          NotaClinica[]           @relation("NotaAnuladaPor")
 }
 
 model Mascota {
@@ -101,9 +101,9 @@ model ExpedienteMedico {
 }
 
 model NotaClinica {
-  id                     Int           @id @default(autoincrement())
-  expedienteId           Int
-  expediente             ExpedienteMedico @relation(fields: [expedienteId], references: [id])
+  id           Int              @id @default(autoincrement())
+  expedienteId Int
+  expediente   ExpedienteMedico @relation(fields: [expedienteId], references: [id])
 
   // Datos clínicos
   historiaClinica        String?
@@ -118,27 +118,23 @@ model NotaClinica {
   extras                 String?
   archivos               String?
 
-  fechaCreacion          DateTime      @default(now())
-  activa                 Boolean       @default(true)
+  fechaCreacion DateTime @default(now())
 
   // Autor y relaciones
-  autorId                Int
-  autor                  Perfil         @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
-  medicamentos           Medicamento[]
-  indicaciones           Indicacion[]
-  aplicacionesMed        AplicacionMedicamento[] @relation("AplicacionesMedNota")
-  aplicacionesInd        AplicacionIndicacion[]  @relation("AplicacionesIndNota")
+  autorId         Int
+  autor           Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
+  medicamentos    Medicamento[]
+  indicaciones    Indicacion[]
+  aplicacionesMed AplicacionMedicamento[] @relation("AplicacionesMedNota")
+  aplicacionesInd AplicacionIndicacion[]  @relation("AplicacionesIndNota")
 
-  // Lógica de cancelación
-  canceladaPorId         Int?
-  canceladaPor           NotaClinica?   @relation("NotaCancelada", fields: [canceladaPorId], references: [id])
-  notaCancelada          NotaClinica[]  @relation("NotaCancelada")
+  // Lógica de anulación
+  fechaCancelacion DateTime?
+  anuladaPorId     Int?
+  anuladaPor       Perfil?           @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
 
-  fechaCancelacion       DateTime?
-  anuladaPorId           Int?
-  anuladaPor             Perfil?        @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
+  estado           EstadoNotaClinica @default(EN_REVISION)
 }
-
 model Medicamento {
   id               Int                     @id @default(autoincrement())
   notaClinicaId    Int
@@ -388,4 +384,10 @@ enum EstadoAplicacion {
   REALIZADA // Se aplicó exitosamente
   OMITIDA // Se omitió por decisión médica o administrativa
   CANCELADA // Cancelada por alguna razón (alta, cambio de plan, error)
+}
+
+enum EstadoNotaClinica {
+  EN_REVISION
+  FINALIZADA
+  ANULADA
 }
