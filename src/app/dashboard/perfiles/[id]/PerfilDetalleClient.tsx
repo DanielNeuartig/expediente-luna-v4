@@ -1,27 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Text,
-  Box,
-  HStack,
-  Tabs,
-  Table,
-  Badge,
-  List,
-} from "@chakra-ui/react";
-import {
-  Phone,
-  PhoneForwarded,
-  CheckCircle,
-  CircleUserRound,
-  UserPlus,
-  CalendarDays,
-  User,
-  Album,
-  PawPrint,
-  Plus,
-} from "lucide-react";
+import { Text, Box, HStack, Tabs, Table, List } from "@chakra-ui/react";
+import { CircleUserRound, PawPrint, Plus } from "lucide-react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import FormularioMascotaVisual from "@/components/ui/FormularioMascotaVisual";
 import BoxMascota from "@/components/ui/BoxMascota";
@@ -49,7 +30,9 @@ type Perfil = {
   telefonoSecundario2?: string | null;
   telefonoVerificado: boolean;
   fechaCreacion: Date;
-  usuario?: any;
+  usuario?: {
+    image?: string | null;
+  };
   autor?: {
     perfil?: {
       nombre: string;
@@ -80,10 +63,12 @@ export default function PerfilDetalleClient({ perfil }: { perfil: Perfil }) {
             </HStack>
           </Box>
 
-          <Table.Root  size="sm">
+          <Table.Root size="sm">
             <Table.Body>
               <Table.Row bg="tema.intenso">
-                <Table.Cell bg="tem"fontWeight="bold">Documento ID</Table.Cell>
+                <Table.Cell bg="tem" fontWeight="bold">
+                  Documento ID
+                </Table.Cell>
                 <Table.Cell>{perfil.documentoId ?? "—"}</Table.Cell>
               </Table.Row>
               <Table.Row bg="tema.suave">
@@ -93,24 +78,32 @@ export default function PerfilDetalleClient({ perfil }: { perfil: Perfil }) {
               <Table.Row bg="tema.intenso">
                 <Table.Cell fontWeight="bold">Teléfono principal</Table.Cell>
                 <Table.Cell>
-                  {perfil.clave + " " + formatearTelefono(perfil.telefonoPrincipal)}
+                  {perfil.clave +
+                    " " +
+                    formatearTelefono(perfil.telefonoPrincipal)}
                 </Table.Cell>
-              </Table.Row >
+              </Table.Row>
               {perfil.telefonoSecundario1 && (
                 <Table.Row bg="tema.suave">
                   <Table.Cell fontWeight="bold">Tel. secundario 1</Table.Cell>
-                  <Table.Cell>{formatearTelefono(perfil.telefonoSecundario1)}</Table.Cell>
+                  <Table.Cell>
+                    {formatearTelefono(perfil.telefonoSecundario1)}
+                  </Table.Cell>
                 </Table.Row>
               )}
               {perfil.telefonoSecundario2 && (
                 <Table.Row bg="tema.intenso">
                   <Table.Cell fontWeight="bold">Tel. secundario 2</Table.Cell>
-                  <Table.Cell>{formatearTelefono(perfil.telefonoSecundario2)}</Table.Cell>
+                  <Table.Cell>
+                    {formatearTelefono(perfil.telefonoSecundario2)}
+                  </Table.Cell>
                 </Table.Row>
               )}
               <Table.Row bg="tema.suave">
                 <Table.Cell fontWeight="bold">Teléfono verificado</Table.Cell>
-                <Table.Cell>{perfil.telefonoVerificado ? "Sí" : "No"}</Table.Cell>
+                <Table.Cell>
+                  {perfil.telefonoVerificado ? "Sí" : "No"}
+                </Table.Cell>
               </Table.Row>
               <Table.Row bg="tema.intenso">
                 <Table.Cell fontWeight="bold">Tiene usuario</Table.Cell>
@@ -134,13 +127,23 @@ export default function PerfilDetalleClient({ perfil }: { perfil: Perfil }) {
           <Tabs.Root
             variant="outline"
             value={tab}
-            onValueChange={(details) => setTab(details.value as "mascotas" | "nueva")}
+            onValueChange={(details) =>
+              setTab(details.value as "mascotas" | "nueva")
+            }
           >
             <Tabs.List>
-              <Tabs.Trigger color="tema.suave" value="mascotas" fontWeight="bold">
+              <Tabs.Trigger
+                color="tema.suave"
+                value="mascotas"
+                fontWeight="bold"
+              >
                 <PawPrint style={{ marginRight: 6 }} /> Mascotas
               </Tabs.Trigger>
-              <Tabs.Trigger color="tema.llamativo" value="nueva" fontWeight="bold">
+              <Tabs.Trigger
+                color="tema.llamativo"
+                value="nueva"
+                fontWeight="bold"
+              >
                 <Plus style={{ marginRight: 6 }} /> Añadir mascota
               </Tabs.Trigger>
             </Tabs.List>

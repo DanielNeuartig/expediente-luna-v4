@@ -8,7 +8,6 @@ import {
   HStack,
   Input,
   NativeSelect,
-  Stack,
   Textarea,
   SegmentGroup,
   Wrap,
@@ -20,12 +19,12 @@ import {
   useFormContext,
   useWatch,
 } from "react-hook-form";
+import { useEffect, useRef } from "react";
 import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import { calcularFechas, formatoDatetimeLocal } from "./utils";
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
-import { useEffect } from "react";
 
 type Props = {
   fechaBase: string;
@@ -34,23 +33,23 @@ type Props = {
 type Medicamento = NonNullable<NotaClinicaValues["medicamentos"]>[number];
 
 export default function ListaMedicamentos({ fechaBase }: Props) {
-  const {
-    control,
-    setValue,
-    register,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    formState: { errors },
-  } = useFormContext();
-
+  const { control, setValue, register } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "medicamentos",
   });
 
-  // USO CORRECTO: useWatch directamente, sin useMemo, sin JSON.stringify
-  const valores = useWatch({ control, name: "medicamentos" }) || [];
-
+  const valores = useWatch({ control, name: "medicamentos" }) ?? [];
+  const prevValoresStr = useRef("");
+  // Este efecto depende de los valores del array de medicamentos, pero solo dispara cambios reales.
+// Es seguro ignorar el warning de ESLint aquí.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    const currentStr = JSON.stringify(valores);
+    if (currentStr === prevValoresStr.current) return;
+
+    prevValoresStr.current = currentStr;
+
     valores.forEach((item: Medicamento | undefined, index: number) => {
       if (item?.veces === 1 && item?.frecuenciaHoras !== undefined) {
         setValue(`medicamentos.${index}.frecuenciaHoras`, undefined, {
@@ -68,19 +67,12 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
 
         return (
           <Box key={field.id} borderWidth="1px" p="0" rounded="md">
-            <Fieldset.Legend {...estilosTituloInput}>
-              {
-                //Medicamento #{index + 1}
-              }
-            </Fieldset.Legend>
+            <Fieldset.Legend {...estilosTituloInput} />
 
+            {/* Campo: Nombre */}
             <Field.Root>
               <HStack>
-                <Field.Label
-                  minW="100px"
-                  fontSize="2xs"
-                  {...estilosTituloInput}
-                >
+                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                   Nombre
                 </Field.Label>
                 <Input
@@ -91,33 +83,27 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
               </HStack>
             </Field.Root>
 
+            {/* Campo: Dosis */}
             <Field.Root>
               <HStack>
-                <Field.Label
-                  minW="100px"
-                  fontSize={"2xs"}
-                  {...estilosTituloInput}
-                >
+                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                   Dosis
                 </Field.Label>
                 <Input
-                  size={"2xs"}
+                  size="2xs"
                   {...estilosInputBase}
                   {...register(`medicamentos.${index}.dosis`)}
                 />
               </HStack>
             </Field.Root>
 
+            {/* Campo: Vía */}
             <Field.Root>
               <HStack>
-                <Field.Label
-                  minW="100px"
-                  fontSize={"2xs"}
-                  {...estilosTituloInput}
-                >
+                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                   Vía
                 </Field.Label>
-                <NativeSelect.Root size={"xs"}>
+                <NativeSelect.Root size="xs">
                   <NativeSelect.Field
                     {...estilosInputBase}
                     {...register(`medicamentos.${index}.via`)}
@@ -137,20 +123,17 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
               </HStack>
             </Field.Root>
 
+            {/* Campo: Frecuencia */}
             {(item?.veces !== 1 || item?.tiempoIndefinido === "true") && (
               <Field.Root>
-                <HStack align="center">
-                  <Field.Label
-                    minW="100px"
-                    fontSize={"2xs"}
-                    {...estilosTituloInput}
-                  >
+                <HStack>
+                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                     Cada cuántas horas
                   </Field.Label>
                   <Input
                     size="2xs"
-                    {...estilosInputBase}
                     type="number"
+                    {...estilosInputBase}
                     {...register(`medicamentos.${index}.frecuenciaHoras`, {
                       setValueAs: (v) => (v === "" ? undefined : Number(v)),
                     })}
@@ -158,147 +141,123 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                 </HStack>
               </Field.Root>
             )}
-            <HStack>
-              {item?.tiempoIndefinido !== "true" && (
-                <Field.Root>
-                  <HStack>
-                    <Field.Label
-                      minW="100px"
-                      fontSize={"2xs"}
-                      {...estilosTituloInput}
-                    >
-                      Veces
-                    </Field.Label>
-                    <Input
-                      size="2xs"
-                      {...estilosInputBase}
-                      type="number"
-                      {...register(`medicamentos.${index}.veces`, {
-                        setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                      })}
-                    />
-                  </HStack>
-                </Field.Root>
-              )}
 
+            {/* Campo: Veces */}
+            {item?.tiempoIndefinido !== "true" && (
               <Field.Root>
-                <Field.Label minW="100px" {...estilosTituloInput}>
-                  {/*¿Aplicación por tiempo indefinido?*/}
-                </Field.Label>
-                <Controller
-                  control={control}
-                  name={`medicamentos.${index}.tiempoIndefinido`}
-                  render={({ field }) => (
-                    <SegmentGroup.Root
-                      name={field.name}
-                      value={field.value}
-                      onValueChange={({ value }) => {
-                        field.onChange(value);
+                <HStack>
+                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                    Veces
+                  </Field.Label>
+                  <Input
+                    size="2xs"
+                    type="number"
+                    {...estilosInputBase}
+                    {...register(`medicamentos.${index}.veces`, {
+                      setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                    })}
+                  />
+                </HStack>
+              </Field.Root>
+            )}
 
-                        if (value === "true") {
-                          if (item?.paraCasa === "false") {
-                            setValue(`medicamentos.${index}.paraCasa`, "true", {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                          }
-
-                          setValue(`medicamentos.${index}.veces`, undefined, {
+            {/* Campo: Tiempo indefinido */}
+            <Field.Root>
+              <Field.Label minW="100px" {...estilosTituloInput}>
+                ¿Aplicación indefinida?
+              </Field.Label>
+              <Controller
+                control={control}
+                name={`medicamentos.${index}.tiempoIndefinido`}
+                render={({ field }) => (
+                  <SegmentGroup.Root
+                    name={field.name}
+                    value={field.value}
+                    onValueChange={({ value }) => {
+                      field.onChange(value);
+                      if (value === "true") {
+                        if (item?.paraCasa === "false") {
+                          setValue(`medicamentos.${index}.paraCasa`, "true", {
                             shouldValidate: true,
                             shouldDirty: true,
                           });
                         }
-                      }}
-                      onBlur={field.onBlur}
-                      size="xs"
-                      colorPalette="tema.llamativo"
-                    >
-                      <SegmentGroup.Items
-                        items={[
-                          { value: "false", label: "Tiempo definido" },
-                          { value: "true", label: "Indefinido" },
-                        ]}
-                      />
-                      <SegmentGroup.Indicator bg="tema.llamativo" />
-                    </SegmentGroup.Root>
-                  )}
-                />
-              </Field.Root>
-            </HStack>
+                        setValue(`medicamentos.${index}.veces`, undefined, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }
+                    }}
+                    onBlur={field.onBlur}
+                    size="xs"
+                    colorPalette="tema.llamativo"
+                  >
+                    <SegmentGroup.Items
+                      items={[
+                        { value: "false", label: "Tiempo definido" },
+                        { value: "true", label: "Indefinido" },
+                      ]}
+                    />
+                    <SegmentGroup.Indicator bg="tema.llamativo" />
+                  </SegmentGroup.Root>
+                )}
+              />
+            </Field.Root>
 
+            {/* Campo: Desde */}
             <Field.Root>
               <HStack>
-                <Field.Label
-                  minW="100px"
-                  fontSize="2xs"
-                  {...estilosTituloInput}
-                >
+                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                   Desde
                 </Field.Label>
                 <Input
                   size="2xs"
-                  {...estilosInputBase}
                   type="datetime-local"
-                  min={formatoDatetimeLocal(
-                    new Date(Date.now() - 60 * 60 * 1000)
-                  )}
+                  min={formatoDatetimeLocal(new Date(Date.now() - 3600000))}
+                  {...estilosInputBase}
                   {...register(`medicamentos.${index}.desde`)}
-                  defaultValue={formatoDatetimeLocal(
-                    new Date(item?.desde ?? fechaBase)
-                  )}
+                  defaultValue={formatoDatetimeLocal(new Date(item?.desde ?? fechaBase))}
                 />
               </HStack>
             </Field.Root>
 
+            {/* Campo: Observaciones */}
             <Field.Root>
-              <Field.Label
-                minW="100px"
-                fontSize={"2xs"}
-                {...estilosTituloInput}
-              >
-                {/*Observaciones*/}
-              </Field.Label>
               <Textarea
                 size="xs"
+                placeholder="Observaciones"
                 {...estilosInputBase}
                 {...register(`medicamentos.${index}.observaciones`)}
-                placeholder="Observaciones sobre el medicamento"
               />
             </Field.Root>
 
-            {item?.desde &&
-              item?.frecuenciaHoras !== undefined &&
-              item?.frecuenciaHoras > 0 &&
-              item?.veces !== undefined &&
-              item?.veces > 1 && (
-                <Wrap gap="2" mt="0" mb="0">
-                  {calcularFechas(
-                    item.desde.toString(),
-                    item.frecuenciaHoras.toString(),
-                    item.veces.toString()
-                  ).map((fecha, i) => (
-                    <WrapItem key={i}>
-                      <Box color="tema.llamativo" fontSize="xs">
-                        Aplicación #{i + 1}: {fecha}
-                      </Box>
-                    </WrapItem>
-                  ))}
-                </Wrap>
-              )}
+            {/* Render de fechas tentativas */}
+            {item?.desde && item?.frecuenciaHoras && item?.veces && item.veces > 1 && (
+              <Wrap gap="2" mt="0" mb="0">
+                {calcularFechas(
+                  item.desde.toString(),
+                  item.frecuenciaHoras.toString(),
+                  item.veces.toString()
+                ).map((fecha, i) => (
+                  <WrapItem key={i}>
+                    <Box color="tema.llamativo" fontSize="xs">
+                      Aplicación #{i + 1}: {fecha}
+                    </Box>
+                  </WrapItem>
+                ))}
+              </Wrap>
+            )}
+
+            {/* Campo: ¿Para casa? */}
             <HStack>
               <Field.Root>
                 <HStack>
-                  <Field.Label
-                    minW="100px"
-                    fontSize="2xs"
-                    {...estilosTituloInput}
-                  >
+                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
                     ¿Para casa?
                   </Field.Label>
                   <Controller
                     control={control}
                     name={`medicamentos.${index}.paraCasa`}
-                    rules={{ required: "Selecciona si se incluye en receta" }}
                     render={({ field }) => (
                       <SegmentGroup.Root
                         name={field.name}
@@ -335,6 +294,8 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                   />
                 </HStack>
               </Field.Root>
+
+              {/* Botón eliminar */}
               <Button
                 variant="ghost"
                 color="red.500"

@@ -18,8 +18,8 @@ import {
   LuScrollText,
 } from "react-icons/lu";
 import PopOverReceta from "@/components/ui/PopOverReceta";
-import type { AplicacionIndicacion } from "@prisma/client";
-import type { Aplicacion } from "@/components/ui/aplicaciones/aplicaciones";
+//import type { AplicacionIndicacion } from "@prisma/client";
+//import type { Aplicacion } from "@/components/ui/aplicaciones/aplicaciones";
 
 export type NotaClinicaExtendida = {
   id: number;
@@ -86,13 +86,14 @@ export type ExpedienteConNotas = {
 
 type Props = {
   expedientes: ExpedienteConNotas[];
-  imagenUsuario: string;
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  mascota: {
+  //aplicacionesMedicamentos: Aplicacion[];
+  //aplicacionesIndicaciones: AplicacionIndicacion[];
+  datosMascota: {
     nombre: string;
     especie: string;
-    raza?: { nombre: string } | null;
+    raza?: string;
     fechaNacimiento?: string;
     sexo: string;
     esterilizado: string;
@@ -101,10 +102,11 @@ type Props = {
 
 export default function ListaExpedientesMascota({
   expedientes,
-  imagenUsuario,
   expedienteSeleccionado,
   setExpedienteSeleccionado,
-  mascota, // ✅ aquí está la clave
+  //aplicacionesMedicamentos,
+  //aplicacionesIndicaciones,
+  datosMascota, // ✅ correcto
 }: Props) {
   return (
     <Timeline.Root size="lg" variant="solid">
@@ -191,33 +193,30 @@ export default function ListaExpedientesMascota({
                         })}
                       </Span>
                     </Timeline.Title>
-                    <PopOverReceta
-                      medicamentos={nota.medicamentos ?? []}
-                      datosClinicos={{
-                        historiaClinica: nota.historiaClinica ?? undefined,
-                        exploracionFisica: nota.exploracionFisica ?? undefined,
-                        temperatura: nota.temperatura ?? undefined,
-                        peso: nota.peso ?? undefined,
-                        frecuenciaCardiaca:
-                          nota.frecuenciaCardiaca ?? undefined,
-                        frecuenciaRespiratoria:
-                          nota.frecuenciaRespiratoria ?? undefined,
-                        diagnosticoPresuntivo:
-                          nota.diagnosticoPresuntivo ?? undefined,
-                        pronostico: nota.pronostico ?? undefined,
-                        laboratoriales: nota.laboratoriales ?? undefined,
-                        extras: nota.extras ?? undefined,
-                      }}
-                      fechaNota={nota.fechaCreacion}
-                      datosMascota={{
-                        nombre: mascota.nombre,
-                        especie: mascota.especie,
-                        raza: mascota.raza?.nombre,
-                        fechaNacimiento: mascota.fechaNacimiento,
-                        sexo: mascota.sexo,
-                        esterilizado: mascota.esterilizado,
-                      }}
-                    />
+                 <PopOverReceta
+  medicamentos={nota.medicamentos ?? []}
+  datosClinicos={{
+    historiaClinica: nota.historiaClinica ?? undefined,
+    exploracionFisica: nota.exploracionFisica ?? undefined,
+    temperatura: nota.temperatura ?? undefined,
+    peso: nota.peso ?? undefined,
+    frecuenciaCardiaca: nota.frecuenciaCardiaca ?? undefined,
+    frecuenciaRespiratoria: nota.frecuenciaRespiratoria ?? undefined,
+    diagnosticoPresuntivo: nota.diagnosticoPresuntivo ?? undefined,
+    pronostico: nota.pronostico ?? undefined,
+    laboratoriales: nota.laboratoriales ?? undefined,
+    extras: nota.extras ?? undefined,
+  }}
+  fechaNota={nota.fechaCreacion}
+  datosMascota={{
+    nombre: datosMascota.nombre,
+    especie: datosMascota.especie,
+    raza: datosMascota.raza,
+    fechaNacimiento: datosMascota.fechaNacimiento,
+    sexo: datosMascota.sexo,
+    esterilizado: datosMascota.esterilizado,
+  }}
+/>
                     <Card.Root bg="white" color="tema.suave">
                       <Card.Body textStyle="sm">
                         {nota.historiaClinica && (

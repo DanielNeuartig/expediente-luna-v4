@@ -12,17 +12,16 @@ type Props = {
 };
 
 export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
-  const aplicacionesSeguras = aplicaciones ?? [];
-
   const aplicacionesOrdenadas = useMemo(
-    () => [...aplicacionesSeguras].filter((a) => a && a.id),
-    [aplicacionesSeguras]
+    () => [...(aplicaciones ?? [])].filter((a) => a && a.id),
+    [aplicaciones]
   );
 
   const defaultAplicaciones = useMemo(
     () =>
       aplicacionesOrdenadas.map((app) => ({
-        nombreMedicamentoManual: app.nombreMedicamentoManual ?? app.medicamento?.nombre ?? "",
+        nombreMedicamentoManual:
+          app.nombreMedicamentoManual ?? app.medicamento?.nombre ?? "",
         dosis: app.dosis ?? app.medicamento?.dosis ?? "",
         via: app.via ?? app.medicamento?.via ?? "",
         estado: app.estado,
@@ -46,7 +45,11 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
   const pendientes = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
     .filter((a) => a.estado === "PENDIENTE")
-    .sort((a, b) => new Date(a.fechaProgramada).getTime() - new Date(b.fechaProgramada).getTime());
+    .sort(
+      (a, b) =>
+        new Date(a.fechaProgramada).getTime() -
+        new Date(b.fechaProgramada).getTime()
+    );
 
   const realizadas = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))

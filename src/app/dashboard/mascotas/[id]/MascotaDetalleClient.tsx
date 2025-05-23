@@ -80,7 +80,7 @@ export default function MascotaDetalleClient({
 
   const expedientes = data?.expedientes ?? [];
   const aplicacionesMedicamentos = data?.aplicacionesMedicamentos ?? [];
-  const aplicacionesIndicaciones = data?.aplicacionesIndicaciones ?? [];
+ // const aplicacionesIndicaciones = data?.aplicacionesIndicaciones ?? [];
 
   if (isLoading) {
     return (
@@ -131,9 +131,9 @@ export default function MascotaDetalleClient({
                 setExpedienteSeleccionado(expediente);
                 setMostrarFormularioNota(true);
               }}
-              aplicacionesMedicamentos={aplicacionesMedicamentos}
-              aplicacionesIndicaciones={aplicacionesIndicaciones}
-              mascota={{
+              //aplicacionesMedicamentos={aplicacionesMedicamentos}
+              //aplicacionesIndicaciones={aplicacionesIndicaciones}
+              datosMascota={{
                 nombre: mascota.nombre,
                 especie: mascota.especie,
                 raza: mascota.raza?.nombre,
@@ -177,7 +177,7 @@ export default function MascotaDetalleClient({
             </Tabs.Content>
 
             <Tabs.Content value="nota">
-              {expedienteSeleccionado ? (
+              {expedienteSeleccionado && mostrarFormularioNota ? (
                 <FormularioNotaClinica
                   expedienteSeleccionado={expedienteSeleccionado}
                   mascotaId={mascota.id}
@@ -185,7 +185,9 @@ export default function MascotaDetalleClient({
                 />
               ) : (
                 <Box py={4} color="tema.suave">
-                  Selecciona un expediente para registrar una nota clínica.
+                  {expedienteSeleccionado
+                    ? "Nota clínica cerrada."
+                    : "Selecciona un expediente para registrar una nota clínica."}
                 </Box>
               )}
             </Tabs.Content>

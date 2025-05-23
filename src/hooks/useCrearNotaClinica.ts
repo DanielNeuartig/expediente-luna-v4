@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toaster } from "@/components/ui/toaster";
 import { z } from "zod";
 import { notaClinicaBaseSchema } from "@/lib/validadores/notaClinicaSchema";
+import type { NotaClinica } from "@prisma/client";
 
 // Schema extendido con IDs
 export const notaClinicaConIdsSchema = notaClinicaBaseSchema.extend({
@@ -30,6 +31,24 @@ export const notaClinicaConIdsSchema = notaClinicaBaseSchema.extend({
 
 export type ValoresNotaClinicaExtendida = z.infer<typeof notaClinicaConIdsSchema>;
 
+type ExpedienteConNotas = {
+  id: number;
+  tipo: string;
+  fechaCreacion: string;
+  autor?: {
+    id: number;
+    nombre: string;
+    usuario?: { image?: string | null } | null;
+  } | null;
+  notasClinicas: NotaClinica[];
+};
+
+type CacheExpedientes = {
+  expedientes: ExpedienteConNotas[];
+  aplicacionesMedicamentos: unknown[]; // Puedes tipar si tienes el tipo `AplicacionMedicamento`
+  aplicacionesIndicaciones: unknown[]; // Igual con `AplicacionIndicacion`
+};
+
 export function useCrearNotaClinica() {
   const queryClient = useQueryClient();
 
@@ -47,25 +66,28 @@ export function useCrearNotaClinica() {
         throw new Error(json.error || "Error al guardar nota clínica");
       }
 
-      return json.notaClinica;
+      return json.notaClinica as NotaClinica;
     },
     onSuccess: (nuevaNota, datos) => {
-      queryClient.setQueryData(["expedientes", datos.mascotaId], (prev: any) => {
-        if (!prev) return prev;
+      queryClient.setQueryData<CacheExpedientes>(
+        ["expedientes", datos.mascotaId],
+        (prev) => {
+          if (!prev) return prev;
 
-        return {
-          ...prev,
-          expedientes: prev.expedientes.map((exp: any) => {
-            if (exp.id === datos.expedienteId) {
-              return {
-                ...exp,
-                notasClinicas: [...exp.notasClinicas, nuevaNota],
-              };
-            }
-            return exp;
-          }),
-        };
-      });
+          return {
+            ...prev,
+            expedientes: prev.expedientes.map((exp) => {
+              if (exp.id === datos.expedienteId) {
+                return {
+                  ...exp,
+                  notasClinicas: [...exp.notasClinicas, nuevaNota],
+                };
+              }
+              return exp;
+            }),
+          };
+        }
+      );
 
       toaster.create({
         type: "success",

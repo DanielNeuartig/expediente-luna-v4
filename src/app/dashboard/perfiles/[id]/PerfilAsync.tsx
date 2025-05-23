@@ -47,13 +47,15 @@ export default async function PerfilAsync({
       <PerfilDetalleClient
         perfil={{
           ...perfil,
-          prefijo: perfil.prefijo ?? "—", // ✅ aseguramos string
+          prefijo: perfil.prefijo ?? "—",
+          usuario:
+            perfil.usuario !== null
+              ? { image: perfil.usuario.image ?? null }
+              : undefined,
           autor: {
             ...perfil.autor,
             perfil:
-              perfil.autor?.perfil !== null
-                ? perfil.autor?.perfil
-                : undefined, // ✅ evitamos pasar `null`
+              perfil.autor?.perfil !== null ? perfil.autor?.perfil : undefined,
           },
         }}
       />
