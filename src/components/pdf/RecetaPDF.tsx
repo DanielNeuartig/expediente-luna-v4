@@ -66,12 +66,28 @@ function calcularFechas(
 function calcularEdad(fechaNacimiento: string, fechaReferencia: string): string {
   const nacimiento = new Date(fechaNacimiento);
   const ref = new Date(fechaReferencia);
-  let edad = ref.getFullYear() - nacimiento.getFullYear();
-  const mes = ref.getMonth() - nacimiento.getMonth();
-  if (mes < 0 || (mes === 0 && ref.getDate() < nacimiento.getDate())) {
-    edad--;
+
+  let años = ref.getFullYear() - nacimiento.getFullYear();
+  let meses = ref.getMonth() - nacimiento.getMonth();
+  let días = ref.getDate() - nacimiento.getDate();
+
+  if (días < 0) {
+    meses--;
+    const mesAnterior = new Date(ref.getFullYear(), ref.getMonth(), 0);
+    días += mesAnterior.getDate();
   }
-  return `${edad} años`;
+
+  if (meses < 0) {
+    años--;
+    meses += 12;
+  }
+
+  const partes = [];
+  if (años > 0) partes.push(`${años} año${años > 1 ? "s" : ""}`);
+  if (meses > 0) partes.push(`${meses} mes${meses > 1 ? "es" : ""}`);
+  if (días > 0) partes.push(`${días} día${días > 1 ? "s" : ""}`);
+
+  return partes.join(", ");
 }
 
 export default function RecetaPDF({
@@ -100,7 +116,7 @@ export default function RecetaPDF({
 
         <View style={styles.linea} />
         <Text style={styles.fecha}>
-          Fecha: {new Date(fechaNota).toLocaleString("es-MX", {
+          Fecha de la nota: {new Date(fechaNota).toLocaleString("es-MX", {
             weekday: "short",
             year: "numeric",
             month: "2-digit",
