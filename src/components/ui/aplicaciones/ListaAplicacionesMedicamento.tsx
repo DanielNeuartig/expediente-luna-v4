@@ -3,9 +3,11 @@
 import { VStack, Text, Tabs } from "@chakra-ui/react";
 import { useForm, FormProvider } from "react-hook-form";
 import AplicacionMedicamentoItem from "./AplicacionMedicamentoItem";
-import type { Aplicacion } from "./aplicaciones";
-import { LuClock, LuCircleCheck, LuArchive } from "react-icons/lu";
 import { useEffect, useMemo } from "react";
+import { LuClock, LuCircleCheck, LuArchive } from "react-icons/lu";
+
+import type { Aplicacion } from "@/types/expediente";
+import { EstadoAplicacion } from "@prisma/client";
 
 type Props = {
   aplicaciones: Aplicacion[];
@@ -20,10 +22,11 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
   const defaultAplicaciones = useMemo(
     () =>
       aplicacionesOrdenadas.map((app) => ({
-        nombreMedicamentoManual:
-          app.nombreMedicamentoManual ?? app.medicamento?.nombre ?? "",
-        dosis: app.dosis ?? app.medicamento?.dosis ?? "",
-        via: app.via ?? app.medicamento?.via ?? "",
+        medicamento: {
+          nombre: app.medicamento?.nombre ?? "",
+          dosis: app.medicamento?.dosis ?? "",
+          via: app.medicamento?.via ?? "",
+        },
         estado: app.estado,
         observaciones: app.observaciones ?? "",
       })),
@@ -44,7 +47,7 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
 
   const pendientes = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
-    .filter((a) => a.estado === "PENDIENTE")
+    .filter((a) => a.estado === EstadoAplicacion.PENDIENTE)
     .sort(
       (a, b) =>
         new Date(a.fechaProgramada).getTime() -
@@ -53,7 +56,7 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
 
   const realizadas = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
-    .filter((a) => a.estado === "REALIZADA")
+    .filter((a) => a.estado === EstadoAplicacion.REALIZADA)
     .sort((a, b) => {
       const fechaA = a.fechaReal
         ? new Date(a.fechaReal).getTime()
@@ -66,7 +69,11 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
 
   const archivadas = aplicacionesOrdenadas
     .map((a, i) => ({ ...a, index: i }))
-    .filter((a) => a.estado === "CANCELADA" || a.estado === "OMITIDA")
+    .filter(
+      (a) =>
+        a.estado === EstadoAplicacion.CANCELADA ||
+        a.estado === EstadoAplicacion.OMITIDA
+    )
     .sort((a, b) => {
       const fechaA = a.fechaReal
         ? new Date(a.fechaReal).getTime()
@@ -76,155 +83,69 @@ export default function ListaAplicacionesMedicamento({ aplicaciones }: Props) {
         : new Date(b.fechaProgramada).getTime();
       return fechaB - fechaA;
     });
+
+  const renderAplicaciones = (lista: typeof pendientes) => (
+    <VStack gap="4" align="stretch">
+      {lista.length === 0 ? (
+        <Text fontSize="sm" color="tema.suave">
+          No hay aplicaciones en esta categoría.
+        </Text>
+      ) : (
+        lista.map((app) => (
+         <AplicacionMedicamentoItem
+  key={app.id}
+  index={app.index}
+  aplicacionId={app.id}
+  estado={app.estado}
+  ejecutor={app.ejecutor}
+  defaults={{
+    medicamento: {
+      nombre: app.medicamento?.nombre ?? "",
+      dosis: app.medicamento?.dosis ?? "",
+      via: app.medicamento?.via ?? "",
+    },
+  }}
+  fechaProgramada={app.fechaProgramada}
+  fechaReal={app.fechaReal}
+  // ✅ Agrega estas 3 líneas que faltan:
+  nombreMedicamentoManual={app.nombreMedicamentoManual}
+  dosis={app.dosis}
+  via={app.via}
+/>
+        ))
+      )}
+    </VStack>
+  );
+
   return (
     <FormProvider {...methods}>
       <form>
         <Tabs.Root defaultValue="pendientes" variant="outline">
           <Tabs.List>
-            <Tabs.Trigger
-              value="pendientes"
-              color="tema.suave"
-              fontWeight={"bold"}
-            >
+            <Tabs.Trigger value="pendientes" color="tema.suave" fontWeight="bold">
               <LuClock style={{ marginRight: 6 }} />
               Pendientes ({pendientes.length})
             </Tabs.Trigger>
-            <Tabs.Trigger
-              value="realizadas"
-              color="tema.suave"
-              fontWeight={"bold"}
-            >
+            <Tabs.Trigger value="realizadas" color="tema.suave" fontWeight="bold">
               <LuCircleCheck style={{ marginRight: 6 }} />
               Realizadas ({realizadas.length})
             </Tabs.Trigger>
-            <Tabs.Trigger
-              value="archivadas"
-              color="tema.suave"
-              fontWeight={"bold"}
-            >
+            <Tabs.Trigger value="archivadas" color="tema.suave" fontWeight="bold">
               <LuArchive style={{ marginRight: 6 }} />
               Archivadas ({archivadas.length})
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Tabs.Content
-            value="pendientes"
-            _open={{
-              animationName: "fade-in, scale-in",
-              animationDuration: "300ms",
-            }}
-            _closed={{
-              animationName: "fade-out, scale-out",
-              animationDuration: "120ms",
-            }}
-          >
-            <VStack gap="1" align="stretch">
-              {pendientes.length === 0 ? (
-                <Text fontSize="sm" color="tema.suave">
-                  No hay aplicaciones pendientes.
-                </Text>
-              ) : (
-                pendientes.map((app) => (
-                  <AplicacionMedicamentoItem
-                    key={app.id}
-                    index={app.index}
-                    aplicacionId={app.id}
-                    estado={app.estado}
-                    ejecutor={app.ejecutor}
-                    defaults={{
-                      nombreMedicamentoManual:
-                        app.nombreMedicamentoManual ??
-                        app.medicamento?.nombre ??
-                        "",
-                      dosis: app.dosis ?? app.medicamento?.dosis ?? "",
-                      via: app.via ?? app.medicamento?.via ?? "",
-                    }}
-                    fechaProgramada={app.fechaProgramada}
-                    fechaReal={app.fechaReal}
-                  />
-                ))
-              )}
-            </VStack>
+          <Tabs.Content value="pendientes">
+            {renderAplicaciones(pendientes)}
           </Tabs.Content>
 
-          <Tabs.Content
-            value="realizadas"
-            _open={{
-              animationName: "fade-in, scale-in",
-              animationDuration: "300ms",
-            }}
-            _closed={{
-              animationName: "fade-out, scale-out",
-              animationDuration: "120ms",
-            }}
-          >
-            <VStack gap="4" align="stretch">
-              {realizadas.length === 0 ? (
-                <Text fontSize="sm" color="tema.suave">
-                  No hay aplicaciones realizadas.
-                </Text>
-              ) : (
-                realizadas.map((app) => (
-                  <AplicacionMedicamentoItem
-                    key={app.id}
-                    index={app.index}
-                    aplicacionId={app.id}
-                    estado={app.estado}
-                    ejecutor={app.ejecutor}
-                    defaults={{
-                      nombreMedicamentoManual:
-                        app.nombreMedicamentoManual ??
-                        app.medicamento?.nombre ??
-                        "",
-                      dosis: app.dosis ?? app.medicamento?.dosis ?? "",
-                      via: app.via ?? app.medicamento?.via ?? "",
-                    }}
-                    fechaProgramada={app.fechaProgramada}
-                    fechaReal={app.fechaReal}
-                  />
-                ))
-              )}
-            </VStack>
+          <Tabs.Content value="realizadas">
+            {renderAplicaciones(realizadas)}
           </Tabs.Content>
 
-          <Tabs.Content
-            value="archivadas"
-            _open={{
-              animationName: "fade-in, scale-in",
-              animationDuration: "300ms",
-            }}
-            _closed={{
-              animationName: "fade-out, scale-out",
-              animationDuration: "120ms",
-            }}
-          >
-            <VStack gap="4" align="stretch">
-              {archivadas.length === 0 ? (
-                <Text fontSize="sm" color="tema.suave">
-                  No hay aplicaciones archivadas.
-                </Text>
-              ) : (
-                archivadas.map((app) => (
-                  <AplicacionMedicamentoItem
-                    key={app.id}
-                    index={app.index}
-                    aplicacionId={app.id}
-                    estado={app.estado}
-                    ejecutor={app.ejecutor}
-                    defaults={{
-                      nombreMedicamentoManual:
-                        app.nombreMedicamentoManual ??
-                        app.medicamento?.nombre ??
-                        "",
-                      dosis: app.dosis ?? app.medicamento?.dosis ?? "",
-                      via: app.via ?? app.medicamento?.via ?? "",
-                    }}
-                    fechaProgramada={app.fechaProgramada}
-                    fechaReal={app.fechaReal}
-                  />
-                ))
-              )}
-            </VStack>
+          <Tabs.Content value="archivadas">
+            {renderAplicaciones(archivadas)}
           </Tabs.Content>
         </Tabs.Root>
       </form>

@@ -1,22 +1,6 @@
 // src/app/api/mascotas/[id]/expedientes/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { AplicacionMedicamento } from "@prisma/client";
-
-type AplicacionMedicamentoExtendida = AplicacionMedicamento & {
-  medicamento: {
-    nombre: string;
-    dosis: string;
-    via: string;
-  } | null;
-  ejecutor: {
-    id: number;
-    nombre: string;
-    usuario: {
-      image: string | null;
-    } | null;
-  } | null;
-};
 
 export async function GET(
   _req: Request,
@@ -41,10 +25,9 @@ export async function GET(
           select: {
             id: true,
             nombre: true,
+            prefijo: true, // ✅ AÑADIR ESTA LÍNEA
             usuario: {
-              select: {
-                image: true,
-              },
+              select: { image: true },
             },
           },
         },
@@ -67,10 +50,9 @@ export async function GET(
               select: {
                 id: true,
                 nombre: true,
+                prefijo: true, // ✅ AÑADIR ESTA LÍNEA
                 usuario: {
-                  select: {
-                    image: true,
-                  },
+                  select: { image: true },
                 },
               },
             },
@@ -86,6 +68,29 @@ export async function GET(
                 observaciones: true,
                 paraCasa: true,
                 tiempoIndefinido: true,
+                aplicaciones: {
+                  orderBy: { fechaProgramada: "asc" },
+                  select: {
+                    id: true,
+                    fechaProgramada: true,
+                    fechaReal: true,
+                    nombreMedicamentoManual: true, // ✅ nombre real
+                    dosis: true, // ✅ dosis real
+                    via: true,
+                    estado: true,
+                    observaciones: true,
+                    ejecutor: {
+                      select: {
+                        id: true,
+                        nombre: true,
+                        prefijo: true, // ✅ AÑADIR ESTA LÍNEA
+                        usuario: {
+                          select: { image: true },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
             indicaciones: {
@@ -99,56 +104,25 @@ export async function GET(
                 paraCasa: true,
               },
             },
+            activa: true,
+            canceladaPorId: true,
+            fechaCancelacion: true,
+            anuladaPor: {
+              select: {
+                id: true,
+                nombre: true,
+                prefijo: true,
+                usuario: {
+                  select: { image: true },
+                },
+              },
+            },
           },
         },
       },
     });
 
-    const [aplicacionesMedicamentos, aplicacionesIndicaciones] =
-      await Promise.all([
-        prisma.aplicacionMedicamento.findMany({
-          where: { notaClinica: { expediente: { mascotaId } } },
-          include: {
-            medicamento: true,
-            ejecutor: {
-              select: {
-                id: true,
-                nombre: true,
-                usuario: {
-                  select: {
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { fechaProgramada: "desc" },
-        }) as Promise<AplicacionMedicamentoExtendida[]>,
-        prisma.aplicacionIndicacion.findMany({
-          where: { notaClinica: { expediente: { mascotaId } } },
-          include: {
-            indicacion: true,
-            ejecutor: {
-              select: {
-                id: true,
-                nombre: true,
-                usuario: {
-                  select: {
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { fechaProgramada: "desc" },
-        }),
-      ]);
-
-    return NextResponse.json({
-      expedientes,
-      aplicacionesMedicamentos,
-      aplicacionesIndicaciones,
-    });
+    return NextResponse.json({ expedientes });
   } catch (error) {
     console.error("💥 Error al obtener expedientes:", error);
     return NextResponse.json(

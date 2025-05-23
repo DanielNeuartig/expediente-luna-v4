@@ -88,8 +88,6 @@ type Props = {
   expedientes: ExpedienteConNotas[];
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  //aplicacionesMedicamentos: Aplicacion[];
-  //aplicacionesIndicaciones: AplicacionIndicacion[];
   datosMascota: {
     nombre: string;
     especie: string;
@@ -193,30 +191,33 @@ export default function ListaExpedientesMascota({
                         })}
                       </Span>
                     </Timeline.Title>
-                 <PopOverReceta
-  medicamentos={nota.medicamentos ?? []}
-  datosClinicos={{
-    historiaClinica: nota.historiaClinica ?? undefined,
-    exploracionFisica: nota.exploracionFisica ?? undefined,
-    temperatura: nota.temperatura ?? undefined,
-    peso: nota.peso ?? undefined,
-    frecuenciaCardiaca: nota.frecuenciaCardiaca ?? undefined,
-    frecuenciaRespiratoria: nota.frecuenciaRespiratoria ?? undefined,
-    diagnosticoPresuntivo: nota.diagnosticoPresuntivo ?? undefined,
-    pronostico: nota.pronostico ?? undefined,
-    laboratoriales: nota.laboratoriales ?? undefined,
-    extras: nota.extras ?? undefined,
-  }}
-  fechaNota={nota.fechaCreacion}
-  datosMascota={{
-    nombre: datosMascota.nombre,
-    especie: datosMascota.especie,
-    raza: datosMascota.raza,
-    fechaNacimiento: datosMascota.fechaNacimiento,
-    sexo: datosMascota.sexo,
-    esterilizado: datosMascota.esterilizado,
-  }}
-/>
+                    <PopOverReceta
+                      medicamentos={nota.medicamentos ?? []}
+                      datosClinicos={{
+                        historiaClinica: nota.historiaClinica ?? undefined,
+                        exploracionFisica: nota.exploracionFisica ?? undefined,
+                        temperatura: nota.temperatura ?? undefined,
+                        peso: nota.peso ?? undefined,
+                        frecuenciaCardiaca:
+                          nota.frecuenciaCardiaca ?? undefined,
+                        frecuenciaRespiratoria:
+                          nota.frecuenciaRespiratoria ?? undefined,
+                        diagnosticoPresuntivo:
+                          nota.diagnosticoPresuntivo ?? undefined,
+                        pronostico: nota.pronostico ?? undefined,
+                        laboratoriales: nota.laboratoriales ?? undefined,
+                        extras: nota.extras ?? undefined,
+                      }}
+                      fechaNota={nota.fechaCreacion}
+                      datosMascota={{
+                        nombre: datosMascota.nombre,
+                        especie: datosMascota.especie,
+                        raza: datosMascota.raza,
+                        fechaNacimiento: datosMascota.fechaNacimiento,
+                        sexo: datosMascota.sexo,
+                        esterilizado: datosMascota.esterilizado,
+                      }}
+                    />
                     <Card.Root bg="white" color="tema.suave">
                       <Card.Body textStyle="sm">
                         {nota.historiaClinica && (
