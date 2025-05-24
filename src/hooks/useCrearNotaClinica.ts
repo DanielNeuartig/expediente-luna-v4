@@ -84,7 +84,7 @@ export function useCrearNotaClinica() {
 
       return json;
     },
-    onSuccess: (res, datos) => {
+    onSuccess:async (res, datos) => {
       let mensaje = "Nota clínica guardada correctamente";
 
       if (res.anulado) {
@@ -98,6 +98,12 @@ export function useCrearNotaClinica() {
       queryClient.invalidateQueries({
         queryKey: ["expedientes", datos.mascotaId],
       });
+      await queryClient.invalidateQueries({
+  queryKey: ["expedientes", datos.mascotaId],
+});
+await queryClient.refetchQueries({
+  queryKey: ["expedientes", datos.mascotaId],
+});
     },
     onError: (error: unknown) => {
       const msg = error instanceof Error ? error.message : "Error desconocido";

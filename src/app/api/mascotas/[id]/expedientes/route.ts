@@ -20,7 +20,17 @@ export async function GET(
     const expedientes = await prisma.expedienteMedico.findMany({
       where: { mascotaId },
       orderBy: { fechaCreacion: "desc" },
-      include: {
+      select: {
+        id: true,
+        estado: true,
+        tipo: true,
+        nombre: true,
+        contenidoAdaptado: true,
+        notasGenerales: true,
+        visibleParaTutor: true,
+        fechaAlta: true,
+        ultimaActividad: true,
+        fechaCreacion: true,
         autor: {
           select: {
             id: true,
@@ -45,8 +55,20 @@ export async function GET(
             pronostico: true,
             laboratoriales: true,
             extras: true,
+            archivos: true,
             fechaCreacion: true,
             estado: true,
+            fechaCancelacion: true,
+            anuladaPor: {
+              select: {
+                id: true,
+                nombre: true,
+                prefijo: true,
+                usuario: {
+                  select: { image: true },
+                },
+              },
+            },
             autor: {
               select: {
                 id: true,
@@ -103,18 +125,6 @@ export async function GET(
                 desde: true,
                 observaciones: true,
                 paraCasa: true,
-              },
-            },
-            canceladaPorId: true,
-            fechaCancelacion: true,
-            anuladaPor: {
-              select: {
-                id: true,
-                nombre: true,
-                prefijo: true,
-                usuario: {
-                  select: { image: true },
-                },
               },
             },
           },

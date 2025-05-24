@@ -232,7 +232,19 @@ async function firmarNotaYCrearAplicaciones(
         });
       });
     } else {
-      const fecha = new Date(desde);
+      let fecha: Date;
+      if (med.tiempoIndefinido === true) {
+        const d = new Date(desde);
+        d.setMonth(d.getMonth() + 3);
+        fecha = d;
+      } else if (frecuencia && veces && veces > 1) {
+        fecha = new Date(
+          desde.getTime() + (veces - 1) * frecuencia * 60 * 60 * 1000
+        );
+      } else {
+        fecha = new Date(desde);
+      } // en caso contrario, solo usamos `desde`
+
       let observaciones = "";
       if (veces === 1) {
         observaciones = [
@@ -251,18 +263,18 @@ async function firmarNotaYCrearAplicaciones(
       } else {
         observaciones = [
           med.observaciones ?? "",
-          "🏠 SEGUIMIENTO SEMESTRAL de medicamento para casa 🏠",
+          "🏠 SEGUIMIENTO TRIMESTAL de medicamento INDEFINIDO para casa 🏠",
         ]
           .filter(Boolean)
           .join(" | ");
       }
+
       aplicacionesMed.push({
         notaClinicaId: nota.id,
         medicamentoId: med.id,
         fechaProgramada: fecha,
         via: med.via,
         creadorId: perfilId,
-        //ejecutorId: perfilId,
         observaciones,
       });
     }

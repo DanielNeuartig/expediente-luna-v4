@@ -82,22 +82,29 @@ model Mascota {
 }
 
 model ExpedienteMedico {
-  id                Int            @id @default(autoincrement())
+  id                Int              @id @default(autoincrement())
+  nombre            String? // 🔹 nombre personalizado visible al médico
+  estado            EstadoExpediente
+  fechaAlta         DateTime? // 🔹 solo se llena al finalizar (manual o auto)
   mascotaId         Int
-  mascota           Mascota        @relation(fields: [mascotaId], references: [id])
+  mascota           Mascota          @relation(fields: [mascotaId], references: [id])
   autorId           Int
-  autor             Perfil         @relation("ExpedienteAutor", fields: [autorId], references: [id])
+  autor             Perfil           @relation("ExpedienteAutor", fields: [autorId], references: [id])
   clinicaId         Int?
-  clinica           Clinica?       @relation(fields: [clinicaId], references: [id])
+  clinica           Clinica?         @relation(fields: [clinicaId], references: [id])
   tipo              TipoExpediente
   contenidoAdaptado String?
   notasGenerales    String?
-  visibleParaTutor  Boolean        @default(false)
-  borrado           Boolean        @default(false)
-  fechaCreacion     DateTime       @default(now())
-  actualizadoEn     DateTime       @updatedAt
+  visibleParaTutor  Boolean          @default(false)
+  borrado           Boolean          @default(false)
+  fechaCreacion     DateTime         @default(now())
+  actualizadoEn     DateTime         @updatedAt
+  ultimaActividad   DateTime? // actualizado por cada acción relevante
+  notasClinicas     NotaClinica[]
 
-  notasClinicas NotaClinica[]
+  @@index([mascotaId])
+  @@index([estado])
+  @@index([mascotaId, estado, actualizadoEn])
 }
 
 model NotaClinica {
@@ -131,10 +138,11 @@ model NotaClinica {
   // Lógica de anulación
   fechaCancelacion DateTime?
   anuladaPorId     Int?
-  anuladaPor       Perfil?           @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
+  anuladaPor       Perfil?   @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
 
-  estado           EstadoNotaClinica @default(EN_REVISION)
+  estado EstadoNotaClinica @default(EN_REVISION)
 }
+
 model Medicamento {
   id               Int                     @id @default(autoincrement())
   notaClinicaId    Int
@@ -390,4 +398,10 @@ enum EstadoNotaClinica {
   EN_REVISION
   FINALIZADA
   ANULADA
+}
+
+enum EstadoExpediente {
+  ACTIVO
+  FINALIZADO_MANUAL
+  FINALIZADO_AUTO
 }

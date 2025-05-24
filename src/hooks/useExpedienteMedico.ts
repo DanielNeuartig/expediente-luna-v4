@@ -1,20 +1,47 @@
-'use client'
+"use client";
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toaster } from "@/components/ui/toaster";
+import type { ExpedienteConNotas } from "@/types/expediente";
 
-export function useExpedienteMedico(expedienteId?: number) {
-  const enabled = !!expedienteId
+type Input = {
+  mascotaId: number;
+  tipo?: "CONSULTA" | "CIRUGIA" | "HOSPITALIZACION" | "LABORATORIO" | "OTRO";
+};
 
-  const query = useQuery({
-    queryKey: ['expediente', expedienteId],
-    queryFn: async () => {
-      const res = await fetch(`/api/expedientes/${expedienteId}`)
-      if (!res.ok) throw new Error('Error al obtener expediente')
-      return res.json()
+export function useCrearExpedienteMedico(onSuccess?: (e: ExpedienteConNotas) => void) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ mascotaId, tipo = "CONSULTA" }: Input): Promise<ExpedienteConNotas> => {
+      const res = await fetch("/api/expedientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mascotaId, tipo }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error?.error || "Error al crear expediente");
+      }
+
+      return res.json();
     },
-    enabled,
-    staleTime: 1000 * 60 * 2, // 2 minutos
-  })
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["expedientes", data.mascotaId] });
+      toaster.create({
+        description: "Expediente creado correctamente.",
+        type: "success",
+      });
+      onSuccess?.(data);
+    },
+    onError: (error: any) => {
+      toaster.create({
+        description: error.message || "Error al crear expediente.",
+        type: "error",
+      });
+    },
+  });
 
-  return query
+  return mutation;
 }

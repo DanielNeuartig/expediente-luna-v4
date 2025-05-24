@@ -114,6 +114,9 @@ export default function RecetaPDF({
         {estadoNota === "EN_REVISION" && (
           <Text style={styles.marcaAgua}>EN REVISIÓN</Text>
         )}
+        {estadoNota === "ANULADA" && (
+          <Text style={styles.marcaAgua}>ANULADA</Text>
+        )}
         <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
         <Text style={styles.subheader}>
           Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara,
@@ -245,10 +248,20 @@ export default function RecetaPDF({
                 ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
                     m.frecuenciaHoras
                   } horas durante tiempo indefinido.`
-                : m.frecuenciaHoras && m.veces
+                : m.frecuenciaHoras && m.veces && m.desde
                 ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
                     m.frecuenciaHoras
-                  } horas durante ${m.veces} ocasiones.`
+                  } horas durante ${m.veces} ocasiones a partir del ${new Date(
+                    m.desde
+                  ).toLocaleString("es-MX", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}.`
                 : `Administrar ${m.dosis} vía ${m.via.toLowerCase()}.`}
             </Text>
             {m.observaciones && (

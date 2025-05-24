@@ -42,7 +42,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
   const valores = useWatch({ control, name: "medicamentos" }) ?? [];
   const prevValoresStr = useRef("");
   // Este efecto depende de los valores del array de medicamentos, pero solo dispara cambios reales.
-// Es seguro ignorar el warning de ESLint aquí.
+  // Es seguro ignorar el warning de ESLint aquí.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const currentStr = JSON.stringify(valores);
@@ -71,10 +71,15 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
 
             {/* Campo: Nombre */}
             <Field.Root>
-              <HStack>
-                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+              <HStack align="start">
+                <Field.Label
+                  minW="100px"
+                  fontSize="2xs"
+                  {...estilosTituloInput}
+                >
                   Nombre
                 </Field.Label>
+
                 <Input
                   size="2xs"
                   {...estilosInputBase}
@@ -86,7 +91,11 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
             {/* Campo: Dosis */}
             <Field.Root>
               <HStack>
-                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                <Field.Label
+                  minW="100px"
+                  fontSize="2xs"
+                  {...estilosTituloInput}
+                >
                   Dosis
                 </Field.Label>
                 <Input
@@ -100,7 +109,11 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
             {/* Campo: Vía */}
             <Field.Root>
               <HStack>
-                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                <Field.Label
+                  minW="100px"
+                  fontSize="2xs"
+                  {...estilosTituloInput}
+                >
                   Vía
                 </Field.Label>
                 <NativeSelect.Root size="xs">
@@ -127,7 +140,11 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
             {(item?.veces !== 1 || item?.tiempoIndefinido === "true") && (
               <Field.Root>
                 <HStack>
-                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                  <Field.Label
+                    minW="100px"
+                    fontSize="2xs"
+                    {...estilosTituloInput}
+                  >
                     Cada cuántas horas
                   </Field.Label>
                   <Input
@@ -146,7 +163,11 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
             {item?.tiempoIndefinido !== "true" && (
               <Field.Root>
                 <HStack>
-                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                  <Field.Label
+                    minW="100px"
+                    fontSize="2xs"
+                    {...estilosTituloInput}
+                  >
                     Veces
                   </Field.Label>
                   <Input
@@ -206,8 +227,12 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
 
             {/* Campo: Desde */}
             <Field.Root>
-              <HStack>
-                <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+              <HStack align="start">
+                <Field.Label
+                  minW="100px"
+                  fontSize="2xs"
+                  {...estilosTituloInput}
+                >
                   Desde
                 </Field.Label>
                 <Input
@@ -216,8 +241,30 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                   min={formatoDatetimeLocal(new Date(Date.now() - 3600000))}
                   {...estilosInputBase}
                   {...register(`medicamentos.${index}.desde`)}
-                  defaultValue={formatoDatetimeLocal(new Date(item?.desde ?? fechaBase))}
+                  defaultValue={formatoDatetimeLocal(
+                    new Date(item?.desde ?? fechaBase)
+                  )}
                 />
+                <Button
+                  bg="tema.suave"
+                  size="2xs"
+                  variant="outline"
+                  onClick={() => {
+                    const manana10 = new Date();
+                    manana10.setDate(manana10.getDate() + 1);
+                    manana10.setHours(10, 0, 0, 0);
+                    setValue(
+                      `medicamentos.${index}.desde`,
+                      formatoDatetimeLocal(manana10),
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
+                    );
+                  }}
+                >
+                  Mañana 10 AM?
+                </Button>
               </HStack>
             </Field.Root>
 
@@ -232,27 +279,34 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
             </Field.Root>
 
             {/* Render de fechas tentativas */}
-            {item?.desde && item?.frecuenciaHoras && item?.veces && item.veces > 1 && (
-              <Wrap gap="2" mt="0" mb="0">
-                {calcularFechas(
-                  item.desde.toString(),
-                  item.frecuenciaHoras.toString(),
-                  item.veces.toString()
-                ).map((fecha, i) => (
-                  <WrapItem key={i}>
-                    <Box color="tema.llamativo" fontSize="xs">
-                      Aplicación #{i + 1}: {fecha}
-                    </Box>
-                  </WrapItem>
-                ))}
-              </Wrap>
-            )}
+            {item?.desde &&
+              item?.frecuenciaHoras &&
+              item?.veces &&
+              item.veces > 1 && (
+                <Wrap gap="2" mt="0" mb="0">
+                  {calcularFechas(
+                    item.desde.toString(),
+                    item.frecuenciaHoras.toString(),
+                    item.veces.toString()
+                  ).map((fecha, i) => (
+                    <WrapItem key={i}>
+                      <Box color="tema.llamativo" fontSize="xs">
+                        Aplicación #{i + 1}: {fecha}
+                      </Box>
+                    </WrapItem>
+                  ))}
+                </Wrap>
+              )}
 
             {/* Campo: ¿Para casa? */}
             <HStack>
               <Field.Root>
                 <HStack>
-                  <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+                  <Field.Label
+                    minW="100px"
+                    fontSize="2xs"
+                    {...estilosTituloInput}
+                  >
                     ¿Para casa?
                   </Field.Label>
                   <Controller

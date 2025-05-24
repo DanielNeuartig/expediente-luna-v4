@@ -53,7 +53,6 @@ interface Props {
   datosMascota: DatosMascota;
   fechaNota: string;
   estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA"; // ✅ aquí también
-  
 }
 
 export default function PopOverReceta({
@@ -63,8 +62,10 @@ export default function PopOverReceta({
   fechaNota,
   estadoNota, // ✅ aquí faltaba
 }: Props) {
-  const [seleccionados, setSeleccionados] = useState<number[]>([]);
-  const [incluirDatosClinicos, setIncluirDatosClinicos] = useState(false);
+  const [seleccionados, setSeleccionados] = useState<number[]>(
+    medicamentos.map((m) => m.id)
+  );
+  const [incluirDatosClinicos, setIncluirDatosClinicos] = useState(true);
 
   const toggleSeleccion = (id: number) => {
     setSeleccionados((prev) =>

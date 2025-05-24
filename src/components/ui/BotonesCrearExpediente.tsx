@@ -29,8 +29,8 @@ const tiposExpediente = [
   { tipo: 'SEGUIMIENTO', icono: <Scissors size={16} />, texto: 'Seguimiento' },
   { tipo: 'CIRUGIA', icono: <ClipboardList size={16} />, texto: 'Cirugía' },
   { tipo: 'HOSPITALIZACION', icono: <Hospital size={16} />, texto: 'Hospitalización' },
-  { tipo: 'LABORATORIO', icono: <FlaskConical size={16} />, texto: 'Laboratorio' },
-  { tipo: 'OTRO', icono: <AlertTriangle size={16} />, texto: 'Otro' },
+  /*{ tipo: 'LABORATORIO', icono: <FlaskConical size={16} />, texto: 'Laboratorio' },
+  { tipo: 'OTRO', icono: <AlertTriangle size={16} />, texto: 'Otro' },*/
 ]
 
 const schema = z.object({

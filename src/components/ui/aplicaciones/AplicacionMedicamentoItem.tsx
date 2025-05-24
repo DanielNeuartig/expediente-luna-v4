@@ -208,8 +208,8 @@ export default function AplicacionMedicamentoItem({
             </Text>
           )}
           <HStack>
-            <Text fontWeight="light">
-              📅 Recetado:{" "}
+            <Text fontWeight="bold">
+              📅 Programado para:{" "}
               {new Date(fechaProgramada).toLocaleString("es-MX", {
                 weekday: "short",
                 year: "numeric",

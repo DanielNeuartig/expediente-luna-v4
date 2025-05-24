@@ -1,19 +1,20 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import HistoricoExpedientes from "@/components/ui/HistoricoExpedientes";
 import { Box, Tabs, Spinner, Text } from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
-import BotoneraExpediente from "@/components/ui/BotonesCrearExpediente";
 import ListaAplicacionesMedicamento from "@/components/ui/aplicaciones/ListaAplicacionesMedicamento";
 import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaClinica";
 import { LuFileText, LuCircleCheck, LuHistory } from "react-icons/lu";
-
+import ResumenExpedienteActivo from "@/components/ui/expediente/ResumenExpedienteActivo";
 import type { Mascota } from "@/types/mascota";
 import type { ExpedienteConNotas } from "@/types/expediente";
-
+import BotonIniciarAtencion from "@/components/ui/expediente/BotonIniciarAtencion";
+import { EstadoExpediente } from "@prisma/client";
+import ProgresoExpediente from "@/components/ui/expediente/ProgresoExpediente";
 export default function MascotaDetalleClient({
   mascota,
 }: {
@@ -35,6 +36,30 @@ export default function MascotaDetalleClient({
   });
 
   const expedientes = data?.expedientes ?? [];
+
+const expedienteActivo = useMemo(() => {
+  return expedientes.find((e) => e.estado === EstadoExpediente.ACTIVO);
+}, [expedientes]);
+
+useEffect(() => {
+  if (expedienteActivo) {
+    setExpedienteSeleccionado(expedienteActivo);
+    setMostrarFormularioNota(true);
+  } else {
+    const ultimoFinalizado = expedientes
+      .filter((e) => e.estado !== EstadoExpediente.ACTIVO)
+      .sort(
+        (a, b) =>
+          new Date(b.fechaCreacion).getTime() -
+          new Date(a.fechaCreacion).getTime()
+      )[0];
+
+    if (ultimoFinalizado) {
+      setExpedienteSeleccionado(ultimoFinalizado);
+      setMostrarFormularioNota(false);
+    }
+  }
+}, [expedientes]); // 💡 NO pongas expedienteSeleccionado como dependencia
 
   const aplicacionesMedicamentos = expedientes.flatMap((exp) =>
     exp.notasClinicas.flatMap((nota) =>
@@ -68,6 +93,19 @@ export default function MascotaDetalleClient({
     )
   );
 
+  const perfilActualId = mascota.perfil?.id;
+
+  const resumenExpediente = useMemo(() => {
+    if (expedienteSeleccionado && expedienteSeleccionado.estado === "ACTIVO") {
+      return {
+        fechaInicio: expedienteSeleccionado.fechaCreacion,
+        totalNotas: expedienteSeleccionado.notasClinicas.length,
+        ultimaActividad: expedienteSeleccionado.ultimaActividad,
+      };
+    }
+    return null;
+  }, [expedienteSeleccionado]);
+
   if (isLoading) {
     return (
       <Box gridColumn="1 / span 2" gridRow="1">
@@ -88,8 +126,6 @@ export default function MascotaDetalleClient({
     );
   }
 
-  // 🔐 Asegurar que tenemos perfil del usuario actual disponible
-  const perfilActualId = mascota.perfil?.id;
   if (!perfilActualId) {
     return (
       <Box gridColumn="1 / span 2" gridRow="1">
@@ -121,7 +157,27 @@ export default function MascotaDetalleClient({
               nombrePerfil: mascota.perfil?.nombre,
             }}
           />
-          <BotoneraExpediente mascotaId={mascota.id} />
+          {!expedienteSeleccionado && (
+            <BotonIniciarAtencion
+              mascotaId={mascota.id}
+              onExpedienteCreado={(nuevoExpediente) => {
+                setExpedienteSeleccionado(nuevoExpediente);
+                setMostrarFormularioNota(true);
+              }}
+            />
+          )}
+          {resumenExpediente && (
+            <>
+              <ResumenExpedienteActivo
+                fechaInicio={expedienteSeleccionado?.fechaCreacion ?? ""}
+                ultimaActividad={expedienteSeleccionado?.ultimaActividad ?? ""}
+                notas={expedienteSeleccionado?.notasClinicas ?? []}
+              />
+              <ProgresoExpediente
+                notas={expedienteSeleccionado?.notasClinicas ?? []}
+              />
+            </>
+          )}
           <HistoricoExpedientes
             mascotaId={mascota.id}
             expedientes={expedientes}

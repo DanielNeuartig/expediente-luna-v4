@@ -44,7 +44,19 @@ type Props = {
   };
   perfilActualId: number; // ✅ Nuevo prop requerido
 };
-
+function obtenerEstilosAplicacion(estado: string) {
+  switch (estado) {
+    case "PENDIENTE":
+      return { bg: "tema.suave", border: "tema.base" };
+    case "REALIZADA":
+      return { bg: "green.700", border: "tema.verde" };
+    case "OMITIDA":
+    case "CANCELADA":
+      return { bg: "red.700", border: "tema.rojo" };
+    default:
+      return { bg: "gray.600", border: "gray.300" }; // fallback opcional
+  }
+}
 export default function HistoricoExpedientes({
   mascotaId,
   expedientes,
@@ -106,7 +118,14 @@ export default function HistoricoExpedientes({
 
             return (
               <Fragment key={`expediente-${exp.id}`}>
-                <Table.Row bg="tema.llamativo" color="tema.claro">
+                <Table.Row
+                  bg={
+                    expedienteSeleccionado?.id === exp.id
+                      ? "tema.llamativo" // color para seleccionado
+                      : "tema.llamativo" // color por defecto
+                  }
+                  color="tema.claro"
+                >
                   <Table.Cell>#{exp.id}</Table.Cell>
                   <Table.Cell>{exp.tipo}</Table.Cell>
                   <Table.Cell>{formatearFecha(exp.fechaCreacion)}</Table.Cell>
@@ -121,7 +140,7 @@ export default function HistoricoExpedientes({
                   </Table.Cell>
                 </Table.Row>
 
-                <Table.Row bg="tema.llamativo">
+                {/*<Table.Row bg="tema.llamativo">
                   <Table.Cell colSpan={4}>
                     <Button
                       {...estilosBotonEspecial}
@@ -136,7 +155,7 @@ export default function HistoricoExpedientes({
                       Añadir nueva nota clínica
                     </Button>
                   </Table.Cell>
-                </Table.Row>
+                </Table.Row>*/}
 
                 {notasFiltradas.map((nota) => (
                   <Table.Row
@@ -261,12 +280,12 @@ export default function HistoricoExpedientes({
                       {nota.medicamentos.map((m) => (
                         <Box key={`med-${m.id}`} mt="2" pl="4">
                           <Text fontWeight="medium">
-                            💊 {m.nombre} ({m.dosis}) · {m.via} ·{" "}
+                            💊{m.paraCasa ? "🏠" : "🏥"} ·{m.nombre} ({m.dosis})
+                            · {m.via} ·{" "}
                             {m.frecuenciaHoras
                               ? `Cada ${m.frecuenciaHoras}h`
                               : ""}{" "}
                             {m.veces ? `· ${m.veces} veces` : ""} ·{" "}
-                            {m.paraCasa ? "Para casa" : "Solo clínica"} ·{" "}
                             {m.tiempoIndefinido
                               ? "Indefinido"
                               : "Duración fija"}
@@ -323,7 +342,9 @@ export default function HistoricoExpedientes({
                                   (msDiff > 0
                                     ? `⏱ Retraso de ${tiempo}`
                                     : `⏱ Adelanto de ${tiempo}`);
-
+                                const estilos = obtenerEstilosAplicacion(
+                                  a.estado
+                                );
                                 return (
                                   <Box
                                     key={a.id}
@@ -332,55 +353,98 @@ export default function HistoricoExpedientes({
                                     borderLeft="2px solid gray"
                                     ml="2"
                                   >
-                                    <Text fontSize="sm" fontWeight="semibold">
-                                      • Aplicación #{idx + 1} —{" "}
-                                      {formatearFecha(a.fechaProgramada)} —{" "}
-                                      {a.estado === "PENDIENTE"
-                                        ? "⏳ PENDIENTE"
-                                        : a.estado === "OMITIDA"
-                                        ? "❌ CANCELADA"
-                                        : "✅ REALIZADA"}
-                                    </Text>
+                                    <Box
+                                      bg={estilos.bg}
+                                      border="1px solid"
+                                      borderColor={estilos.border}
+                                      borderRadius="md"
+                                      p="3"
+                                      mb="4"
+                                      mt="1"
+                                    >
+                                      <HStack>
+                                        <Text
+                                          fontSize="sm"
+                                          fontWeight="semibold"
+                                        >
+                                          • Aplicación #{idx + 1} — 📅{" "}
+                                          {formatearFecha(a.fechaProgramada)}
+                                        </Text>
+                                        {a.estado === "PENDIENTE" && (
+                                          <Text
+                                            fontSize="sm"
+                                            color="tema.claro"
+                                            fontStyle="italic"
+                                            fontWeight={"bold"}
+                                          >
+                                            {(() => {
+                                              const ahora = new Date();
+                                              const fechaProgramada = new Date(
+                                                a.fechaProgramada
+                                              );
+                                              const msDiff =
+                                                fechaProgramada.getTime() -
+                                                ahora.getTime();
+                                              const minutos =
+                                                Math.abs(msDiff) / 60000;
+                                              const horas = Math.floor(
+                                                minutos / 60
+                                              );
+                                              const mins = Math.floor(
+                                                minutos % 60
+                                              );
+                                              const tiempo = `${horas}h ${mins}min`;
 
-                                    <Text fontSize="sm">
-                                      💊 Recetado: {m.nombre} · {m.dosis} ·{" "}
-                                      {m.via}
-                                    </Text>
-                                    {a.estado === "REALIZADA" && (
+                                              if (msDiff > 0) {
+                                                return `⏳ Faltan ${tiempo}`;
+                                              } else {
+                                                return `⚠️ Retraso de ${tiempo}`;
+                                              }
+                                            })()}
+                                          </Text>
+                                        )}
+
+                                        {a.estado === "REALIZADA" &&
+                                          fechaReal && (
+                                            <Text fontSize="sm">
+                                              {diferenciaTiempo}
+                                            </Text>
+                                          )}
+                                      </HStack>
                                       <Text fontSize="sm">
-                                        💉 Aplicado: {aplicadaNombre} ·{" "}
-                                        {aplicadaDosis} · {aplicadaVia}
+                                        💊 Recetado: {m.nombre} · {m.dosis} ·{" "}
+                                        {m.via}
                                       </Text>
-                                    )}
+                                      {a.estado === "REALIZADA" && (
+                                        <Text fontSize="sm">
+                                          💉 Aplicado: {aplicadaNombre} ·{" "}
+                                          {aplicadaDosis} · {aplicadaVia}
+                                        </Text>
+                                      )}
 
-                                    {a.estado === "REALIZADA" && (
-                                      <Text fontSize="sm">
-                                        {mostrarDiferencia}
-                                      </Text>
-                                    )}
+                                      {a.estado === "REALIZADA" && (
+                                        <Text fontSize="sm">
+                                          {mostrarDiferencia}
+                                        </Text>
+                                      )}
 
-                                    {a.estado === "REALIZADA" && fechaReal && (
-                                      <Text fontSize="sm">
-                                        {diferenciaTiempo}
-                                      </Text>
-                                    )}
+                                      {a.ejecutor && (
+                                        <Text fontSize="sm">
+                                          👤 Firmado por: {a.ejecutor.prefijo}{" "}
+                                          {a.ejecutor.nombre}
+                                        </Text>
+                                      )}
 
-                                    {a.ejecutor && (
-                                      <Text fontSize="sm">
-                                        👤 Ejecutado por: {a.ejecutor.prefijo}{" "}
-                                        {a.ejecutor.nombre}
-                                      </Text>
-                                    )}
-
-                                    {a.observaciones && (
-                                      <Text
-                                        fontSize="sm"
-                                        fontStyle="italic"
-                                        color="gray.200"
-                                      >
-                                        📝 {a.observaciones}
-                                      </Text>
-                                    )}
+                                      {a.observaciones && (
+                                        <Text
+                                          fontSize="sm"
+                                          fontStyle="italic"
+                                          color="gray.200"
+                                        >
+                                          📝 {a.observaciones}
+                                        </Text>
+                                      )}
+                                    </Box>
                                   </Box>
                                 );
                               })}

@@ -1,76 +1,66 @@
-// src/app/api/expedientes/route.ts
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { z } from "zod";
 
-const expedienteSchema = z.object({
+const crearExpedienteSchema = z.object({
   mascotaId: z.number().int(),
-  tipo: z.enum(['CONSULTA', 'CIRUGIA', 'HOSPITALIZACION', 'LABORATORIO', 'OTRO']),
-  contenidoAdaptado: z.string().optional(),
-  notasGenerales: z.string().optional(),
-  visibleParaTutor: z.boolean().optional(),
-})
+  tipo: z.enum(["CONSULTA", "CIRUGIA", "HOSPITALIZACION", "LABORATORIO", "OTRO"]).default("CONSULTA"),
+});
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await auth();
 
-  if (!session?.user?.id) {
-    console.warn('🚫 No autorizado, sesión faltante')
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  if (!session?.user?.id || !session.user.perfilid) {
+    return NextResponse.json({ error: "No autorizado o sin perfil" }, { status: 401 });
   }
 
-  if (!session.user.perfilid) {
-    console.warn('🚫 Usuario autenticado sin perfilid')
-    return NextResponse.json({ error: 'Perfil no vinculado' }, { status: 403 })
+  const json = await req.json();
+  const parsed = crearExpedienteSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  let json: unknown
-  try {
-    json = await req.json()
-    console.log('📩 Datos recibidos en API:', json)
-  } catch (err) {
-    console.error('❌ Error al parsear JSON:', err)
-    return NextResponse.json({ error: 'Formato JSON inválido' }, { status: 400 })
-  }
+  const { mascotaId, tipo } = parsed.data;
 
-  const parse = expedienteSchema.safeParse(json)
-  if (!parse.success) {
-    console.error('❌ Validación Zod fallida:', parse.error.flatten())
-    return NextResponse.json({ error: parse.error.flatten() }, { status: 400 })
-  }
+  // Evitar duplicación de expediente activo
+  const existente = await prisma.expedienteMedico.findFirst({
+    where: { mascotaId, estado: "ACTIVO" },
+  });
 
-  const datos = parse.data
+  if (existente) {
+    return NextResponse.json(
+      { error: "Ya existe un expediente activo para esta mascota" },
+      { status: 409 }
+    );
+  }
 
   try {
     const expediente = await prisma.expedienteMedico.create({
       data: {
-        mascotaId: datos.mascotaId,
+        mascotaId,
+        tipo,
+        estado: "ACTIVO",
         autorId: session.user.perfilid,
-        tipo: datos.tipo,
-        contenidoAdaptado: datos.contenidoAdaptado ?? null,
-        notasGenerales: datos.notasGenerales ?? null,
-        visibleParaTutor: datos.visibleParaTutor ?? false,
       },
       include: {
-        mascota: true,
+        notasClinicas: true,
         autor: {
           select: {
             id: true,
             nombre: true,
             prefijo: true,
+            usuario: {
+              select: { image: true },
+            },
           },
         },
-        notasClinicas: {
-          orderBy: { fechaCreacion: 'desc' },
-        },
       },
-    })
+    });
 
-    console.log('✅ Expediente creado:', expediente)
-    return NextResponse.json(expediente)
-  } catch (err) {
-    console.error('💥 Error en prisma.create:', err)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    return NextResponse.json(expediente);
+  } catch (error) {
+    console.error("💥 Error al crear expediente:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
