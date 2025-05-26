@@ -79,12 +79,13 @@ function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
   const ahora = Date.now();
   const fecha = new Date(fechaProgramada).getTime();
   const diffMin = (fecha - ahora) / 60000;
-  if (diffMin < -15) return "tema.rojo";
+  if (diffMin < -15) return "red.50";
   if (diffMin <= 60) return "tema.rojo";
   if (diffMin <= 180) return "tema.naranja";
   if (diffMin <= 720) return "yellow.500";
   return "tema.gris";
 }
+
 
 interface Props {
   index: number;
@@ -185,9 +186,8 @@ export default function AplicacionMedicamentoItem({
   }));
   return (
     <Box
-      border="2px"
-      borderColor="tema.llamativo"
-      p="1"
+
+      p="3"
       borderRadius="lg"
       bg={getBgColor(estado, fechaProgramada)}
     >
@@ -208,7 +208,7 @@ export default function AplicacionMedicamentoItem({
             </Text>
           )}
           <HStack>
-            <Text fontWeight="bold">
+            <Text fontWeight="light" fontSize="md">
               📅 Programado para:{" "}
               {new Date(fechaProgramada).toLocaleString("es-MX", {
                 weekday: "short",
@@ -221,7 +221,7 @@ export default function AplicacionMedicamentoItem({
               })}
             </Text>
             {estado === "PENDIENTE" && (
-              <Text fontWeight="semibold" color="white">
+              <Text fontSize="md" fontWeight="bold" color="tema.claro">
                 {calcularTiempoRestante(fechaProgramada)}
               </Text>
             )}
@@ -250,7 +250,7 @@ export default function AplicacionMedicamentoItem({
 
       {isEditable ? (
         <>
-          <HStack>
+          <HStack mb="2">
             <Field.Root>
               <Input
                 fontSize="xs"
@@ -301,7 +301,7 @@ export default function AplicacionMedicamentoItem({
             />
           </Field.Root>
 
-          <HStack>
+          <HStack mt="2">
             <Controller
               control={control}
               name={`aplicaciones.${index}.estado`}
