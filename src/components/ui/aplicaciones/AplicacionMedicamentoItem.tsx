@@ -79,10 +79,10 @@ function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
   const ahora = Date.now();
   const fecha = new Date(fechaProgramada).getTime();
   const diffMin = (fecha - ahora) / 60000;
-  if (diffMin < -15) return "red.50";
+  if (diffMin < -15) return "tema.rojo";
   if (diffMin <= 60) return "tema.rojo";
   if (diffMin <= 180) return "tema.naranja";
-  if (diffMin <= 720) return "yellow.500";
+  if (diffMin <= 720) return "tema.amarillo";
   return "tema.gris";
 }
 
