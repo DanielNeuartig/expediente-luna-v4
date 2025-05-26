@@ -239,7 +239,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                 <Input
                   size="2xs"
                   type="datetime-local"
-                  min={formatoDatetimeLocal(new Date(Date.now() - 3600000))}
+                  min={formatoDatetimeLocal(new Date(Date.now() - 86400000))}
                   {...estilosInputBase}
                   {...register(`medicamentos.${index}.desde`)}
                   defaultValue={formatoDatetimeLocal(
