@@ -7,7 +7,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { EstadoNotaClinica } from "@prisma/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { NotaClinica } from "@/types/expediente";
 import { useQueryClient } from "@tanstack/react-query";
 import { estilosInputBase } from "../config/estilosInputBase";
@@ -19,13 +19,20 @@ type Props = {
 };
 
 export default function ProgresoExpediente({ notas, expedienteId, nombre }: Props) {
+  // 🔴 Mueve el useState aquí, DENTRO del componente
+  const [nombreExpediente, setNombreExpediente] = useState(nombre);
+  const [guardando, setGuardando] = useState(false);
+  const queryClient = useQueryClient();
+
+  // ✅ Y el useEffect aquí también, después del useState
+  useEffect(() => {
+    setNombreExpediente(nombre);
+  }, [nombre]);
+
   const total = notas.length;
   const firmadas = notas.filter(n => n.estado === EstadoNotaClinica.FINALIZADA).length;
   const enRevision = notas.filter(n => n.estado === EstadoNotaClinica.EN_REVISION).length;
   const anuladas = notas.filter(n => n.estado === EstadoNotaClinica.ANULADA).length;
-
-  const [nombreExpediente, setNombreExpediente] = useState(nombre);
-  const [guardando, setGuardando] = useState(false);
 
   const { progreso, mensaje, color } = (() => {
     if (total === 0) {
@@ -90,16 +97,16 @@ export default function ProgresoExpediente({ notas, expedienteId, nombre }: Prop
       console.error("❌ Error actualizando nombre:", e);
     } finally {
       queryClient.invalidateQueries({
-  queryKey: ["expedientes"],
-});
+        queryKey: ["expedientes"],
+      });
       setGuardando(false);
     }
   };
-const queryClient = useQueryClient();
+
   return (
     <Box mb="4" textAlign="center" maxW="md" mx="auto">
       <Input
-      {...estilosInputBase}
+        {...estilosInputBase}
         value={nombreExpediente}
         onChange={(e) => setNombreExpediente(e.target.value)}
         onBlur={actualizarNombre}
@@ -107,10 +114,8 @@ const queryClient = useQueryClient();
         color="tema.suave"
         fontWeight="bold"
         textAlign="center"
-        //="unstyled"
         mb="1"
         disabled={guardando}
-        //animation="pulseCloud" 
       />
 
       <Text fontSize="md" mb="1" color="tema.suave">
