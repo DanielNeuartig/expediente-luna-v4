@@ -123,62 +123,23 @@ const medicamentoObligatorioSchema = z
   );
 
 // ------------------------------
-// INDICACIÓN
+// INDICACIÓN (TEXTO LIBRE)
 // ------------------------------
-const indicacionObligatoriaSchema = z
-  .object({
-    descripcion: z.string().min(1),
-    frecuenciaHoras: safeInt(),
-    veces: safeInt(),
-    tiempoIndefinido: z.enum(["true", "false"]),
-    desde: desdeField,
-    observaciones: z.preprocess(formatObservaciones, z.string().optional()),
-    paraCasa: z.enum(["true", "false"]),
-  })
-  .refine(
-    (data) => {
-      if (data.tiempoIndefinido === "true") {
-        return data.frecuenciaHoras !== undefined && data.frecuenciaHoras > 0;
-      }
-      if (data.veces !== 1) {
-        return data.frecuenciaHoras !== undefined && data.frecuenciaHoras > 0;
-      }
-      return true;
-    },
-    {
-      path: ["frecuenciaHoras"],
-      message:
-        "Debes indicar cada cuántas horas se aplica y debe ser mayor a 0",
-    }
-  )
-  .refine(
-    (data) => data.tiempoIndefinido === "true" || data.veces !== undefined,
-    {
-      path: ["veces"],
-      message:
-        "Debes indicar el número de veces o marcar como tiempo indefinido",
-    }
-  )
-  .refine(
-    (data) => data.tiempoIndefinido === "false" || data.paraCasa === "true",
-    {
-      path: ["paraCasa"],
-      message:
-        "Las indicaciones por tiempo indefinido deben ser para casa (incluidas en receta)",
-    }
-  )
-  .refine(
-    (data) =>
-      !(
-        data.tiempoIndefinido === "false" &&
-        data.veces === 1 &&
-        data.frecuenciaHoras !== undefined
-      ),
-    {
-      path: ["frecuenciaHoras"],
-      message: "No debes indicar frecuencia si es una sola vez",
-    }
-  );
+const indicacionObligatoriaSchema = z.object({
+  descripcion: z
+    .string()
+    .min(3, "La indicación debe tener al menos 3 caracteres")
+    .max(1000, "La indicación es demasiado larga"),
+});
+
+// ------------------------------
+// SOLICITUD LABORATORIAL
+// ------------------------------
+const solicitudLaboratorialSchema = z.object({
+  estudio: z.string().min(1, "El estudio es obligatorio"),
+  proveedor: z.string().min(1, "El proveedor es obligatorio"),
+  observacionesClinica: z.string().optional(),
+});
 
 // ------------------------------
 // BASE DEL SCHEMA
@@ -196,6 +157,7 @@ export const notaClinicaBaseSchema = z.object({
   extras: z.string().optional(),
   medicamentos: z.array(medicamentoObligatorioSchema).optional(),
   indicaciones: z.array(indicacionObligatoriaSchema).optional(),
+  solicitudesLaboratoriales: z.array(solicitudLaboratorialSchema).optional(),
 });
 
 export type NotaClinicaInput = z.input<typeof notaClinicaBaseSchema>;
@@ -214,11 +176,12 @@ export const notaClinicaSchema = notaClinicaBaseSchema.refine(
     !!data.laboratoriales?.trim() ||
     !!data.extras?.trim() ||
     (data.medicamentos && data.medicamentos.length > 0) ||
-    (data.indicaciones && data.indicaciones.length > 0),
+    (data.indicaciones && data.indicaciones.length > 0) ||
+    (data.solicitudesLaboratoriales && data.solicitudesLaboratoriales.length > 0),
   {
     path: ["historiaClinica"],
     message:
-      "Debes llenar al menos un dato clínico o añadir un medicamento o indicación válida",
+      "Debes llenar al menos un dato clínico o añadir un medicamento, indicación o solicitud",
   }
 );
 
@@ -227,7 +190,7 @@ export const notaClinicaConIdsSchema = notaClinicaBaseSchema
     expedienteId: z.number(),
     mascotaId: z.number(),
     anularNotaId: z.number().optional(),
-    firmarNotaId: z.number().optional(), // ✅ nuevo
+    firmarNotaId: z.number().optional(),
   })
   .refine(
     (data) =>
@@ -243,8 +206,9 @@ export const notaClinicaConIdsSchema = notaClinicaBaseSchema
       !!data.extras?.trim() ||
       (data.medicamentos && data.medicamentos.length > 0) ||
       (data.indicaciones && data.indicaciones.length > 0) ||
+      (data.solicitudesLaboratoriales && data.solicitudesLaboratoriales.length > 0) ||
       data.anularNotaId !== undefined ||
-      data.firmarNotaId !== undefined, // ✅ permite firmar sin contenido clínico
+      data.firmarNotaId !== undefined,
     {
       path: ["historiaClinica"],
       message:

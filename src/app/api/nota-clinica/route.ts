@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { notaClinicaConIdsSchema } from "@/lib/validadores/notaClinicaSchema";
 import { calcularFechasAplicacion } from "@/lib/utils/clinica/fechas";
 import { z } from "zod";
+import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 import type { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  let data;
+  let data: z.infer<typeof notaClinicaConIdsSchema>;
   try {
     data = notaClinicaConIdsSchema.parse(body);
   } catch (err) {
@@ -45,10 +46,18 @@ export async function POST(req: Request) {
   try {
     const resultado = await prisma.$transaction(async (tx) => {
       if (data.firmarNotaId) {
-        return firmarNotaYCrearAplicaciones(tx, data, perfilId);
+        return firmarNotaYCrearAplicaciones(
+          tx,
+          { ...data, firmarNotaId: data.firmarNotaId! },
+          perfilId
+        );
       }
       if (data.anularNotaId) {
-        return anularNotaYCancelarAplicaciones(tx, data, perfilId);
+        return anularNotaYCancelarAplicaciones(
+          tx,
+          { anularNotaId: data.anularNotaId! },
+          perfilId
+        );
       }
       return crearNotaClinica(tx, data, perfilId);
     });
@@ -134,7 +143,7 @@ export async function PATCH(req: Request) {
           frecuenciaRespiratoria: datos.frecuenciaRespiratoria ?? null,
           diagnosticoPresuntivo: datos.diagnosticoPresuntivo ?? null,
           pronostico: datos.pronostico ?? null,
-          laboratoriales: datos.laboratoriales ?? null,
+
           extras: datos.extras ?? null,
         },
       });
@@ -163,11 +172,6 @@ export async function PATCH(req: Request) {
           data: {
             notaClinicaId: notaId,
             descripcion: ind.descripcion,
-            frecuenciaHoras: ind.frecuenciaHoras ?? null,
-            veces: ind.veces ?? null,
-            desde: ind.desde ?? null,
-            observaciones: ind.observaciones ?? null,
-            paraCasa: ind.paraCasa === "true",
           },
         });
       }
@@ -187,7 +191,11 @@ export async function PATCH(req: Request) {
 
 async function firmarNotaYCrearAplicaciones(
   tx: Prisma.TransactionClient,
-  data: any,
+  data: NotaClinicaValues & {
+    expedienteId: number;
+    mascotaId: number;
+    firmarNotaId: number;
+  },
   perfilId: number
 ) {
   const nota = await tx.notaClinica.findUnique({
@@ -284,78 +292,21 @@ async function firmarNotaYCrearAplicaciones(
     await tx.aplicacionMedicamento.createMany({ data: aplicacionesMed });
   }
 
-  const aplicacionesInd = [];
-  for (const ind of nota.indicaciones) {
-    const desde = ind.desde ? new Date(ind.desde) : null;
-    const frecuencia = ind.frecuenciaHoras ?? 0;
-    const veces = ind.veces ?? 0;
-    if (!desde) continue;
-
-    if (!ind.paraCasa && veces >= 1) {
-      const fechas =
-        veces === 1
-          ? [desde]
-          : calcularFechasAplicacion(desde, frecuencia, veces);
-      fechas.forEach((fecha) => {
-        aplicacionesInd.push({
-          notaClinicaId: nota.id,
-          indicacionId: ind.id,
-          fechaProgramada: fecha,
-          creadorId: perfilId,
-          //ejecutorId: perfilId,
-        });
-      });
-    } else {
-      const fecha = new Date(desde);
-      let observaciones = "";
-      if (veces === 1) {
-        observaciones = [
-          ind.observaciones ?? "",
-          "Verificación de indicación única en casa",
-        ]
-          .filter(Boolean)
-          .join(" | ");
-      } else if (frecuencia && veces > 1) {
-        observaciones = [
-          ind.observaciones ?? "",
-          "VERIFICACION DE CUMPLIMIENTO",
-        ]
-          .filter(Boolean)
-          .join(" | ");
-      } else {
-        observaciones = [
-          ind.observaciones ?? "",
-          "SEGUIMIENTO CLÍNICO PROLONGADO",
-        ]
-          .filter(Boolean)
-          .join(" | ");
-      }
-      aplicacionesInd.push({
-        notaClinicaId: nota.id,
-        indicacionId: ind.id,
-        fechaProgramada: fecha,
-        creadorId: perfilId,
-        //ejecutorId: perfilId,
-        observaciones,
-      });
-    }
-  }
-
-  if (aplicacionesInd.length > 0) {
-    await tx.aplicacionIndicacion.createMany({ data: aplicacionesInd });
-  }
-
   await tx.notaClinica.update({
     where: { id: data.firmarNotaId },
     data: { estado: "FINALIZADA" },
   });
 
+  await tx.expedienteMedico.update({
+    where: { id: nota.expedienteId },
+    data: {},
+  });
   return { firmada: true };
 }
 
 async function anularNotaYCancelarAplicaciones(
   tx: Prisma.TransactionClient,
-  data: any,
+  data: { anularNotaId: number },
   perfilId: number
 ) {
   await tx.notaClinica.update({
@@ -375,20 +326,23 @@ async function anularNotaYCancelarAplicaciones(
     },
   });
 
-  await tx.aplicacionIndicacion.updateMany({
-    where: { notaClinicaId: data.anularNotaId, estado: "PENDIENTE" },
-    data: {
-      estado: "CANCELADA",
-      observaciones: "⚠️ Aplicación cancelada por anulación de la nota.",
-    },
+  const nota = await tx.notaClinica.findUnique({
+    where: { id: data.anularNotaId },
+    select: { expedienteId: true },
   });
+  if (nota) {
+    await tx.expedienteMedico.update({
+      where: { id: nota.expedienteId },
+      data: {},
+    });
+  }
 
   return { anulado: true };
 }
 
 async function crearNotaClinica(
   tx: Prisma.TransactionClient,
-  data: any,
+  data: NotaClinicaValues & { expedienteId: number; mascotaId: number },
   perfilId: number
 ) {
   const nota = await tx.notaClinica.create({
@@ -402,7 +356,7 @@ async function crearNotaClinica(
       frecuenciaRespiratoria: data.frecuenciaRespiratoria ?? null,
       diagnosticoPresuntivo: data.diagnosticoPresuntivo || null,
       pronostico: data.pronostico || null,
-      laboratoriales: data.laboratoriales || null,
+
       extras: data.extras || null,
       autorId: perfilId,
       estado: "EN_REVISION",
@@ -431,14 +385,12 @@ async function crearNotaClinica(
       data: {
         notaClinicaId: nota.id,
         descripcion: ind.descripcion,
-        frecuenciaHoras: ind.frecuenciaHoras ?? null,
-        veces: ind.veces ?? null,
-        desde: ind.desde ?? null,
-        observaciones: ind.observaciones || null,
-        paraCasa: ind.paraCasa === "true",
       },
     });
   }
-
+  await tx.expedienteMedico.update({
+    where: { id: data.expedienteId },
+    data: {},
+  });
   return { notaClinica: nota };
 }

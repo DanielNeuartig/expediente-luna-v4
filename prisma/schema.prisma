@@ -38,7 +38,7 @@ model Perfil {
   documentoId         String?
   activo              Boolean  @default(true)
   fechaCreacion       DateTime @default(now())
-  actualizadoEn       DateTime @updatedAt
+  ultimaActividad     DateTime @updatedAt
 
   usuarioId Int?  @unique
   usuario   User? @relation("UserAPerfil", fields: [usuarioId], references: [id])
@@ -47,12 +47,12 @@ model Perfil {
 
   mascotas               Mascota[]
   aplicacionesMed        AplicacionMedicamento[] @relation("EjecutorMedicamento")
-  aplicacionesInd        AplicacionIndicacion[]  @relation("EjecutorIndicacion")
   aplicacionesMedCreadas AplicacionMedicamento[] @relation("CreadorMedicamento")
-  aplicacionesIndCreadas AplicacionIndicacion[]  @relation("CreadorIndicacion")
-  expedientesCreados     ExpedienteMedico[]      @relation("ExpedienteAutor")
-  notasClinicasCreadas   NotaClinica[]           @relation("NotaClinicaToPerfil")
-  notasAnuladas          NotaClinica[]           @relation("NotaAnuladaPor")
+
+  expedientesCreados    ExpedienteMedico[]      @relation("ExpedienteAutor")
+  notasClinicasCreadas  NotaClinica[]           @relation("NotaClinicaToPerfil")
+  notasAnuladas         NotaClinica[]           @relation("NotaAnuladaPor")
+  SolicitudLaboratorial SolicitudLaboratorial[]
 }
 
 model Mascota {
@@ -69,7 +69,7 @@ model Mascota {
   imagen          String?
   activo          Boolean        @default(true)
   fechaCreacion   DateTime       @default(now())
-  actualizadoEn   DateTime       @updatedAt
+  ultimaActividad DateTime       @updatedAt
 
   razaId   Int?
   raza     Raza?  @relation(fields: [razaId], references: [id])
@@ -98,13 +98,12 @@ model ExpedienteMedico {
   visibleParaTutor  Boolean          @default(false)
   borrado           Boolean          @default(false)
   fechaCreacion     DateTime         @default(now())
-  actualizadoEn     DateTime         @updatedAt
-  ultimaActividad   DateTime? // actualizado por cada acción relevante
+  ultimaActividad   DateTime         @updatedAt
   notasClinicas     NotaClinica[]
 
   @@index([mascotaId])
   @@index([estado])
-  @@index([mascotaId, estado, actualizadoEn])
+  @@index([mascotaId, estado, ultimaActividad])
 }
 
 model NotaClinica {
@@ -121,19 +120,17 @@ model NotaClinica {
   frecuenciaRespiratoria Int?
   diagnosticoPresuntivo  String?
   pronostico             String?
-  laboratoriales         String?
   extras                 String?
   archivos               String?
 
-  fechaCreacion DateTime @default(now())
-
+  fechaCreacion             DateTime                @default(now())
+  solicitudesLaboratoriales SolicitudLaboratorial[] // ✅ Añadido
   // Autor y relaciones
-  autorId         Int
-  autor           Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
-  medicamentos    Medicamento[]
-  indicaciones    Indicacion[]
-  aplicacionesMed AplicacionMedicamento[] @relation("AplicacionesMedNota")
-  aplicacionesInd AplicacionIndicacion[]  @relation("AplicacionesIndNota")
+  autorId                   Int
+  autor                     Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
+  medicamentos              Medicamento[]
+  indicaciones              Indicacion[]
+  aplicacionesMed           AplicacionMedicamento[] @relation("AplicacionesMedNota")
 
   // Lógica de anulación
   fechaCancelacion DateTime?
@@ -192,43 +189,11 @@ model AplicacionMedicamento {
 }
 
 model Indicacion {
-  id              Int                    @id @default(autoincrement())
-  notaClinicaId   Int
-  notaClinica     NotaClinica            @relation(fields: [notaClinicaId], references: [id])
-  descripcion     String
-  frecuenciaHoras Int? // null = indicación única
-  veces           Int? // null = indefinido si hay frecuencia
-  desde           DateTime? // si es única o inicio del esquema periódico
-  paraCasa        Boolean                @default(false)
-  fechaCreacion   DateTime               @default(now())
-  observaciones   String? // opcional, para más contexto
-  aplicaciones    AplicacionIndicacion[] // Campo inverso para programación clínica
-}
-
-model AplicacionIndicacion {
   id            Int         @id @default(autoincrement())
   notaClinicaId Int
-  notaClinica   NotaClinica @relation("AplicacionesIndNota", fields: [notaClinicaId], references: [id])
-
-  indicacionId      Int?
-  indicacion        Indicacion? @relation(fields: [indicacionId], references: [id])
-  descripcionManual String?
-
-  fechaProgramada DateTime
-  fechaReal       DateTime?
-
-  ejecutorId Int?
-  ejecutor   Perfil? @relation("EjecutorIndicacion", fields: [ejecutorId], references: [id])
-
-  creadorId Int
-  creador   Perfil @relation("CreadorIndicacion", fields: [creadorId], references: [id])
-
-  observaciones String?
-  estado        EstadoAplicacion @default(PENDIENTE)
-
-  fechaCreacion DateTime @default(now())
-
-  @@index([notaClinicaId, estado, fechaProgramada])
+  notaClinica   NotaClinica @relation(fields: [notaClinicaId], references: [id])
+  descripcion   String
+  fechaCreacion DateTime    @default(now())
 }
 
 model Raza {
@@ -404,4 +369,44 @@ enum EstadoExpediente {
   ACTIVO
   FINALIZADO_MANUAL
   FINALIZADO_AUTO
+}
+
+model SolicitudLaboratorial {
+  id                       Int                   @id @default(autoincrement())
+  notaClinicaId            Int
+  notaClinica              NotaClinica           @relation(fields: [notaClinicaId], references: [id])
+  estudio                  String
+  proveedor                String
+  observacionesClinica     String?
+  observacionesLaboratorio String?
+  fechaSolicitud           DateTime              @default(now())
+  fechaSubida              DateTime? // Se llena al presionar “cerrar”
+  cerrado                  Boolean               @default(false)
+  tokenAcceso              String                @unique
+  creadoPorId              Int
+  creadoPor                Perfil                @relation(fields: [creadoPorId], references: [id])
+  archivos                 ArchivoLaboratorial[]
+  fechaCierre              DateTime?
+
+  @@index([notaClinicaId])
+  @@index([creadoPorId])
+}
+
+model ArchivoLaboratorial {
+  id          Int                     @id @default(autoincrement())
+  solicitudId Int
+  solicitud   SolicitudLaboratorial   @relation(fields: [solicitudId], references: [id])
+  url         String
+  nombre      String
+  tipo        TipoArchivoLaboratorial // ej: "image/png", "application/pdf"
+  fechaSubida DateTime                @default(now())
+
+  @@index([solicitudId])
+}
+
+enum TipoArchivoLaboratorial {
+  PDF
+  PNG
+  JPG
+  JPEG
 }

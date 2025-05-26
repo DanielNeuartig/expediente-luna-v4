@@ -1,18 +1,31 @@
 "use client";
 
-import { Box, Text, Progress } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  Progress,
+  Input,
+} from "@chakra-ui/react";
 import { EstadoNotaClinica } from "@prisma/client";
+import { useState } from "react";
 import type { NotaClinica } from "@/types/expediente";
+import { useQueryClient } from "@tanstack/react-query";
+import { estilosInputBase } from "../config/estilosInputBase";
 
 type Props = {
   notas: NotaClinica[];
+  expedienteId: number;
+  nombre: string;
 };
 
-export default function ProgresoExpediente({ notas }: Props) {
+export default function ProgresoExpediente({ notas, expedienteId, nombre }: Props) {
   const total = notas.length;
   const firmadas = notas.filter(n => n.estado === EstadoNotaClinica.FINALIZADA).length;
   const enRevision = notas.filter(n => n.estado === EstadoNotaClinica.EN_REVISION).length;
   const anuladas = notas.filter(n => n.estado === EstadoNotaClinica.ANULADA).length;
+
+  const [nombreExpediente, setNombreExpediente] = useState(nombre);
+  const [guardando, setGuardando] = useState(false);
 
   const { progreso, mensaje, color } = (() => {
     if (total === 0) {
@@ -62,11 +75,48 @@ export default function ProgresoExpediente({ notas }: Props) {
     };
   })();
 
+  const actualizarNombre = async () => {
+    const nuevoNombre = nombreExpediente.trim();
+    if (!nuevoNombre || nuevoNombre === nombre) return;
+
+    setGuardando(true);
+    try {
+      await fetch(`/api/expedientes/${expedienteId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: nuevoNombre }),
+      });
+    } catch (e) {
+      console.error("❌ Error actualizando nombre:", e);
+    } finally {
+      queryClient.invalidateQueries({
+  queryKey: ["expedientes"],
+});
+      setGuardando(false);
+    }
+  };
+const queryClient = useQueryClient();
   return (
     <Box mb="4" textAlign="center" maxW="md" mx="auto">
+      <Input
+      {...estilosInputBase}
+        value={nombreExpediente}
+        onChange={(e) => setNombreExpediente(e.target.value)}
+        onBlur={actualizarNombre}
+        fontSize="lg"
+        color="tema.suave"
+        fontWeight="bold"
+        textAlign="center"
+        //="unstyled"
+        mb="1"
+        disabled={guardando}
+        //animation="pulseCloud" 
+      />
+
       <Text fontSize="md" mb="1" color="tema.suave">
         {mensaje}
       </Text>
+
       <Progress.Root size="xl" borderRadius="md" bg="tema.suave" striped animated>
         <Progress.Track>
           <Progress.Range

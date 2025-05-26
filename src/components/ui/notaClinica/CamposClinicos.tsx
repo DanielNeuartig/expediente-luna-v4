@@ -4,6 +4,7 @@ import { Field, HStack, Input, Stack, Textarea } from "@chakra-ui/react";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import { useFormContext } from "react-hook-form";
+
 export default function CamposClinicos() {
   const { register } = useFormContext();
 
@@ -25,8 +26,9 @@ export default function CamposClinicos() {
           <Field.Label {...estilosTituloInput}>Temperatura (°C)</Field.Label>
           <Input
             {...estilosInputBase}
-            type="text"
-            inputMode="decimal"
+            type="number"
+            step="0.1"
+            min="0"
             {...register("temperatura")}
           />
         </Field.Root>
@@ -34,8 +36,9 @@ export default function CamposClinicos() {
           <Field.Label {...estilosTituloInput}>Peso (kg)</Field.Label>
           <Input
             {...estilosInputBase}
-            type="text"
-            inputMode="decimal"
+            type="number"
+            step="0.1"
+            min="0"
             {...register("peso")}
           />
         </Field.Root>
@@ -43,8 +46,9 @@ export default function CamposClinicos() {
           <Field.Label {...estilosTituloInput}>FC</Field.Label>
           <Input
             {...estilosInputBase}
-            type="text"
-            inputMode="decimal"
+            type="number"
+            step="1"
+            min="0"
             {...register("frecuenciaCardiaca")}
           />
         </Field.Root>
@@ -52,8 +56,9 @@ export default function CamposClinicos() {
           <Field.Label {...estilosTituloInput}>FR</Field.Label>
           <Input
             {...estilosInputBase}
-            type="text"
-            inputMode="decimal"
+            type="number"
+            step="1"
+            min="0"
             {...register("frecuenciaRespiratoria")}
           />
         </Field.Root>

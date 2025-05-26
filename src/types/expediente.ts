@@ -67,6 +67,29 @@ export type Indicacion = {
   aplicaciones: Aplicacion[];
 };
 
+// Archivo laboratorial
+export type ArchivoLaboratorial = {
+  id: number;
+  url: string;
+  nombre: string;
+  tipo: string;
+  fechaSubida: string;
+};
+
+// Solicitud laboratorial
+export type SolicitudLaboratorial = {
+  id: number;
+  estudio: string;
+  proveedor: string;
+  observacionesClinica?: string;
+  observacionesLaboratorio?: string;
+  fechaSolicitud: string;
+  fechaSubida?: string;
+  cerrado: boolean;
+  tokenAcceso: string;
+  archivos: ArchivoLaboratorial[];
+};
+
 // Nota clínica
 export type NotaClinica = {
   id: number;
@@ -94,6 +117,8 @@ export type NotaClinica = {
   fechaCancelacion?: string | null;
   canceladaPorId?: number | null;
   anuladaPor?: PerfilMini | null;
+
+  solicitudesLaboratoriales: SolicitudLaboratorial[];
 };
 
 // Expediente con lista de notas
@@ -109,5 +134,5 @@ export type ExpedienteConNotas = {
   borrado: boolean;
   autor: PerfilMini;
   notasClinicas: NotaClinica[];
-   mascotaId: number; // ✅ Añadir esto
+  mascotaId: number;
 };

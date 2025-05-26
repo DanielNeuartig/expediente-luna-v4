@@ -183,6 +183,21 @@ export default function HomePage() {
           size="lg"
           borderRadius="full"
           shadow="lg"
+          bg="tema.intenso"
+          color="tema.llamativo"
+          gap="2"
+          px="4"
+          py="2"
+        >
+          <Text fontWeight="md" fontSize="sm">
+            {"Daniel Neuartig </>"}
+          </Text>
+
+        </Button>
+        <Button
+          size="lg"
+          borderRadius="full"
+          shadow="lg"
           bg="white"
           color="tema.intenso"
           gap="2"

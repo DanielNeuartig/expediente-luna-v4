@@ -2,7 +2,6 @@
 "use client";
 
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-
 export type Medicamento = {
   nombre: string;
   dosis: string;
@@ -101,16 +100,19 @@ export default function RecetaPDF({
   fechaNota,
   datosMascota,
   estadoNota, // ✅ Aquí lo agr
+  indicaciones,
 }: {
   medicamentos: Medicamento[];
   datosClinicos?: DatosClinicos;
   fechaNota: string;
   datosMascota?: DatosMascota;
   estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA"; // ✅ esto es lo que te faltaba
+  indicaciones?: { descripcion: string }[];
 }) {
   return (
     <Document>
       <Page style={styles.page}>
+        
         {estadoNota === "EN_REVISION" && (
           <Text style={styles.marcaAgua}>EN REVISIÓN</Text>
         )}
@@ -282,12 +284,43 @@ export default function RecetaPDF({
             )}
           </View>
         ))}
+        {indicaciones && indicaciones.length > 0 && (
+          <View style={styles.indicaciones}>
+            <Text style={styles.title}>Indicaciones adicionales</Text>
+            {indicaciones.map((ind, idx) => (
+              <Text key={idx} style={styles.indicacionTexto}>
+                • {ind.descripcion}
+              </Text>
+            ))}
+          </View>
+        )}
       </Page>
     </Document>
   );
 }
 
 const styles = StyleSheet.create({
+  logoContainer: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+},
+logoPrincipal: {
+  width: 80,
+  height: 80,
+},
+logoSecundario: {
+  width: 60,
+  height: 60,
+},
+  indicaciones: {
+    marginTop: 14,
+  },
+  indicacionTexto: {
+    fontSize: 11,
+    marginBottom: 4,
+  },
   page: {
     padding: 24,
     fontSize: 12,

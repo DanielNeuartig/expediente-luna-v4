@@ -28,6 +28,9 @@ CREATE TYPE "EstadoAplicacion" AS ENUM ('PENDIENTE', 'REALIZADA', 'OMITIDA', 'CA
 -- CreateEnum
 CREATE TYPE "EstadoNotaClinica" AS ENUM ('EN_REVISION', 'FINALIZADA', 'ANULADA');
 
+-- CreateEnum
+CREATE TYPE "EstadoExpediente" AS ENUM ('ACTIVO', 'FINALIZADO_MANUAL', 'FINALIZADO_AUTO');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -54,7 +57,7 @@ CREATE TABLE "Perfil" (
     "documentoId" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "actualizadoEn" TIMESTAMP(3) NOT NULL,
+    "ultimaActividad" TIMESTAMP(3) NOT NULL,
     "usuarioId" INTEGER,
     "autorId" INTEGER,
 
@@ -76,7 +79,7 @@ CREATE TABLE "Mascota" (
     "imagen" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "actualizadoEn" TIMESTAMP(3) NOT NULL,
+    "ultimaActividad" TIMESTAMP(3) NOT NULL,
     "razaId" INTEGER,
     "perfilId" INTEGER NOT NULL,
     "autorId" INTEGER,
@@ -87,6 +90,9 @@ CREATE TABLE "Mascota" (
 -- CreateTable
 CREATE TABLE "ExpedienteMedico" (
     "id" SERIAL NOT NULL,
+    "nombre" TEXT,
+    "estado" "EstadoExpediente" NOT NULL,
+    "fechaAlta" TIMESTAMP(3),
     "mascotaId" INTEGER NOT NULL,
     "autorId" INTEGER NOT NULL,
     "clinicaId" INTEGER,
@@ -96,7 +102,7 @@ CREATE TABLE "ExpedienteMedico" (
     "visibleParaTutor" BOOLEAN NOT NULL DEFAULT false,
     "borrado" BOOLEAN NOT NULL DEFAULT false,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "actualizadoEn" TIMESTAMP(3) NOT NULL,
+    "ultimaActividad" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "ExpedienteMedico_pkey" PRIMARY KEY ("id")
 );
@@ -118,7 +124,6 @@ CREATE TABLE "NotaClinica" (
     "archivos" TEXT,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "autorId" INTEGER NOT NULL,
-    "canceladaPorId" INTEGER,
     "fechaCancelacion" TIMESTAMP(3),
     "anuladaPorId" INTEGER,
     "estado" "EstadoNotaClinica" NOT NULL DEFAULT 'EN_REVISION',
@@ -168,31 +173,9 @@ CREATE TABLE "Indicacion" (
     "id" SERIAL NOT NULL,
     "notaClinicaId" INTEGER NOT NULL,
     "descripcion" TEXT NOT NULL,
-    "frecuenciaHoras" INTEGER,
-    "veces" INTEGER,
-    "desde" TIMESTAMP(3),
-    "paraCasa" BOOLEAN NOT NULL DEFAULT false,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "observaciones" TEXT,
 
     CONSTRAINT "Indicacion_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "AplicacionIndicacion" (
-    "id" SERIAL NOT NULL,
-    "notaClinicaId" INTEGER NOT NULL,
-    "indicacionId" INTEGER,
-    "descripcionManual" TEXT,
-    "fechaProgramada" TIMESTAMP(3) NOT NULL,
-    "fechaReal" TIMESTAMP(3),
-    "ejecutorId" INTEGER,
-    "creadorId" INTEGER NOT NULL,
-    "observaciones" TEXT,
-    "estado" "EstadoAplicacion" NOT NULL DEFAULT 'PENDIENTE',
-    "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "AplicacionIndicacion_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -286,10 +269,16 @@ CREATE UNIQUE INDEX "Perfil_usuarioId_key" ON "Perfil"("usuarioId");
 CREATE UNIQUE INDEX "Mascota_microchip_key" ON "Mascota"("microchip");
 
 -- CreateIndex
-CREATE INDEX "AplicacionMedicamento_notaClinicaId_estado_fechaProgramada_idx" ON "AplicacionMedicamento"("notaClinicaId", "estado", "fechaProgramada");
+CREATE INDEX "ExpedienteMedico_mascotaId_idx" ON "ExpedienteMedico"("mascotaId");
 
 -- CreateIndex
-CREATE INDEX "AplicacionIndicacion_notaClinicaId_estado_fechaProgramada_idx" ON "AplicacionIndicacion"("notaClinicaId", "estado", "fechaProgramada");
+CREATE INDEX "ExpedienteMedico_estado_idx" ON "ExpedienteMedico"("estado");
+
+-- CreateIndex
+CREATE INDEX "ExpedienteMedico_mascotaId_estado_ultimaActividad_idx" ON "ExpedienteMedico"("mascotaId", "estado", "ultimaActividad");
+
+-- CreateIndex
+CREATE INDEX "AplicacionMedicamento_notaClinicaId_estado_fechaProgramada_idx" ON "AplicacionMedicamento"("notaClinicaId", "estado", "fechaProgramada");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Raza_nombre_especie_key" ON "Raza"("nombre", "especie");
@@ -343,9 +332,6 @@ ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN
 ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_canceladaPorId_fkey" FOREIGN KEY ("canceladaPorId") REFERENCES "NotaClinica"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_anuladaPorId_fkey" FOREIGN KEY ("anuladaPorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -365,18 +351,6 @@ ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_creado
 
 -- AddForeignKey
 ALTER TABLE "Indicacion" ADD CONSTRAINT "Indicacion_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_indicacionId_fkey" FOREIGN KEY ("indicacionId") REFERENCES "Indicacion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_ejecutorId_fkey" FOREIGN KEY ("ejecutorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionIndicacion" ADD CONSTRAINT "AplicacionIndicacion_creadorId_fkey" FOREIGN KEY ("creadorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,6 +1,6 @@
 "use client";
-import { useEffect } from "react";
-import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import HistoricoExpedientes from "@/components/ui/HistoricoExpedientes";
 import { Box, Tabs, Spinner, Text } from "@chakra-ui/react";
@@ -15,15 +15,15 @@ import type { ExpedienteConNotas } from "@/types/expediente";
 import BotonIniciarAtencion from "@/components/ui/expediente/BotonIniciarAtencion";
 import { EstadoExpediente } from "@prisma/client";
 import ProgresoExpediente from "@/components/ui/expediente/ProgresoExpediente";
+import { useSession } from "next-auth/react";
+
+
+
 export default function MascotaDetalleClient({
   mascota,
 }: {
   mascota: Mascota;
 }) {
-  const [expedienteSeleccionado, setExpedienteSeleccionado] =
-    useState<ExpedienteConNotas | null>(null);
-  const [mostrarFormularioNota, setMostrarFormularioNota] = useState(true);
-
   const { data, isLoading, isError } = useQuery<{
     expedientes: ExpedienteConNotas[];
   }>({
@@ -35,17 +35,14 @@ export default function MascotaDetalleClient({
     },
   });
 
-  const expedientes = data?.expedientes ?? [];
+  const expedientes = useMemo(() => data?.expedientes ?? [], [data]);
 
-const expedienteActivo = useMemo(() => {
-  return expedientes.find((e) => e.estado === EstadoExpediente.ACTIVO);
-}, [expedientes]);
+  const expedienteSeleccionado = useMemo(() => {
+    const activo = expedientes.find(
+      (e) => e.estado === EstadoExpediente.ACTIVO
+    );
+    if (activo) return activo;
 
-useEffect(() => {
-  if (expedienteActivo) {
-    setExpedienteSeleccionado(expedienteActivo);
-    setMostrarFormularioNota(true);
-  } else {
     const ultimoFinalizado = expedientes
       .filter((e) => e.estado !== EstadoExpediente.ACTIVO)
       .sort(
@@ -54,12 +51,11 @@ useEffect(() => {
           new Date(a.fechaCreacion).getTime()
       )[0];
 
-    if (ultimoFinalizado) {
-      setExpedienteSeleccionado(ultimoFinalizado);
-      setMostrarFormularioNota(false);
-    }
-  }
-}, [expedientes]); // 💡 NO pongas expedienteSeleccionado como dependencia
+    return ultimoFinalizado ?? null;
+  }, [expedientes]);
+
+  const mostrarFormularioNota =
+    expedienteSeleccionado?.estado === EstadoExpediente.ACTIVO;
 
   const aplicacionesMedicamentos = expedientes.flatMap((exp) =>
     exp.notasClinicas.flatMap((nota) =>
@@ -93,10 +89,37 @@ useEffect(() => {
     )
   );
 
-  const perfilActualId = mascota.perfil?.id;
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+  const perfilActualId = session?.user?.perfilid ?? null;
+
+
+
+  const finalizarExpediente = async () => {
+    if (!expedienteSeleccionado) return;
+    try {
+      const res = await fetch(
+        `/api/expedientes/${expedienteSeleccionado.id}/finalizar`,
+        { method: "PATCH" }
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "Error al finalizar expediente");
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["expedientes", mascota.id],
+      });
+    } catch (error) {
+      console.error("Error al finalizar expediente:", error);
+      alert((error as Error).message);
+    }
+  };
 
   const resumenExpediente = useMemo(() => {
-    if (expedienteSeleccionado && expedienteSeleccionado.estado === "ACTIVO") {
+    if (expedienteSeleccionado?.estado === EstadoExpediente.ACTIVO) {
       return {
         fechaInicio: expedienteSeleccionado.fechaCreacion,
         totalNotas: expedienteSeleccionado.notasClinicas.length,
@@ -138,7 +161,7 @@ useEffect(() => {
 
   return (
     <>
-      <Box gridColumn="1" gridRow="1">
+      <Box gridColumn="1" gridRow="1" display="flex" justifyContent="center">
         <TarjetaBase>
           <BoxMascota
             redirigirPerfil
@@ -157,13 +180,14 @@ useEffect(() => {
               nombrePerfil: mascota.perfil?.nombre,
             }}
           />
-          {!expedienteSeleccionado && (
+          {expedienteSeleccionado?.estado !== EstadoExpediente.ACTIVO && (
             <BotonIniciarAtencion
               mascotaId={mascota.id}
-              onExpedienteCreado={(nuevoExpediente) => {
-                setExpedienteSeleccionado(nuevoExpediente);
-                setMostrarFormularioNota(true);
-              }}
+              onExpedienteCreado={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["expedientes", mascota.id],
+                })
+              }
             />
           )}
           {resumenExpediente && (
@@ -172,9 +196,18 @@ useEffect(() => {
                 fechaInicio={expedienteSeleccionado?.fechaCreacion ?? ""}
                 ultimaActividad={expedienteSeleccionado?.ultimaActividad ?? ""}
                 notas={expedienteSeleccionado?.notasClinicas ?? []}
+                nombre={expedienteSeleccionado?.nombre ?? "Sin título"}
+                puedeFinalizar={
+                  expedienteSeleccionado?.estado === EstadoExpediente.ACTIVO
+                }
+                onFinalizarExpediente={finalizarExpediente}
               />
               <ProgresoExpediente
                 notas={expedienteSeleccionado?.notasClinicas ?? []}
+                expedienteId={expedienteSeleccionado?.id ?? 0}
+                nombre={
+                  expedienteSeleccionado?.nombre ?? "¡Nombra tu expediente!"
+                }
               />
             </>
           )}
@@ -182,12 +215,8 @@ useEffect(() => {
             mascotaId={mascota.id}
             expedientes={expedientes}
             expedienteSeleccionado={expedienteSeleccionado}
-            setExpedienteSeleccionado={(exp) => {
-              setExpedienteSeleccionado(exp);
-              setMostrarFormularioNota(true);
-            }}
-            setMostrarFormularioNota={setMostrarFormularioNota}
-            perfilActualId={perfilActualId} // ✅ PASADO AQUÍ
+            setExpedienteSeleccionado={() => {}}
+            perfilActualId={perfilActualId}
             datosMascota={{
               nombre: mascota.nombre,
               especie: mascota.especie,
@@ -231,11 +260,19 @@ useEffect(() => {
             </Tabs.Content>
 
             <Tabs.Content value="nota">
+
               {expedienteSeleccionado && mostrarFormularioNota ? (
                 <FormularioNotaClinica
                   expedienteSeleccionado={expedienteSeleccionado}
                   mascotaId={mascota.id}
-                  onClose={() => setMostrarFormularioNota(false)}
+                  datosMascota={{
+                    nombre: mascota.nombre,
+                    especie: mascota.especie,
+                    raza: mascota.raza?.nombre,
+                    fechaNacimiento: mascota.fechaNacimiento,
+                    sexo: mascota.sexo,
+                    esterilizado: mascota.esterilizado,
+                  }}
                 />
               ) : (
                 <Box py={4} color="tema.suave">

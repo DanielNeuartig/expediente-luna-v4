@@ -1,6 +1,6 @@
 // src/types/nota.ts
 
-import { NotaClinica, EstadoNotaClinica } from "@prisma/client";
+import { NotaClinica } from "@prisma/client";
 
 // Incluye los campos necesarios para reemplazar una nota
 export type NotaAReemplazar = Pick<
@@ -15,7 +15,6 @@ export type NotaAReemplazar = Pick<
   | "frecuenciaRespiratoria"
   | "diagnosticoPresuntivo"
   | "pronostico"
-  | "laboratoriales"
   | "extras"
   | "fechaCancelacion"
   | "anuladaPorId"

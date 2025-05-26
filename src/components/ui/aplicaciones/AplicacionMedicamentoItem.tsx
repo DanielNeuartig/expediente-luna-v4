@@ -10,6 +10,7 @@ import {
   Textarea,
   HStack,
   VStack,
+  NativeSelect,
 } from "@chakra-ui/react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { EstadoAplicacion, ViaMedicamento } from "@prisma/client";
@@ -69,9 +70,7 @@ function calcularTiempoRestante(fechaProgramada: string) {
     }
   }
 
-  return msDiff < 0
-    ? `⚠️⚠️⚠️ Atrasada por ${texto}`
-    : `⏳ Faltan ${texto}`;
+  return msDiff < 0 ? `⚠️⚠️⚠️ Atrasada por ${texto}` : `⏳ Faltan ${texto}`;
 }
 
 function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
@@ -177,12 +176,13 @@ export default function AplicacionMedicamentoItem({
 
   const guardarHabilitado = isEditable && estadoActual !== "PENDIENTE";
 
-  const valores = getValues(`aplicaciones.${index}`) ?? {};
   const realNombre = nombreMedicamentoManual || "-";
   const realDosis = dosis || "-";
   const realVia = via || "-";
-  const valorObs = valores.observaciones || "-";
-
+  const opcionesVia = Object.values(ViaMedicamento).map((v) => ({
+    value: v,
+    label: v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(), // opcional: mejor presentación
+  }));
   return (
     <Box
       border="2px"
@@ -195,7 +195,7 @@ export default function AplicacionMedicamentoItem({
         <HStack>
           {fechaReal && (
             <Text fontWeight="bold" color="tema.claro">
-              ✏️ Aplicado:{" "}
+              💉 Firmado por:{" "}
               {new Date(fechaReal).toLocaleString("es-MX", {
                 weekday: "short",
                 year: "numeric",
@@ -239,9 +239,11 @@ export default function AplicacionMedicamentoItem({
                 defaults?.medicamento.dosis ?? "-"
               } · ${defaults?.medicamento.via ?? "-"}`}
             </Text>
-            <Text>
-              💉 Aplicado: {`${realNombre} · ${realDosis} · ${realVia}`}
-            </Text>
+            {estado !== "OMITIDA" && estado !== "CANCELADA" && (
+              <Text>
+                💉 Aplicado: {`${realNombre} · ${realDosis} · ${realVia}`}
+              </Text>
+            )}
           </>
         )}
       </VStack>
@@ -272,15 +274,20 @@ export default function AplicacionMedicamentoItem({
               />
             </Field.Root>
             <Field.Root>
-              <Input
-                borderRadius="lg"
-                fontSize="xs"
-                size="xs"
-                {...estilosInputBase}
-                {...register(`aplicaciones.${index}.medicamento.via`)}
-                defaultValue={defaults?.medicamento.via || ""}
-                disabled={!isEditable}
-              />
+              <NativeSelect.Root size="sm" width="100%" disabled={!isEditable}>
+                <NativeSelect.Field
+                  {...estilosInputBase}
+                  placeholder="Selecciona vía"
+                  {...register(`aplicaciones.${index}.medicamento.via`)}
+                >
+                  {opcionesVia.map((op) => (
+                    <option key={op.value} value={op.value}>
+                      {op.label}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
             </Field.Root>
           </HStack>
 

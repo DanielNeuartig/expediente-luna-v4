@@ -11,8 +11,6 @@ import {
   ClipboardList,
   Stethoscope,
   Hospital,
-  FlaskConical,
-  AlertTriangle,
   Scissors,
 } from 'lucide-react'
 import { toaster } from '@/components/ui/toaster'

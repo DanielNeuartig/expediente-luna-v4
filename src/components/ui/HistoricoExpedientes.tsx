@@ -6,13 +6,12 @@ import {
   Text,
   Avatar,
   HStack,
-  Button,
   SegmentGroup,
 } from "@chakra-ui/react";
 import { useState, Fragment } from "react";
 import { ExpedienteConNotas } from "@/types/expediente";
 import PopOverReceta from "@/components/ui/PopOverReceta";
-import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
+
 import MenuAccionesNota from "./MenuAccionesNota";
 import { useCrearNotaClinica } from "@/hooks/useCrearNotaClinica";
 import { EstadoNotaClinica } from "@prisma/client";
@@ -33,7 +32,6 @@ type Props = {
   expedientes: ExpedienteConNotas[];
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  setMostrarFormularioNota: (mostrar: boolean) => void;
   datosMascota: {
     nombre: string;
     especie: string;
@@ -49,20 +47,18 @@ function obtenerEstilosAplicacion(estado: string) {
     case "PENDIENTE":
       return { bg: "tema.suave", border: "tema.base" };
     case "REALIZADA":
-      return { bg: "green.700", border: "tema.verde" };
+      return { bg: "green.800", border: "tema.verde" };
     case "OMITIDA":
     case "CANCELADA":
-      return { bg: "red.700", border: "tema.rojo" };
+      return { bg: "red.800", border: "tema.rojo" };
     default:
-      return { bg: "gray.600", border: "gray.300" }; // fallback opcional
+      return { bg: "gray.800", border: "gray.300" }; // fallback opcional
   }
 }
 export default function HistoricoExpedientes({
   mascotaId,
   expedientes,
   expedienteSeleccionado,
-  setExpedienteSeleccionado,
-  setMostrarFormularioNota,
   datosMascota,
   perfilActualId, // ✅ recibido aquí
 }: Props) {
@@ -140,6 +136,14 @@ export default function HistoricoExpedientes({
                   </Table.Cell>
                 </Table.Row>
 
+                <Table.Row bg="tema.suave" color="white">
+                  <Table.Cell colSpan={4}>
+                    <Text fontWeight="bold" fontSize="sm">
+                      📁 {exp.nombre || "Sin nombre asignado"}
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+
                 {/*<Table.Row bg="tema.llamativo">
                   <Table.Cell colSpan={4}>
                     <Button
@@ -177,6 +181,7 @@ export default function HistoricoExpedientes({
                         </Text>
                         <PopOverReceta
                           medicamentos={nota.medicamentos}
+                          indicaciones={nota.indicaciones} // ✅ Añade esta línea
                           datosClinicos={{
                             historiaClinica: nota.historiaClinica ?? undefined,
                             exploracionFisica:
@@ -452,6 +457,16 @@ export default function HistoricoExpedientes({
                           )}
                         </Box>
                       ))}
+                      {nota.indicaciones && nota.indicaciones.length > 0 && (
+                        <Box mt="2" pl="4">
+                          <Text fontWeight="medium">📝 Indicaciones:</Text>
+                          {nota.indicaciones.map((ind) => (
+                            <Text key={`ind-${ind.id}`} fontSize="sm" ml="2">
+                              • {ind.descripcion}
+                            </Text>
+                          ))}
+                        </Box>
+                      )}
                     </Table.Cell>
                   </Table.Row>
                 ))}

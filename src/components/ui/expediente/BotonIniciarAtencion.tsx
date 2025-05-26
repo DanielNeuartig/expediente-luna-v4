@@ -13,6 +13,7 @@ import {
 import { LuStethoscope } from "react-icons/lu";
 import type { ExpedienteConNotas } from "@/types/expediente";
 import { useCrearExpedienteMedico } from "@/hooks/useExpedienteMedico";
+import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 
 type Props = {
   mascotaId: number;
@@ -44,9 +45,8 @@ export default function MenuIniciarAtencion({
       <Menu.Root>
         <Menu.Trigger asChild>
           <Button
-            variant="solid"
-            colorPalette="teal"
-            size="md"
+            {...estilosBotonEspecial}
+            size="lg"
             loading={mutation.isPending}
           >
             <LuStethoscope /> Iniciar atención médica

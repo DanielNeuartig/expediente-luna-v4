@@ -52,7 +52,8 @@ interface Props {
   datosClinicos?: DatosClinicos;
   datosMascota: DatosMascota;
   fechaNota: string;
-  estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA"; // ✅ aquí también
+  estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA";
+  indicaciones?: { descripcion: string }[];
 }
 
 export default function PopOverReceta({
@@ -60,12 +61,14 @@ export default function PopOverReceta({
   datosClinicos,
   datosMascota,
   fechaNota,
-  estadoNota, // ✅ aquí faltaba
+  estadoNota,
+  indicaciones,
 }: Props) {
   const [seleccionados, setSeleccionados] = useState<number[]>(
     medicamentos.map((m) => m.id)
   );
   const [incluirDatosClinicos, setIncluirDatosClinicos] = useState(true);
+  const [incluirIndicaciones, setIncluirIndicaciones] = useState(true); // ✅
 
   const toggleSeleccion = (id: number) => {
     setSeleccionados((prev) =>
@@ -84,7 +87,8 @@ export default function PopOverReceta({
         datosClinicos={incluirDatosClinicos ? datosClinicos : undefined}
         datosMascota={datosMascota}
         fechaNota={fechaNota}
-        estadoNota={estadoNota} // ✅
+        estadoNota={estadoNota}
+        indicaciones={incluirIndicaciones ? indicaciones : undefined} // ✅
       />
     ).toBlob();
 
@@ -136,12 +140,28 @@ export default function PopOverReceta({
                 </Checkbox.Label>
               </Checkbox.Root>
 
+              <Checkbox.Root
+                checked={incluirIndicaciones}
+                onCheckedChange={() => setIncluirIndicaciones((v) => !v)}
+                mt="2"
+              >
+                <Checkbox.HiddenInput />
+                <Checkbox.Control />
+                <Checkbox.Label>
+                  Incluir INDICACIONES en la receta
+                </Checkbox.Label>
+              </Checkbox.Root>
+
               <Button
                 onClick={abrirPDF}
                 mt="4"
                 size="sm"
                 colorScheme="teal"
-                disabled={seleccionados.length === 0 && !incluirDatosClinicos}
+                disabled={
+                  seleccionados.length === 0 &&
+                  !incluirDatosClinicos &&
+                  !incluirIndicaciones
+                }
               >
                 Ver receta en PDF
               </Button>
