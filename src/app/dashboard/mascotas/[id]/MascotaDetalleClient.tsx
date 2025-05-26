@@ -33,6 +33,7 @@ export default function MascotaDetalleClient({
       if (!res.ok) throw new Error("Error al cargar expedientes");
       return res.json();
     },
+    refetchInterval: 10000,
   });
 
   const expedientes = useMemo(() => data?.expedientes ?? [], [data]);
@@ -153,7 +154,7 @@ export default function MascotaDetalleClient({
     return (
       <Box gridColumn="1 / span 2" gridRow="1">
         <TarjetaBase>
-          <Text color="red.500">Mascota no vinculada a un perfil válido.</Text>
+          <Text color="red.500">Este usuario no tiene un perfil creado. Si crees que es un error, refresca la pantalla o espera unos minutos.</Text>
         </TarjetaBase>
       </Box>
     );

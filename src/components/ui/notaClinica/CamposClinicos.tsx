@@ -83,7 +83,7 @@ export default function CamposClinicos() {
       <HStack>
         <Field.Root>
           <Field.Label {...estilosTituloInput}>Laboratoriales</Field.Label>
-          <Textarea {...estilosInputBase} {...register("laboratoriales")} />
+         {/* <Textarea {...estilosInputBase} {...register("laboratoriales")} />*/}
         </Field.Root>
         <Field.Root>
           <Field.Label {...estilosTituloInput}>Extras</Field.Label>

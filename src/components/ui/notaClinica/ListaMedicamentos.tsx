@@ -66,7 +66,8 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
         const item = valores[index] as Medicamento | undefined;
 
         return (
-          <Box key={field.id} borderWidth="1px" p="0" rounded="md">
+          <Box key={field.id} borderWidth="2px" p="4" rounded="md"
+          borderColor="tema.llamativo" bg="blue.50"> 
             <Fieldset.Legend {...estilosTituloInput} />
 
             {/* Campo: Nombre */}

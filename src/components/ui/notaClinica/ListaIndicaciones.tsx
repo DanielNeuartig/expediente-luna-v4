@@ -32,7 +32,7 @@ export default function ListaIndicaciones() {
   return (
     <>
       {fields.map((field, index) => (
-        <Box key={field.id} borderWidth="1px" p="4" rounded="md">
+        <Box key={field.id} borderWidth="2px" p="4" rounded="md" borderColor="green.600" bg="green.50">
           <Fieldset.Legend {...estilosTituloInput}>
             Indicación #{index + 1}
           </Fieldset.Legend>
