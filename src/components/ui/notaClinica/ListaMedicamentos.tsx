@@ -308,7 +308,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                     fontSize="2xs"
                     {...estilosTituloInput}
                   >
-                    ¿Para casa?
+                    APLICACION EN:
                   </Field.Label>
                   <Controller
                     control={control}
@@ -339,8 +339,8 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
                       >
                         <SegmentGroup.Items
                           items={[
-                            { value: "true", label: "Sí" },
-                            { value: "false", label: "No" },
+                            { value: "true", label: "CASA" },
+                            { value: "false", label: "CLÍNICA" },
                           ]}
                         />
                         <SegmentGroup.Indicator bg="tema.llamativo" />

@@ -40,13 +40,6 @@ export async function PATCH(
       );
     }
 
-    if (expediente.autorId !== session.user.perfilid) {
-      return NextResponse.json(
-        { error: "No tienes permiso para finalizar este expediente" },
-        { status: 403 }
-      );
-    }
-
     const notasSinFirmar = await prisma.notaClinica.count({
       where: {
         expedienteId: expediente.id,

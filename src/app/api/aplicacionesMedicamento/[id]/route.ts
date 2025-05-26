@@ -113,6 +113,23 @@ export async function PATCH(
       where: { id: appId },
       data: datosActualizados,
     });
+    const relacion = await prisma.aplicacionMedicamento.findUnique({
+  where: { id: appId },
+  select: {
+    notaClinica: {
+      select: {
+        expedienteId: true,
+      },
+    },
+  },
+});
+
+if (relacion?.notaClinica?.expedienteId) {
+  await prisma.expedienteMedico.update({
+    where: { id: relacion.notaClinica.expedienteId },
+    data: { ultimaActividad: new Date() },
+  });
+}
 
     return NextResponse.json({ actualizada });
   } catch (error) {

@@ -299,7 +299,7 @@ async function firmarNotaYCrearAplicaciones(
 
   await tx.expedienteMedico.update({
     where: { id: nota.expedienteId },
-    data: {},
+data: { ultimaActividad: new Date() }
   });
   return { firmada: true };
 }
@@ -333,7 +333,7 @@ async function anularNotaYCancelarAplicaciones(
   if (nota) {
     await tx.expedienteMedico.update({
       where: { id: nota.expedienteId },
-      data: {},
+data: { ultimaActividad: new Date() }
     });
   }
 
@@ -390,7 +390,7 @@ async function crearNotaClinica(
   }
   await tx.expedienteMedico.update({
     where: { id: data.expedienteId },
-    data: {},
+data: { ultimaActividad: new Date() },
   });
   return { notaClinica: nota };
 }
