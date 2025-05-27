@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { crearPerfil } from "@/lib/api/crearPerfil";
 import { toaster } from "@/components/ui/toaster";
-import InputNombre from "./InputNombre";
+import InputNombreFormateado from "./InputNombreFormateado";
 import InputTelefonoConClave from "./InputTelefonoConClave";
 import VerificacionSMS from "./VerificacionSMS";
 import InputTelefonosAdicionales from "./InputTelefonosAdicionales";
@@ -89,7 +89,11 @@ export default function FormularioPerfil({
               </Stack>
 
               <Fieldset.Content>
-                <InputNombre />
+                <InputNombreFormateado
+                  name="nombre"
+                  label="Nombre completo"
+                  autoFocus
+                />
 
                 <InputTelefonoConClave />
                 {mostrarVerificacionSMS && <VerificacionSMS />}

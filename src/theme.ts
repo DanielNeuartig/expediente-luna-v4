@@ -84,7 +84,7 @@ export const system = createSystem(defaultConfig, {
           naranja: { value: "#FF9300 " },
           amarillo:{value:"#FFA500"},
           verde: { value: "#00B894" },
-          gris: { value: "#222831" },
+         
           
         },
         fondo: {

@@ -26,6 +26,7 @@ import {
   differenceInDays,
   parseISO,
 } from "date-fns";
+import InputNombreFormateado from "./InputNombreFormateado";
 
 type FormValues = z.infer<typeof mascotaSchema>;
 
@@ -112,11 +113,7 @@ export default function FormularioMascotaVisual() {
           {...register("perfilId", { value: perfilId })}
         />
         <Stack gap="4" align="flex-start">
-          <Field.Root invalid={!!errors.nombre}>
-            <Field.Label {...estilosTituloInput}>Nombre</Field.Label>
-            <Input {...register("nombre")} {...estilosInputBase} />
-            <Field.ErrorText>{errors.nombre?.message}</Field.ErrorText>
-          </Field.Root>
+          <InputNombreFormateado name="nombre" label="Nombre" autoFocus />
 
           <Stack direction="row" gap="4" width="100%">
             <Field.Root invalid={!!errors.especie} flex="1">
