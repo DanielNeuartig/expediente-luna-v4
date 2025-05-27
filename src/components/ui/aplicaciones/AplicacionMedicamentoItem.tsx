@@ -83,7 +83,7 @@ function getBgColor(estado: EstadoAplicacion, fechaProgramada: string) {
   if (diffMin <= 60) return "tema.rojo";
   if (diffMin <= 180) return "tema.naranja";
   if (diffMin <= 720) return "tema.amarillo";
-  return "tema.gris";
+  return "tema.suave";
 }
 
 
