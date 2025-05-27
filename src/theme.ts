@@ -53,8 +53,8 @@ export const system = createSystem(defaultConfig, {
     tokens: {
       animations: {
         fadeInUp: {
-      value: "fadeInUp .8s ease-out forwards",
-    },
+          value: "fadeInUp .8s ease-out forwards",
+        },
         floatGlow: {
           value: "floatGlow 3s ease-in-out infinite",
         },
@@ -80,12 +80,11 @@ export const system = createSystem(defaultConfig, {
           suave: { value: "#393E46" },
           llamativo: { value: "#00ADB5" },
           claro: { value: "#EEEEEE" },
-          rojo: { value: "#E63946" } ,
+          rojo: { value: "#E63946" },
           naranja: { value: "#FF9300 " },
-          amarillo:{value:"#FFA500"},
+          amarillo: { value: "#FFC107" },
           verde: { value: "#00B894" },
-         
-          
+          morado: { value: "#8E44AD" },
         },
         fondo: {
           base: { value: "#f7f8fa" },
@@ -98,7 +97,7 @@ export const system = createSystem(defaultConfig, {
           secundario: { value: "#393E46" },
           claro: { value: "#EEEEEE" },
         },
-        
+
         estado: {
           success: { value: "#38A169" }, // verde
           error: { value: "#E53E3E" }, // rojo
