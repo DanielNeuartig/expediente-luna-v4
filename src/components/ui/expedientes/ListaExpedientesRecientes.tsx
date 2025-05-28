@@ -90,7 +90,7 @@ export default function ListaExpedientesRecientes({
 
             <Badge
               variant="solid"
-              colorPalette={exp.estado === "ACTIVO" ? "green" : "gray"}
+              colorPalette={exp.estado === "ACTIVO" ? "green" : "red"}
               color="tema.claro"
               display="flex"
               alignItems="center"

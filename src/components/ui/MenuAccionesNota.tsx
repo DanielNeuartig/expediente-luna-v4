@@ -46,12 +46,22 @@ export default function MenuAccionesNota({
         <Portal>
           <Menu.Positioner>
             <Menu.Content>
-              {puedeFirmar && (
-                <Menu.Item value="firmar" onSelect={() => setAbrirDialogoFirmar(true)}>
+              {puedeFirmar ? (
+                <Menu.Item
+                  value="firmar"
+                  onSelect={() => setAbrirDialogoFirmar(true)}
+                >
                   Firmar nota
                 </Menu.Item>
+              ) : (
+                <Menu.Item value="" disabled>
+                  No puedes firmar, sólo el autor de la nota puede hacerlo{" "}
+                </Menu.Item>
               )}
-              <Menu.Item value="anular" onSelect={() => setAbrirDialogoAnular(true)}>
+              <Menu.Item
+                value="anular"
+                onSelect={() => setAbrirDialogoAnular(true)}
+              >
                 Anular nota
               </Menu.Item>
             </Menu.Content>
@@ -62,7 +72,9 @@ export default function MenuAccionesNota({
       {/* Dialogo para Anular */}
       <Dialog.Root
         open={abrirDialogoAnular}
-        onOpenChange={({ open }: { open: boolean }) => setAbrirDialogoAnular(open)}
+        onOpenChange={({ open }: { open: boolean }) =>
+          setAbrirDialogoAnular(open)
+        }
         role="alertdialog"
       >
         <Portal>
@@ -74,10 +86,10 @@ export default function MenuAccionesNota({
               </Dialog.Header>
               <Dialog.Body>
                 <p>
-                  Esta acción no se puede deshacer. La nota se marcará como anulada y
-                  todas las aplicaciones pendientes relacionadas a la nota se
-                  marcarán como canceladas. Las aplicaciones ya firmadas no se verán
-                  afectadas.
+                  Esta acción no se puede deshacer. La nota se marcará como
+                  anulada y todas las aplicaciones pendientes relacionadas a la
+                  nota se marcarán como canceladas. Las aplicaciones ya firmadas
+                  no se verán afectadas.
                 </p>
               </Dialog.Body>
               <Dialog.Footer>
@@ -105,7 +117,9 @@ export default function MenuAccionesNota({
       {/* Dialogo para Firmar */}
       <Dialog.Root
         open={abrirDialogoFirmar}
-        onOpenChange={({ open }: { open: boolean }) => setAbrirDialogoFirmar(open)}
+        onOpenChange={({ open }: { open: boolean }) =>
+          setAbrirDialogoFirmar(open)
+        }
         role="alertdialog"
       >
         <Portal>
@@ -117,7 +131,9 @@ export default function MenuAccionesNota({
               </Dialog.Header>
               <Dialog.Body>
                 <p>
-                  Una vez firmada, se generarán las aplicaciones programdas de medicamentos relacionadas a la nota. Esta acción NO debería de anularse.
+                  Una vez firmada, se generarán las aplicaciones programdas de
+                  medicamentos relacionadas a la nota. Esta acción NO debería de
+                  anularse.
                 </p>
               </Dialog.Body>
               <Dialog.Footer>

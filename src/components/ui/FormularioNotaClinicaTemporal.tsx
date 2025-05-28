@@ -220,7 +220,7 @@ export default function FormularioNotaClinicaTemporal({
                 {...estilosInputBase}
                 name="peso"
                 type="number"
-                step="0.1"
+                step="0.01"
               />
             </Field.Root>
             <Field.Root>

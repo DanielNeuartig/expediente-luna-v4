@@ -37,7 +37,7 @@ export default function CamposClinicos() {
           <Input
             {...estilosInputBase}
             type="number"
-            step="0.1"
+            step="0.01"
             min="0"
             {...register("peso")}
           />
