@@ -29,16 +29,23 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <Sidebar />
+      {/* Sidebar solo en escritorio */}
+      <Box display={{ base: "none", md: "block" }}>
+        <Sidebar />
+      </Box>
+
+      {/* Header */}
       <DashboardHeader />
+
+      {/* Contenido principal */}
       <Box
         as="main"
-        ml="60"
-        minH="100%"
+        ml={{ base: 0, md: "60" }}
+        minH="100dvh"
         overflowY="auto"
         px="6"
         pb="6"
-        pt="20"
+        pt={{ base: "24", md: "20" }} // 🔁 padding top responsivo para evitar solapamiento
         bg="gray.200"
       >
         <DashboardGrid>{children}</DashboardGrid>

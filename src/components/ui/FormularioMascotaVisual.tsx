@@ -229,7 +229,7 @@ export default function FormularioMascotaVisual() {
               Registrar mascota
             </Button>
             <Button onClick={handleVerDatos} {...estilosBotonEspecial}>
-              Ver datos en consola
+              Ver datos en consola (debug)
             </Button>
           </Stack>
         </Stack>
