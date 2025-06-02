@@ -14,6 +14,7 @@ import {
   Badge,
   Button,
   Input,
+  Image,
 } from "@chakra-ui/react";
 import {
   ClipboardSignature,
@@ -30,6 +31,7 @@ import { useParams } from "next/navigation";
 import { toaster } from "@/components/ui/toaster";
 import type { ResultadoMascota } from "@/components/ui/BoxMascota";
 import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
+import { estilosInputBase } from "@/components/ui/config/estilosInputBase";
 
 type ArchivoLaboratorial = {
   id: number;
@@ -247,23 +249,46 @@ if (!autenticado) {
           display="flex"
           flexDirection="column"
           alignItems="center"
-          gap={4}
+          gap={6}
+          maxW="sm"
+          w="full"
+          shadow="lg"
+          textAlign="center" // ✅ centra texto
         >
-          <Text fontSize="xl" fontWeight="bold" color="tema.claro">
-            Acceso restringido
+          <Image
+            src="/imagenes/LogoBordesReducidos.png"
+            alt="Logo"
+            w="70%"
+            //maxH="80px"
+            objectFit="contain"
+            borderRadius="xl"
+          />
+
+          <Text fontSize="xl" fontWeight="bold" color="tema.llamativo">
+            Subida de laboratoriales
+          </Text>
+
+          <Text fontSize="md" fontWeight="medium" color="tema.claro">
+            Ingrese código de proveedor
           </Text>
 
           <Stack w="xs" gap={4} align="center">
             <Input
+              {...estilosInputBase}
               type="password"
-              placeholder="Código de acceso"
+              placeholder="Código"
+              value={codigoIngresado}
               onChange={(e) => setCodigoIngresado(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") verificarCodigo();
               }}
             />
 
-            <Button {...estilosBotonEspecial} onClick={verificarCodigo}>
+            <Button
+              {...estilosBotonEspecial}
+              onClick={verificarCodigo}
+              disabled={!codigoIngresado.trim()} // ✅ desactiva si vacío
+            >
               Verificar
             </Button>
           </Stack>
