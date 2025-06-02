@@ -17,7 +17,6 @@ import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import { formatoDatetimeLocal } from "./utils"; // ⬅️ Usa el mismo util que en ListaMedicamentos
-import { LuStar } from "react-icons/lu";
 import { Star } from "lucide-react";
 type Solicitud = {
   estudio: string;
