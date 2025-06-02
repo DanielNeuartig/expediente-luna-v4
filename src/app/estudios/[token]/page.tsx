@@ -231,72 +231,73 @@ export default function DemoUploadConBorrado() {
     }
   };
 
-if (!autenticado) {
-  return (
-    <FondoConBotones>
-      <Stack
-        minH="100vh"
-        justify="center"
-        align="center"
-        px={6}
-        gap={6}
-        animation="fadeInUp"
-      >
-        <Box
-          bg="tema.intenso"
-          p="5"
-          borderRadius="xl"
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
+  if (!autenticado) {
+    return (
+      <FondoConBotones>
+        <Stack
+          minH="100vh"
+          justify="center"
+          align="center"
+          px={6}
           gap={6}
-          maxW="sm"
-          w="full"
-          shadow="lg"
-          textAlign="center" // ✅ centra texto
+          animation="fadeInUp"
         >
-          <Image
-            src="/imagenes/LogoBordesReducidos.png"
-            alt="Logo"
-            w="70%"
-            //maxH="80px"
-            objectFit="contain"
+          <Box
+            bg="tema.intenso"
+            p="5"
             borderRadius="xl"
-          />
-
-          <Text fontSize="xl" fontWeight="bold" color="tema.llamativo">
-            Subida de laboratoriales
-          </Text>
-
-          <Text fontSize="md" fontWeight="medium" color="tema.claro">
-            Ingrese código de proveedor
-          </Text>
-
-          <Stack w="xs" gap={4} align="center">
-            <Input
-              {...estilosInputBase}
-              type="password"
-              placeholder="Código"
-              value={codigoIngresado}
-              onChange={(e) => setCodigoIngresado(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") verificarCodigo();
-              }}
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={6}
+            maxW="sm"
+            w="full"
+            shadow="lg"
+            textAlign="center" // ✅ centra texto
+          >
+            <Image
+              src="/imagenes/LogoBordesReducidos.png"
+              alt="Logo"
+              w="70%"
+              //maxH="80px"
+              objectFit="contain"
+              borderRadius="xl"
             />
+            <Badge bg="tema.llamativo" p="3" borderRadius="xl" mb="3">
+              <Text fontSize="xl" fontWeight="bold" color="tema.claro">
+                Archivos de laboratorio
+              </Text>
+            </Badge>
 
-            <Button
-              {...estilosBotonEspecial}
-              onClick={verificarCodigo}
-              disabled={!codigoIngresado.trim()} // ✅ desactiva si vacío
-            >
-              Verificar
-            </Button>
-          </Stack>
-        </Box>
-      </Stack>
-    </FondoConBotones>
-  );
-}
+            <Text fontSize="md" fontWeight="medium" color="tema.claro">
+              Ingrese código de proveedor
+            </Text>
+
+            <Stack w="xs" gap={4} align="center">
+              <Input
+                {...estilosInputBase}
+                type="password"
+                placeholder="Código"
+                value={codigoIngresado}
+                onChange={(e) => setCodigoIngresado(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") verificarCodigo();
+                }}
+              />
+
+              <Button
+                {...estilosBotonEspecial}
+                onClick={verificarCodigo}
+                disabled={!codigoIngresado.trim()} // ✅ desactiva si vacío
+              >
+                Verificar
+              </Button>
+            </Stack>
+          </Box>
+        </Stack>
+      </FondoConBotones>
+    );
+  }
   return (
     <FondoConBotones>
       <Box
