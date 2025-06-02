@@ -13,6 +13,7 @@ import {
   VStack,
   Badge,
   Button,
+  Input,
 } from "@chakra-ui/react";
 import {
   ClipboardSignature,
@@ -28,6 +29,7 @@ import BoxMascota from "@/components/ui/BoxMascota";
 import { useParams } from "next/navigation";
 import { toaster } from "@/components/ui/toaster";
 import type { ResultadoMascota } from "@/components/ui/BoxMascota";
+import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
 
 type ArchivoLaboratorial = {
   id: number;
@@ -54,6 +56,8 @@ type SolicitudLaboratorialPlano = {
 };
 
 export default function DemoUploadConBorrado() {
+  const [autenticado, setAutenticado] = useState(false);
+  const [codigoIngresado, setCodigoIngresado] = useState("");
   const [subiendo, setSubiendo] = useState(false);
   const [archivos, setArchivos] = useState<File[]>([]);
   const [mascota, setMascota] = useState<ResultadoMascota | null>(null);
@@ -171,6 +175,103 @@ export default function DemoUploadConBorrado() {
     return { key }; // ← nueva línea
   }
 
+  const verificarCodigo = async () => {
+    try {
+      const res = await fetch("/api/verificar-codigo", {
+        method: "POST",
+        body: JSON.stringify({ codigo: codigoIngresado }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setAutenticado(true);
+        toaster.create({
+          description: "Acceso exitoso",
+          type: "success",
+        });
+      } else if (res.status === 429) {
+        toaster.create({
+          description: `Demasiados intentos. Espera ${data.tiempoRestante} segundos.`,
+          type: "error",
+        });
+      } else if (res.status === 401) {
+        if (data.bloqueado) {
+          toaster.create({
+            description: "Código incorrecto. Has sido bloqueado temporalmente.",
+            type: "error",
+          });
+        } else {
+          toaster.create({
+            description: `Código incorrecto. Intentos restantes: ${data.intentosRestantes}`,
+            type: "warning",
+          });
+        }
+      } else if (res.status === 400) {
+        toaster.create({
+          description: data.error || "Solicitud malformada",
+          type: "error",
+        });
+      } else {
+        toaster.create({
+          description: "Error desconocido",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      const mensaje =
+        error instanceof Error ? error.message : "Error inesperado";
+      toaster.create({
+        description: `Error desconocido: ${mensaje}`,
+        type: "error",
+      });
+    }
+  };
+
+if (!autenticado) {
+  return (
+    <FondoConBotones>
+      <Stack
+        minH="100vh"
+        justify="center"
+        align="center"
+        px={6}
+        gap={6}
+        animation="fadeInUp"
+      >
+        <Box
+          bg="tema.intenso"
+          p="5"
+          borderRadius="xl"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          gap={4}
+        >
+          <Text fontSize="xl" fontWeight="bold" color="tema.claro">
+            Acceso restringido
+          </Text>
+
+          <Stack w="xs" gap={4} align="center">
+            <Input
+              type="password"
+              placeholder="Código de acceso"
+              onChange={(e) => setCodigoIngresado(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") verificarCodigo();
+              }}
+            />
+
+            <Button {...estilosBotonEspecial} onClick={verificarCodigo}>
+              Verificar
+            </Button>
+          </Stack>
+        </Box>
+      </Stack>
+    </FondoConBotones>
+  );
+}
   return (
     <FondoConBotones>
       <Box

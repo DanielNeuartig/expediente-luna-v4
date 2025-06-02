@@ -38,6 +38,7 @@ function calcularEdad(
 
   return partes.join(", ");
 }
+
 export type DatosMascota = {
   nombre: string;
   especie: string;
@@ -59,7 +60,7 @@ export default function SolicitudLaboratorialPDF({
   datosMascota,
   solicitud,
   baseUrl,
-  qrDataUrl, // ✅ QR ya generado
+  qrDataUrl,
 }: {
   datosMascota: DatosMascota;
   solicitud: SolicitudLaboratorial;
@@ -71,17 +72,24 @@ export default function SolicitudLaboratorialPDF({
   return (
     <Document>
       <Page style={styles.page}>
-        <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
-        <Text style={styles.subheader}>
-          Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara,
-          Jal.
-        </Text>
-        <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
-        <Text style={styles.subheader}>
-          Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 ·
-          domingos de 11 a 1
-        </Text>
-        <Text style={styles.subheader}>www.eldoc.vet · contacto@eldoc.vet</Text>
+        {/* 🔹 Encabezado con logo y datos */}
+        <View style={styles.headerContainer}>
+          <Image
+            src="/imagenes/LogoELDOCsm.png" // ✅ Reemplaza con tu ruta real o URL absoluta
+            style={styles.logo}
+          />
+          <View style={styles.clinicaInfo}>
+            <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
+            <Text style={styles.subheader}>
+              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara, Jal.
+            </Text>
+            <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
+            <Text style={styles.subheader}>
+              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 · domingos de 11 a 1
+            </Text>
+            <Text style={styles.subheader}>www.eldoc.vet · contacto@eldoc.vet</Text>
+          </View>
+        </View>
 
         <View style={styles.linea} />
 
@@ -93,16 +101,11 @@ export default function SolicitudLaboratorialPDF({
           <>
             <Text>
               Fecha de nacimiento:{" "}
-              {new Date(datosMascota.fechaNacimiento).toLocaleDateString(
-                "es-MX"
-              )}
+              {new Date(datosMascota.fechaNacimiento).toLocaleDateString("es-MX")}
             </Text>
             <Text>
               Edad al momento de la solicitud:{" "}
-              {calcularEdad(
-                datosMascota.fechaNacimiento,
-                solicitud.fechaSolicitud
-              )}
+              {calcularEdad(datosMascota.fechaNacimiento, solicitud.fechaSolicitud)}
             </Text>
           </>
         )}
@@ -126,17 +129,18 @@ export default function SolicitudLaboratorialPDF({
 
         <Text style={styles.title}>Acceso a carga de archivos</Text>
         <Text>
-          Estimado colaborador: por favor, ingrese a la siguiente liga ó use el
-          QR y suba hasta 5 archivos. ¡Gracias!
+          Estimado colaborador: por favor, ingrese a la siguiente liga ó use el QR y suba hasta 5 archivos. ¡Gracias!
         </Text>
         <Text style={styles.url}>{url}</Text>
 
         {qrDataUrl && (
           <View style={styles.qr}>
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={qrDataUrl} style={{ width: 100, height: 100 }} />
           </View>
         )}
+                <Text>
+         De parte del equipo de ELDOC, gradecemos inmensamente su atención.
+        </Text>
       </Page>
     </Document>
   );
@@ -147,6 +151,21 @@ const styles = StyleSheet.create({
     padding: 24,
     fontSize: 12,
     fontFamily: "Helvetica",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginBottom: 10,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginRight: 8,
+  },
+  clinicaInfo: {
+    flexDirection: "column",
+    flexGrow: 1,
   },
   header: {
     fontSize: 16,
