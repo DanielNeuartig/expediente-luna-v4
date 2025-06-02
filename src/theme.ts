@@ -41,7 +41,7 @@ export const system = createSystem(defaultConfig, {
           opacity: "1",
         },
         "50%": {
-          transform: "scale(1.1)",
+          transform: "scale(1.06)",
           opacity: "0.8",
         },
         "100%": {

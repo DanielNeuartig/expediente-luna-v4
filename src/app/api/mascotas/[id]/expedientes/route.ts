@@ -122,6 +122,28 @@ export async function GET(
                 descripcion: true,
               },
             },
+
+            solicitudesLaboratoriales: {
+              select: {
+                id: true,
+                estudio: true,
+                proveedor: true,
+                tokenAcceso: true,
+                estado: true,
+                observacionesClinica: true,
+                fechaSolicitud: true,
+                fechaTomaDeMuestra: true,
+                archivos: {
+                  select: {
+                    id: true,
+                    url: true,
+                    nombre: true,
+                    tipo: true,
+                    fechaSubida: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

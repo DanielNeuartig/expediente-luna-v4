@@ -7,15 +7,18 @@ import {
   Avatar,
   HStack,
   SegmentGroup,
+  Button,
 } from "@chakra-ui/react";
+import { toaster } from "@/components/ui/toaster";
 import { useState, Fragment } from "react";
 import { ExpedienteConNotas } from "@/types/expediente";
 import PopOverReceta from "@/components/ui/PopOverReceta";
-
+import SolicitudLaboratorialPDF from "../pdf/SolicitudLaboratorialPDF";
 import MenuAccionesNota from "./MenuAccionesNota";
 import { useCrearNotaClinica } from "@/hooks/useCrearNotaClinica";
 import { EstadoNotaClinica } from "@prisma/client";
-
+import { pdf } from "@react-pdf/renderer";
+import QRCode from "qrcode";
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString("es-MX", {
     day: "2-digit",
@@ -464,6 +467,181 @@ export default function HistoricoExpedientes({
                             <Text key={`ind-${ind.id}`} fontSize="sm" ml="2">
                               • {ind.descripcion}
                             </Text>
+                          ))}
+                        </Box>
+                      )}
+                      {nota.solicitudesLaboratoriales?.length > 0 && (
+                        <Box mt="4" pl="4">
+                          <Text fontWeight="medium" mb="1">
+                            🔬 Solicitudes laboratoriales:
+                          </Text>
+
+                          {nota.solicitudesLaboratoriales.map((sol) => (
+                            <Box
+                              key={`solicitud-${sol.id}`}
+                              mt="3"
+                              p="3"
+                              borderWidth="1px"
+                              borderRadius="xl"
+                              borderColor="gray.400"
+                              bg="gray.800"
+                            >
+                              <Button
+                                size="xs"
+                                colorScheme="teal"
+                                mb="2"
+                                onClick={async () => {
+                                  const url = `${window.location.origin}/estudios/${sol.tokenAcceso}`;
+                                  const qrDataUrl = await QRCode.toDataURL(
+                                    url,
+                                    { width: 200 }
+                                  );
+
+                                  const blob = await pdf(
+                                    <SolicitudLaboratorialPDF
+                                      datosMascota={{
+                                        nombre: datosMascota.nombre ?? "",
+                                        especie: datosMascota.especie ?? "",
+                                        raza: datosMascota.raza ?? "",
+                                        fechaNacimiento:
+                                          datosMascota.fechaNacimiento ?? "",
+                                        sexo: datosMascota.sexo ?? "",
+                                        esterilizado:
+                                          datosMascota.esterilizado ?? "",
+                                      }}
+                                      solicitud={{
+                                        estudio: sol.estudio ?? "",
+                                        proveedor: sol.proveedor ?? "",
+                                        observacionesClinica:
+                                          sol.observacionesClinica ?? "",
+                                        fechaSolicitud:
+                                          sol.fechaSolicitud ??
+                                          new Date().toISOString(),
+                                        tokenAcceso: sol.tokenAcceso ?? "",
+                                      }}
+                                      baseUrl={window.location.origin}
+                                      qrDataUrl={qrDataUrl ?? ""}
+                                    />
+                                  ).toBlob();
+
+                                  const blobUrl = URL.createObjectURL(blob);
+                                  window.open(blobUrl, "_blank");
+                                }}
+                              >
+                                📄 Ver PDF de solicitud
+                              </Button>
+                              <Text fontWeight="semibold" color="tema.claro">
+                                🧪 Estudio: {sol.estudio || "Sin especificar"}
+                              </Text>
+                              <Text color="gray.200">
+                                Proveedor: <strong>{sol.proveedor}</strong>
+                              </Text>
+                              <Text color="gray.200">
+                                Fecha toma de muestra:{" "}
+                                {formatearFecha(sol.fechaTomaDeMuestra)}
+                              </Text>
+                              <Text color="gray.200">
+                                Estado actual:{" "}
+                                <strong>
+                                  {
+                                    {
+                                      EN_REVISION: "🟡 En revisión",
+                                      FIRMADA: "✅ Firmada",
+                                      FINALIZADA: "📁 Finalizada",
+                                      ANULADA: "🚫 Anulada",
+                                    }[sol.estado]
+                                  }
+                                </strong>
+                              </Text>
+                              {sol.tokenAcceso && (
+                                <Box mt="2">
+                                  <a
+                                    href={`/estudios/${sol.tokenAcceso}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    🌐 Ver página de carga de archivos
+                                  </a>
+                                </Box>
+                              )}
+                              {sol.observacionesClinica && (
+                                <Text color="gray.300">
+                                  📝 Observaciones clínicas:{" "}
+                                  {sol.observacionesClinica}
+                                </Text>
+                              )}
+                              {sol.observacionesLaboratorio && (
+                                <Text color="gray.300">
+                                  🧾 Observaciones del laboratorio:{" "}
+                                  {sol.observacionesLaboratorio}
+                                </Text>
+                              )}
+
+                              {sol.fechaSubida && (
+                                <Text color="gray.200">
+                                  📤 Archivos subidos el:{" "}
+                                  {formatearFecha(sol.fechaSubida)}
+                                </Text>
+                              )}
+                              {sol.fechaCierre && (
+                                <Text color="gray.200">
+                                  ✅ Cerrado el:{" "}
+                                  {formatearFecha(sol.fechaCierre)}
+                                </Text>
+                              )}
+
+                              {sol.archivos.map((a) => (
+                                <Box key={`archivo-${a.id}`} ml="2">
+                                  <Button
+                                    size="sm"
+                                    colorScheme="blue"
+                                    onClick={async () => {
+                                      console.log("🧪 token:", sol.tokenAcceso);
+                                      console.log("🧪 archivoId:", a.id);
+                                      if (!sol.tokenAcceso || !a.id) {
+                                        toaster.create({
+                                          description:
+                                            "Faltan datos para abrir el archivo",
+                                          type: "error",
+                                        });
+                                        return;
+                                      }
+
+                                      try {
+                                        const res = await fetch(
+                                          `/api/estudios/${sol.tokenAcceso}/archivo/${a.id}/url`
+                                        );
+                                        if (!res.ok) {
+                                          const error = await res.json();
+                                          throw new Error(
+                                            error?.error ??
+                                              "No se pudo obtener la URL firmada"
+                                          );
+                                        }
+                                        const { url } = await res.json();
+                                        window.open(url, "_blank");
+                                      } catch (e) {
+                                        console.error(
+                                          "Error al abrir archivo:",
+                                          e
+                                        );
+                                        toaster.create({
+                                          description:
+                                            "No se pudo abrir el archivo",
+                                          type: "error",
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    📎 {a.nombre} ({a.tipo})
+                                  </Button>{" "}
+                                  —{" "}
+                                  <Text as="span" fontSize="sm">
+                                    Subido el: {formatearFecha(a.fechaSubida)}
+                                  </Text>
+                                </Box>
+                              ))}
+                            </Box>
                           ))}
                         </Box>
                       )}

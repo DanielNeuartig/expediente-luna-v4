@@ -7,6 +7,26 @@ import { calcularFechasAplicacion } from "@/lib/utils/clinica/fechas";
 import { z } from "zod";
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 import type { Prisma } from "@prisma/client";
+import { nanoid } from "nanoid";
+
+
+ async function generarTokenUnico(): Promise<string> {
+    let token = "";
+  let existe = true;
+
+  while (existe) {
+    token = nanoid(5); // Puedes usar nanoid(5, alphabet) si defines uno personalizado
+    const solicitudExistente = await prisma.solicitudLaboratorial.findUnique({
+      where: { tokenAcceso: token },
+      select: { id: true },
+    });
+    existe = Boolean(solicitudExistente);
+  }
+
+  return token;
+}
+
+
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -208,6 +228,19 @@ async function firmarNotaYCrearAplicaciones(
     },
   });
 
+// Actualizar solicitudes laboratoriales a FIRMADA
+await tx.solicitudLaboratorial.updateMany({
+  where: {
+    notaClinicaId: data.firmarNotaId,
+    estado: "EN_REVISION",
+  },
+  data: {
+    estado: "FIRMADA",
+  },
+});
+
+
+
   if (!nota) throw new Error("Nota no encontrada");
   if (nota.autorId !== perfilId)
     throw new Error("No puedes firmar una nota de otro usuario");
@@ -362,6 +395,27 @@ async function crearNotaClinica(
       estado: "EN_REVISION",
     },
   });
+
+
+
+// Crear solicitudes laboratoriales en estado EN_REVISION
+for (const solicitud of data.solicitudesLaboratoriales ?? []) {
+  const tokenUnico = await generarTokenUnico();
+
+  await tx.solicitudLaboratorial.create({
+    data: {
+      notaClinicaId: nota.id,
+      estudio: solicitud.estudio,
+      proveedor: solicitud.proveedor,
+      fechaTomaDeMuestra: new Date(solicitud.fechaTomaDeMuestra),
+      observacionesClinica: solicitud.observacionesClinica ?? null,
+      creadoPorId: perfilId,
+      tokenAcceso: tokenUnico,
+      estado: "EN_REVISION",
+    },
+  });
+}
+
 
   for (const med of data.medicamentos ?? []) {
     await tx.medicamento.create({

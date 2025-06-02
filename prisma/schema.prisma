@@ -8,55 +8,50 @@ datasource db {
 }
 
 model User {
-  id            Int         @id @default(autoincrement())
-  activo        Boolean     @default(false)
-  email         String?     @unique
-  name          String?
-  image         String?
-  emailVerified DateTime?
-  tipoUsuario   TipoUsuario @default(PROPIETARIO)
-
-  perfil          Perfil?          @relation("UserAPerfil")
-  perfilesCreados Perfil[]         @relation("PerfilCreadoPor")
-  usuarioClinicas UsuarioClinica[]
+  id              Int              @id @default(autoincrement())
+  activo          Boolean          @default(false)
+  email           String?          @unique
+  name            String?
+  image           String?
+  emailVerified   DateTime?
+  tipoUsuario     TipoUsuario      @default(PROPIETARIO)
   accesos         Acceso[]
   accounts        Account[]
+  mascotasCreadas Mascota[]        @relation("MascotaCreadaPor")
+  perfilesCreados Perfil[]         @relation("PerfilCreadoPor")
+  perfil          Perfil?          @relation("UserAPerfil")
   sessions        Session[]
-
-  mascotasCreadas Mascota[] @relation("MascotaCreadaPor")
+  usuarioClinicas UsuarioClinica[]
 }
 
 model Perfil {
-  id                  Int      @id @default(autoincrement())
-  prefijo             String?  @default("Tutor")
-  nombre              String
-  clave               String
-  telefonoPrincipal   String   @unique
-  telefonoSecundario1 String?
-  telefonoSecundario2 String?
-  telefonoVerificado  Boolean  @default(false)
-  documentoId         String?
-  activo              Boolean  @default(true)
-  fechaCreacion       DateTime @default(now())
-  ultimaActividad     DateTime @updatedAt
-
-  usuarioId Int?  @unique
-  usuario   User? @relation("UserAPerfil", fields: [usuarioId], references: [id])
-  autorId   Int?
-  autor     User? @relation("PerfilCreadoPor", fields: [autorId], references: [id])
-
-  mascotas               Mascota[]
-  aplicacionesMed        AplicacionMedicamento[] @relation("EjecutorMedicamento")
+  id                     Int                     @id @default(autoincrement())
+  prefijo                String?                 @default("Tutor")
+  nombre                 String
+  clave                  String
+  telefonoPrincipal      String                  @unique
+  telefonoSecundario1    String?
+  telefonoSecundario2    String?
+  telefonoVerificado     Boolean                 @default(false)
+  documentoId            String?
+  activo                 Boolean                 @default(true)
+  fechaCreacion          DateTime                @default(now())
+  ultimaActividad        DateTime                @updatedAt
+  usuarioId              Int?                    @unique
+  autorId                Int?
   aplicacionesMedCreadas AplicacionMedicamento[] @relation("CreadorMedicamento")
-
-  expedientesCreados    ExpedienteMedico[]      @relation("ExpedienteAutor")
-  notasClinicasCreadas  NotaClinica[]           @relation("NotaClinicaToPerfil")
-  notasAnuladas         NotaClinica[]           @relation("NotaAnuladaPor")
-  SolicitudLaboratorial SolicitudLaboratorial[]
+  aplicacionesMed        AplicacionMedicamento[] @relation("EjecutorMedicamento")
+  expedientesCreados     ExpedienteMedico[]      @relation("ExpedienteAutor")
+  mascotas               Mascota[]
+  notasAnuladas          NotaClinica[]           @relation("NotaAnuladaPor")
+  notasClinicasCreadas   NotaClinica[]           @relation("NotaClinicaToPerfil")
+  autor                  User?                   @relation("PerfilCreadoPor", fields: [autorId], references: [id])
+  usuario                User?                   @relation("UserAPerfil", fields: [usuarioId], references: [id])
+  SolicitudLaboratorial  SolicitudLaboratorial[]
 }
 
 model Mascota {
-  id              Int            @id @default(autoincrement())
+  id              Int                @id @default(autoincrement())
   nombre          String
   especie         Especie
   sexo            Sexo
@@ -64,34 +59,29 @@ model Mascota {
   color           String?
   señas          String?
   fechaNacimiento DateTime?
-  microchip       String?        @unique
+  microchip       String?            @unique
   alergias        String?
   imagen          String?
-  activo          Boolean        @default(true)
-  fechaCreacion   DateTime       @default(now())
-  ultimaActividad DateTime       @updatedAt
-
-  razaId   Int?
-  raza     Raza?  @relation(fields: [razaId], references: [id])
-  perfilId Int
-  perfil   Perfil @relation(fields: [perfilId], references: [id])
-  autorId  Int?
-  autor    User?  @relation("MascotaCreadaPor", fields: [autorId], references: [id])
-
-  expedientes ExpedienteMedico[]
+  activo          Boolean            @default(true)
+  fechaCreacion   DateTime           @default(now())
+  ultimaActividad DateTime           @updatedAt
+  razaId          Int?
+  perfilId        Int
+  autorId         Int?
+  expedientes     ExpedienteMedico[]
+  autor           User?              @relation("MascotaCreadaPor", fields: [autorId], references: [id])
+  perfil          Perfil             @relation(fields: [perfilId], references: [id])
+  raza            Raza?              @relation(fields: [razaId], references: [id])
 }
 
 model ExpedienteMedico {
   id                Int              @id @default(autoincrement())
-  nombre            String? // 🔹 nombre personalizado visible al médico
+  nombre            String?
   estado            EstadoExpediente
-  fechaAlta         DateTime? // 🔹 solo se llena al finalizar (manual o auto)
+  fechaAlta         DateTime?
   mascotaId         Int
-  mascota           Mascota          @relation(fields: [mascotaId], references: [id])
   autorId           Int
-  autor             Perfil           @relation("ExpedienteAutor", fields: [autorId], references: [id])
   clinicaId         Int?
-  clinica           Clinica?         @relation(fields: [clinicaId], references: [id])
   tipo              TipoExpediente
   contenidoAdaptado String?
   notasGenerales    String?
@@ -99,6 +89,9 @@ model ExpedienteMedico {
   borrado           Boolean          @default(false)
   fechaCreacion     DateTime         @default(now())
   ultimaActividad   DateTime         @updatedAt
+  autor             Perfil           @relation("ExpedienteAutor", fields: [autorId], references: [id])
+  clinica           Clinica?         @relation(fields: [clinicaId], references: [id])
+  mascota           Mascota          @relation(fields: [mascotaId], references: [id])
   notasClinicas     NotaClinica[]
 
   @@index([mascotaId])
@@ -107,43 +100,35 @@ model ExpedienteMedico {
 }
 
 model NotaClinica {
-  id           Int              @id @default(autoincrement())
-  expedienteId Int
-  expediente   ExpedienteMedico @relation(fields: [expedienteId], references: [id])
-
-  // Datos clínicos
-  historiaClinica        String?
-  exploracionFisica      String?
-  temperatura            Float?
-  peso                   Float?
-  frecuenciaCardiaca     Int?
-  frecuenciaRespiratoria Int?
-  diagnosticoPresuntivo  String?
-  pronostico             String?
-  extras                 String?
-  archivos               String?
-
+  id                        Int                     @id @default(autoincrement())
+  expedienteId              Int
+  historiaClinica           String?
+  exploracionFisica         String?
+  temperatura               Float?
+  peso                      Float?
+  frecuenciaCardiaca        Int?
+  frecuenciaRespiratoria    Int?
+  diagnosticoPresuntivo     String?
+  pronostico                String?
+  extras                    String?
+  archivos                  String?
   fechaCreacion             DateTime                @default(now())
-  solicitudesLaboratoriales SolicitudLaboratorial[] // ✅ Añadido
-  // Autor y relaciones
   autorId                   Int
-  autor                     Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
-  medicamentos              Medicamento[]
-  indicaciones              Indicacion[]
+  fechaCancelacion          DateTime?
+  anuladaPorId              Int?
+  estado                    EstadoNotaClinica       @default(EN_REVISION)
   aplicacionesMed           AplicacionMedicamento[] @relation("AplicacionesMedNota")
-
-  // Lógica de anulación
-  fechaCancelacion DateTime?
-  anuladaPorId     Int?
-  anuladaPor       Perfil?   @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
-
-  estado EstadoNotaClinica @default(EN_REVISION)
+  indicaciones              Indicacion[]
+  medicamentos              Medicamento[]
+  anuladaPor                Perfil?                 @relation("NotaAnuladaPor", fields: [anuladaPorId], references: [id])
+  autor                     Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
+  expediente                ExpedienteMedico        @relation(fields: [expedienteId], references: [id])
+  solicitudesLaboratoriales SolicitudLaboratorial[]
 }
 
 model Medicamento {
   id               Int                     @id @default(autoincrement())
   notaClinicaId    Int
-  notaClinica      NotaClinica             @relation(fields: [notaClinicaId], references: [id])
   nombre           String
   dosis            String
   via              ViaMedicamento
@@ -153,37 +138,29 @@ model Medicamento {
   tiempoIndefinido Boolean                 @default(false)
   paraCasa         Boolean                 @default(false)
   fechaCreacion    DateTime                @default(now())
-  aplicaciones     AplicacionMedicamento[] // Campo inverso para la relación
   observaciones    String?
+  aplicaciones     AplicacionMedicamento[]
+  notaClinica      NotaClinica             @relation(fields: [notaClinicaId], references: [id])
 }
 
 model AplicacionMedicamento {
-  id            Int         @id @default(autoincrement())
-  notaClinicaId Int
-  notaClinica   NotaClinica @relation("AplicacionesMedNota", fields: [notaClinicaId], references: [id])
-
+  id                      Int              @id @default(autoincrement())
+  notaClinicaId           Int
   medicamentoId           Int?
-  medicamento             Medicamento? @relation(fields: [medicamentoId], references: [id])
-  nombreMedicamentoManual String? // Usado en aplicaciones de urgencia o sin medicamento predefinido
-
-  via ViaMedicamento
-
-  fechaProgramada DateTime
-  fechaReal       DateTime? // Se registra cuando `estado` cambia a REALIZADA
-
-  dosis String?
-
-  ejecutorId Int?
-  ejecutor   Perfil? @relation("EjecutorMedicamento", fields: [ejecutorId], references: [id])
-
-  creadorId Int
-  creador   Perfil @relation("CreadorMedicamento", fields: [creadorId], references: [id])
-
-  observaciones String?
-
-  estado EstadoAplicacion @default(PENDIENTE)
-
-  fechaCreacion DateTime @default(now())
+  nombreMedicamentoManual String?
+  via                     ViaMedicamento
+  fechaProgramada         DateTime
+  fechaReal               DateTime?
+  dosis                   String?
+  ejecutorId              Int?
+  creadorId               Int
+  observaciones           String?
+  estado                  EstadoAplicacion @default(PENDIENTE)
+  fechaCreacion           DateTime         @default(now())
+  creador                 Perfil           @relation("CreadorMedicamento", fields: [creadorId], references: [id])
+  ejecutor                Perfil?          @relation("EjecutorMedicamento", fields: [ejecutorId], references: [id])
+  medicamento             Medicamento?     @relation(fields: [medicamentoId], references: [id])
+  notaClinica             NotaClinica      @relation("AplicacionesMedNota", fields: [notaClinicaId], references: [id])
 
   @@index([notaClinicaId, estado, fechaProgramada])
 }
@@ -191,9 +168,9 @@ model AplicacionMedicamento {
 model Indicacion {
   id            Int         @id @default(autoincrement())
   notaClinicaId Int
-  notaClinica   NotaClinica @relation(fields: [notaClinicaId], references: [id])
   descripcion   String
   fechaCreacion DateTime    @default(now())
+  notaClinica   NotaClinica @relation(fields: [notaClinicaId], references: [id])
 }
 
 model Raza {
@@ -206,24 +183,22 @@ model Raza {
 }
 
 model Clinica {
-  id            Int         @id @default(autoincrement())
-  nombre        String
-  direccion     String
-  telefono      String
-  tipo          TipoClinica
-  fechaCreacion DateTime    @default(now())
-
-  usuarioClinicas UsuarioClinica[]
+  id              Int                @id @default(autoincrement())
+  nombre          String
+  direccion       String
+  telefono        String
+  tipo            TipoClinica
+  fechaCreacion   DateTime           @default(now())
   expedientes     ExpedienteMedico[]
+  usuarioClinicas UsuarioClinica[]
 }
 
 model UsuarioClinica {
-  id        Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   usuarioId Int
   clinicaId Int
-
-  usuario User    @relation(fields: [usuarioId], references: [id])
-  clinica Clinica @relation(fields: [clinicaId], references: [id])
+  clinica   Clinica @relation(fields: [clinicaId], references: [id])
+  usuario   User    @relation(fields: [usuarioId], references: [id])
 
   @@unique([usuarioId, clinicaId])
 }
@@ -236,8 +211,7 @@ model Acceso {
   tipoAcceso TipoAcceso
   detalle    String?
   userAgent  String?
-
-  usuario User? @relation(fields: [usuarioId], references: [id])
+  usuario    User?      @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId, tipoAcceso, fecha])
 }
@@ -255,8 +229,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -266,8 +239,7 @@ model Session {
   sessionToken String   @unique
   userId       Int
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -278,7 +250,57 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ENUMS
+model SolicitudLaboratorial {
+  id                       Int                    @id @default(autoincrement())
+  estudio                  String?               
+  proveedor                String
+  observacionesClinica     String?                @db.Text
+  observacionesLaboratorio String?                @db.Text
+  fechaTomaDeMuestra       DateTime
+  fechaSolicitud           DateTime               @default(now())
+  fechaSubida              DateTime?
+  fechaCierre              DateTime?
+  estado                   EstadoSolicitudLaboratorial @default(EN_REVISION)
+  tokenAcceso              String                 @unique
+  creadoPorId              Int
+
+  archivos                 ArchivoLaboratorial[]
+
+  creadoPor                Perfil                 @relation(fields: [creadoPorId], references: [id])
+  notaClinicaId Int
+  notaClinica              NotaClinica            @relation(fields: [notaClinicaId], references: [id])
+
+  @@index([creadoPorId])
+  @@index([notaClinicaId])
+}
+
+enum EstadoSolicitudLaboratorial {
+  EN_REVISION
+  FIRMADA
+  FINALIZADA
+  ANULADA
+}
+
+model ArchivoLaboratorial {
+  id          Int                     @id @default(autoincrement())
+  solicitudId Int
+  url         String
+  nombre      String
+  tipo        TipoArchivoLaboratorial
+  fechaSubida DateTime                @default(now())
+  solicitud   SolicitudLaboratorial   @relation(fields: [solicitudId], references: [id])
+
+  @@index([solicitudId])
+}
+
+enum TipoArchivoLaboratorial {
+  PDF
+  PNG
+  JPG
+  JPEG
+}
+
+
 
 enum TipoUsuario {
   CEO
@@ -353,10 +375,10 @@ enum ViaMedicamento {
 }
 
 enum EstadoAplicacion {
-  PENDIENTE // Aplicación programada, aún no realizada
-  REALIZADA // Se aplicó exitosamente
-  OMITIDA // Se omitió por decisión médica o administrativa
-  CANCELADA // Cancelada por alguna razón (alta, cambio de plan, error)
+  PENDIENTE
+  REALIZADA
+  OMITIDA
+  CANCELADA
 }
 
 enum EstadoNotaClinica {
@@ -371,42 +393,4 @@ enum EstadoExpediente {
   FINALIZADO_AUTO
 }
 
-model SolicitudLaboratorial {
-  id                       Int                   @id @default(autoincrement())
-  notaClinicaId            Int
-  notaClinica              NotaClinica           @relation(fields: [notaClinicaId], references: [id])
-  estudio                  String
-  proveedor                String
-  observacionesClinica     String?
-  observacionesLaboratorio String?
-  fechaSolicitud           DateTime              @default(now())
-  fechaSubida              DateTime? // Se llena al presionar “cerrar”
-  cerrado                  Boolean               @default(false)
-  tokenAcceso              String                @unique
-  creadoPorId              Int
-  creadoPor                Perfil                @relation(fields: [creadoPorId], references: [id])
-  archivos                 ArchivoLaboratorial[]
-  fechaCierre              DateTime?
 
-  @@index([notaClinicaId])
-  @@index([creadoPorId])
-}
-
-model ArchivoLaboratorial {
-  id          Int                     @id @default(autoincrement())
-  solicitudId Int
-  solicitud   SolicitudLaboratorial   @relation(fields: [solicitudId], references: [id])
-  url         String
-  nombre      String
-  tipo        TipoArchivoLaboratorial // ej: "image/png", "application/pdf"
-  fechaSubida DateTime                @default(now())
-
-  @@index([solicitudId])
-}
-
-enum TipoArchivoLaboratorial {
-  PDF
-  PNG
-  JPG
-  JPEG
-}

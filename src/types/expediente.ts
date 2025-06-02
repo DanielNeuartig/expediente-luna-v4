@@ -76,20 +76,37 @@ export type ArchivoLaboratorial = {
   fechaSubida: string;
 };
 
-// Solicitud laboratorial
+// Solicitud laboratorial (ACTUALIZADO)
 export type SolicitudLaboratorial = {
   id: number;
-  estudio: string;
+  estudio?: string | null; // antes "tipo"
   proveedor: string;
-  observacionesClinica?: string;
-  observacionesLaboratorio?: string;
+  observacionesClinica?: string | null;
+  observacionesLaboratorio?: string | null;
+  fechaTomaDeMuestra: string;
   fechaSolicitud: string;
-  fechaSubida?: string;
-  cerrado: boolean;
+  fechaSubida?: string | null;
+  fechaCierre?: string | null;
+  estado: "EN_REVISION" | "FIRMADA" | "FINALIZADA" | "ANULADA";
   tokenAcceso: string;
   archivos: ArchivoLaboratorial[];
-};
+  token: string; // ✅ añade esto
 
+  notaClinica: {
+    expediente: {
+      mascota: {
+        nombre: string;
+        especie: string;
+        sexo: string;
+        microchip: string;
+        esterilizado: string;
+        fechaNacimiento: string;
+        perfil?: { nombre: string };
+        raza?: { nombre: string };
+      };
+    };
+  };
+};
 // Nota clínica
 export type NotaClinica = {
   id: number;

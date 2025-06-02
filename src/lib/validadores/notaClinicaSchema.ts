@@ -135,10 +135,36 @@ const indicacionObligatoriaSchema = z.object({
 // ------------------------------
 // SOLICITUD LABORATORIAL
 // ------------------------------
+const fechaTomaDeMuestraField = z
+  .preprocess(
+    (val) => (val === "" ? undefined : new Date(val as string)),
+    z.date({ required_error: "Debes indicar la fecha de toma de muestra" })
+  )
+  .refine((fecha) => !isNaN(fecha.getTime()), {
+    message: "La fecha de toma de muestra es inválida",
+  })
+  .refine((fecha) => {
+    const ahora = new Date();
+    const haceDosAnios = new Date();
+    haceDosAnios.setFullYear(ahora.getFullYear() - 2);
+    return fecha >= haceDosAnios;
+  }, {
+    message: "La fecha de toma de muestra no puede ser demasiado antigua",
+  })
+  .refine((fecha) => {
+    const ahora = new Date();
+    const dentroDeUnAnio = new Date();
+    dentroDeUnAnio.setFullYear(ahora.getFullYear() + 1);
+    return fecha <= dentroDeUnAnio;
+  }, {
+    message: "La fecha de toma de muestra no puede ser demasiado futura",
+  });
+
 const solicitudLaboratorialSchema = z.object({
   estudio: z.string().min(1, "El estudio es obligatorio"),
   proveedor: z.string().min(1, "El proveedor es obligatorio"),
   observacionesClinica: z.string().optional(),
+  fechaTomaDeMuestra: fechaTomaDeMuestraField,
 });
 
 // ------------------------------
@@ -157,7 +183,9 @@ export const notaClinicaBaseSchema = z.object({
   extras: z.string().optional(),
   medicamentos: z.array(medicamentoObligatorioSchema).optional(),
   indicaciones: z.array(indicacionObligatoriaSchema).optional(),
-  solicitudesLaboratoriales: z.array(solicitudLaboratorialSchema).optional(),
+  solicitudesLaboratoriales: z
+    .array(solicitudLaboratorialSchema)
+    .optional(),
 });
 
 export type NotaClinicaInput = z.input<typeof notaClinicaBaseSchema>;
@@ -177,7 +205,8 @@ export const notaClinicaSchema = notaClinicaBaseSchema.refine(
     !!data.extras?.trim() ||
     (data.medicamentos && data.medicamentos.length > 0) ||
     (data.indicaciones && data.indicaciones.length > 0) ||
-    (data.solicitudesLaboratoriales && data.solicitudesLaboratoriales.length > 0),
+    (data.solicitudesLaboratoriales &&
+      data.solicitudesLaboratoriales.length > 0),
   {
     path: ["historiaClinica"],
     message:
@@ -206,7 +235,8 @@ export const notaClinicaConIdsSchema = notaClinicaBaseSchema
       !!data.extras?.trim() ||
       (data.medicamentos && data.medicamentos.length > 0) ||
       (data.indicaciones && data.indicaciones.length > 0) ||
-      (data.solicitudesLaboratoriales && data.solicitudesLaboratoriales.length > 0) ||
+      (data.solicitudesLaboratoriales &&
+        data.solicitudesLaboratoriales.length > 0) ||
       data.anularNotaId !== undefined ||
       data.firmarNotaId !== undefined,
     {

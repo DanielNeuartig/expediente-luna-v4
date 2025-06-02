@@ -1,12 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+//import { signIn } from "next-auth/react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Box,
-  Button,
   Flex,
   Center,
   Heading,
@@ -22,8 +21,8 @@ import {
   Cloud,
   Stethoscope,
   Hospital,
-  LogIn,
 } from "lucide-react";
+import FondoConBotones from "@/components/ui/fondos/FondoConBotones";
 
 export default function HomePage() {
   const { status, data } = useSession();
@@ -46,14 +45,7 @@ export default function HomePage() {
   }
 
   return (
-    <Box
-      minH="100dvh"
-      overflow="hidden"
-      backgroundImage="url('/imagenes/FondoHomepage.png')"
-      backgroundSize="cover"
-      backgroundPosition="center"
-      backgroundRepeat="no-repeat"
-    >
+    <FondoConBotones>
       <Flex
         direction="column"
         justify="center"
@@ -93,12 +85,12 @@ export default function HomePage() {
               <VStack
                 bg="tema.claro"
                 p="4"
-                h="130px" // ✅ altura uniforme
+                h="130px"
                 w="full"
                 borderRadius="xl"
                 shadow="md"
                 gap="2"
-                justify="center" // ✅ contenido centrado vertical
+                justify="center"
                 align="center"
               >
                 <Icon as={Stethoscope} boxSize="10" color="tema.suave" />
@@ -168,69 +160,6 @@ export default function HomePage() {
           </VStack>
         </Box>
       </Flex>
-
-      <Box
-        position="fixed"
-        bottom="6"
-        right="6"
-        zIndex="overlay"
-        display="flex"
-        flexDirection="row"
-        gap="4"
-        alignItems="center"
-      >
-        <Button
-          size="lg"
-          borderRadius="full"
-          shadow="lg"
-          bg="tema.intenso"
-          color="tema.llamativo"
-          gap="2"
-          px="4"
-          py="2"
-        >
-          <Text fontWeight="md" fontSize="sm">
-            {"Daniel Neuartig </>"}
-          </Text>
-
-        </Button>
-        <Button
-          size="lg"
-          borderRadius="full"
-          shadow="lg"
-          bg="white"
-          color="tema.intenso"
-          gap="2"
-          px="4"
-          py="2"
-        >
-          <Text fontWeight="light" fontSize="sm">
-            Un desarrollo de
-          </Text>
-          <Image
-            src="/imagenes/LogoELDOCsm.png"
-            alt="Logo ELDOC"
-            borderRadius="md"
-            bg="white"
-            h="10"
-            w="10"
-          />
-        </Button>
-
-        <Box
-          onClick={() => signIn("google")}
-          borderRadius="full"
-          shadow="lg"
-          bg="tema.intenso"
-          color="white"
-          _hover={{ bg: "tema.llamativo" }}
-          px="6"
-          py="3"
-        >
-          <Icon as={LogIn} boxSize="4" mr="2" />
-          ¿Usuario beta?
-        </Box>
-      </Box>
-    </Box>
+    </FondoConBotones>
   );
 }

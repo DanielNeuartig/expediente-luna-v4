@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import RecetaPDF from "@/components/pdf/RecetaPDF";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useState } from "react";
+import ListaSolicitudesLaboratoriales from "./ListaSolicitudesLaboratoriales";
 
 interface Expediente {
   id: number;
@@ -63,6 +64,7 @@ export default function FormularioNotaClinica({
     defaultValues: {
       medicamentos: [],
       indicaciones: [],
+      solicitudesLaboratoriales: [], // ✅ Añadir esto
     },
     mode: "onChange",
   });
@@ -123,6 +125,7 @@ export default function FormularioNotaClinica({
             <CamposClinicos />
             <ListaMedicamentos fechaBase={formatoDatetimeLocal(new Date())} />
             <ListaIndicaciones />
+            <ListaSolicitudesLaboratoriales/>
           </Fieldset.Content>
           <Button
             {...estilosBotonEspecial}

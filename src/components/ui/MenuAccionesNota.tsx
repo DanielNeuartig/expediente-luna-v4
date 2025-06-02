@@ -55,7 +55,7 @@ export default function MenuAccionesNota({
                 </Menu.Item>
               ) : (
                 <Menu.Item value="" disabled>
-                  No puedes firmar, sólo el autor de la nota puede hacerlo{" "}
+                  No tienes permiso ó la nota ya está firmada{" "}
                 </Menu.Item>
               )}
               <Menu.Item

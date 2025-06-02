@@ -31,6 +31,9 @@ CREATE TYPE "EstadoNotaClinica" AS ENUM ('EN_REVISION', 'FINALIZADA', 'ANULADA')
 -- CreateEnum
 CREATE TYPE "EstadoExpediente" AS ENUM ('ACTIVO', 'FINALIZADO_MANUAL', 'FINALIZADO_AUTO');
 
+-- CreateEnum
+CREATE TYPE "TipoArchivoLaboratorial" AS ENUM ('PDF', 'PNG', 'JPG', 'JPEG');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -119,7 +122,6 @@ CREATE TABLE "NotaClinica" (
     "frecuenciaRespiratoria" INTEGER,
     "diagnosticoPresuntivo" TEXT,
     "pronostico" TEXT,
-    "laboratoriales" TEXT,
     "extras" TEXT,
     "archivos" TEXT,
     "fechaCreacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,6 +258,36 @@ CREATE TABLE "VerificationToken" (
     "expires" TIMESTAMP(3) NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "SolicitudLaboratorial" (
+    "id" SERIAL NOT NULL,
+    "notaClinicaId" INTEGER NOT NULL,
+    "estudio" TEXT NOT NULL,
+    "proveedor" TEXT NOT NULL,
+    "observacionesClinica" TEXT,
+    "observacionesLaboratorio" TEXT,
+    "fechaSolicitud" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "fechaSubida" TIMESTAMP(3),
+    "cerrado" BOOLEAN NOT NULL DEFAULT false,
+    "tokenAcceso" TEXT NOT NULL,
+    "creadoPorId" INTEGER NOT NULL,
+    "fechaCierre" TIMESTAMP(3),
+
+    CONSTRAINT "SolicitudLaboratorial_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ArchivoLaboratorial" (
+    "id" SERIAL NOT NULL,
+    "solicitudId" INTEGER NOT NULL,
+    "url" TEXT NOT NULL,
+    "nombre" TEXT NOT NULL,
+    "tipo" "TipoArchivoLaboratorial" NOT NULL,
+    "fechaSubida" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ArchivoLaboratorial_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -301,23 +333,32 @@ CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token"
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
--- AddForeignKey
-ALTER TABLE "Perfil" ADD CONSTRAINT "Perfil_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "SolicitudLaboratorial_tokenAcceso_key" ON "SolicitudLaboratorial"("tokenAcceso");
+
+-- CreateIndex
+CREATE INDEX "SolicitudLaboratorial_creadoPorId_idx" ON "SolicitudLaboratorial"("creadoPorId");
+
+-- CreateIndex
+CREATE INDEX "SolicitudLaboratorial_notaClinicaId_idx" ON "SolicitudLaboratorial"("notaClinicaId");
+
+-- CreateIndex
+CREATE INDEX "ArchivoLaboratorial_solicitudId_idx" ON "ArchivoLaboratorial"("solicitudId");
 
 -- AddForeignKey
 ALTER TABLE "Perfil" ADD CONSTRAINT "Perfil_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_razaId_fkey" FOREIGN KEY ("razaId") REFERENCES "Raza"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_perfilId_fkey" FOREIGN KEY ("perfilId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Perfil" ADD CONSTRAINT "Perfil_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_mascotaId_fkey" FOREIGN KEY ("mascotaId") REFERENCES "Mascota"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_perfilId_fkey" FOREIGN KEY ("perfilId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Mascota" ADD CONSTRAINT "Mascota_razaId_fkey" FOREIGN KEY ("razaId") REFERENCES "Raza"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -326,37 +367,40 @@ ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_autorId_fkey" FO
 ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_clinicaId_fkey" FOREIGN KEY ("clinicaId") REFERENCES "Clinica"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN KEY ("expedienteId") REFERENCES "ExpedienteMedico"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ExpedienteMedico" ADD CONSTRAINT "ExpedienteMedico_mascotaId_fkey" FOREIGN KEY ("mascotaId") REFERENCES "Mascota"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_anuladaPorId_fkey" FOREIGN KEY ("anuladaPorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_autorId_fkey" FOREIGN KEY ("autorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotaClinica" ADD CONSTRAINT "NotaClinica_expedienteId_fkey" FOREIGN KEY ("expedienteId") REFERENCES "ExpedienteMedico"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Medicamento" ADD CONSTRAINT "Medicamento_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_medicamentoId_fkey" FOREIGN KEY ("medicamentoId") REFERENCES "Medicamento"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_ejecutorId_fkey" FOREIGN KEY ("ejecutorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_creadorId_fkey" FOREIGN KEY ("creadorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_ejecutorId_fkey" FOREIGN KEY ("ejecutorId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_medicamentoId_fkey" FOREIGN KEY ("medicamentoId") REFERENCES "Medicamento"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AplicacionMedicamento" ADD CONSTRAINT "AplicacionMedicamento_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Indicacion" ADD CONSTRAINT "Indicacion_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_clinicaId_fkey" FOREIGN KEY ("clinicaId") REFERENCES "Clinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_clinicaId_fkey" FOREIGN KEY ("clinicaId") REFERENCES "Clinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UsuarioClinica" ADD CONSTRAINT "UsuarioClinica_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Acceso" ADD CONSTRAINT "Acceso_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -366,3 +410,13 @@ ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SolicitudLaboratorial" ADD CONSTRAINT "SolicitudLaboratorial_creadoPorId_fkey" FOREIGN KEY ("creadoPorId") REFERENCES "Perfil"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SolicitudLaboratorial" ADD CONSTRAINT "SolicitudLaboratorial_notaClinicaId_fkey" FOREIGN KEY ("notaClinicaId") REFERENCES "NotaClinica"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ArchivoLaboratorial" ADD CONSTRAINT "ArchivoLaboratorial_solicitudId_fkey" FOREIGN KEY ("solicitudId") REFERENCES "SolicitudLaboratorial"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
