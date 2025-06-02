@@ -309,7 +309,7 @@ export default function DemoUploadConBorrado() {
             <Heading size="xl" mb={4} color="tema.claro">
               Arrastra los archivos para subirlos
             </Heading>
-            <Box animation={"pulseCloud"}>
+            <Box>
               {subiendo ? (
                 <Box
                   display="flex"
@@ -326,112 +326,125 @@ export default function DemoUploadConBorrado() {
                   />
                 </Box>
               ) : (
-                <FileUpload.Root maxW="xl" alignItems="stretch">
-                  <FileUpload.HiddenInput multiple onChange={handleChange} />
-                  <FileUpload.Dropzone bg="white">
-                    <Icon size="2xl" color="tema.llamativo">
-                      <LuUpload />
-                    </Icon>
-                    <FileUpload.DropzoneContent>
-                      <Box fontSize="xl" color="tema.suave">
-                        Arrastra y suelta archivos aquí o haz clic
-                      </Box>
-                      <Box color="tema.intenso">.png, .jpg, .pdf hasta 5MB</Box>
-                      <Box color="tema.intenso">Máx. 5 archivos</Box>
-                    </FileUpload.DropzoneContent>
-                  </FileUpload.Dropzone>
+                <Box animation="pulseCloud">
+                  <FileUpload.Root maxW="xl" alignItems="stretch">
+                    <FileUpload.HiddenInput multiple onChange={handleChange} />
+                    <FileUpload.Dropzone bg="white">
+                      <Icon size="2xl" color="tema.llamativo">
+                        <LuUpload />
+                      </Icon>
+                      <FileUpload.DropzoneContent>
+                        <Box fontSize="xl" color="tema.suave">
+                          Arrastra y suelta archivos aquí o haz clic
+                        </Box>
+                        <Box color="tema.intenso">
+                          .png, .jpg, .pdf hasta 5MB
+                        </Box>
+                        <Box color="tema.intenso">Máx. 5 archivos</Box>
+                      </FileUpload.DropzoneContent>
+                    </FileUpload.Dropzone>
 
-                  {archivos.length > 0 && (
-                    <>
-                      <Stack mt={4}>
-                        {archivos.map((archivo, index) => (
-                          <HStack
-                            key={index}
-                            justify="space-between"
-                            borderRadius="2xl"
-                            px={3}
-                            py={1}
-                            bg="tema.suave"
-                          >
-                            <Text
-                              fontSize="sm"
-                              color="tema.claro"
-                              fontWeight={"bold"}
-                              truncate
+                    {archivos.length > 0 && (
+                      <>
+                        <Stack mt={4}>
+                          {archivos.map((archivo, index) => (
+                            <HStack
+                              key={index}
+                              justify="space-between"
+                              borderRadius="2xl"
+                              px={3}
+                              py={1}
+                              bg="tema.suave"
                             >
-                              {archivo.name}
-                            </Text>
-                            <CloseButton
-                              onClick={() => eliminarArchivo(index)}
-                            />
-                          </HStack>
-                        ))}
-                      </Stack>
-                      <Button
-                        bg="tema.llamativo"
-                        color="tema.claro"
-                        mt={4}
-                        colorScheme="teal"
-                        size="md"
-                        onClick={async () => {
-  if (!token || archivos.length === 0) {
-    toaster.create({
-      description: "No hay archivos para subir",
-      type: "error",
-    });
-    return;
-  }
+                              <Text
+                                fontSize="sm"
+                                color="tema.claro"
+                                fontWeight={"bold"}
+                                truncate
+                              >
+                                {archivo.name}
+                              </Text>
+                              <CloseButton
+                                onClick={() => eliminarArchivo(index)}
+                              />
+                            </HStack>
+                          ))}
+                        </Stack>
+                        <Button
+                          animation="floatGlow"
+                          bg="tema.llamativo"
+                          color="tema.claro"
+                          mt={4}
+                          colorScheme="teal"
+                          size="md"
+                          onClick={async () => {
+                            if (!token || archivos.length === 0) {
+                              toaster.create({
+                                description: "No hay archivos para subir",
+                                type: "error",
+                              });
+                              return;
+                            }
 
-  if (archivosCargados.length + archivos.length > 5) {
-    toaster.create({
-      description: "Máximo 5 archivos!!",
-      type: "error",
-    });
-    return;
-  }
+                            if (archivosCargados.length + archivos.length > 5) {
+                              toaster.create({
+                                description: "Máximo 5 archivos!!",
+                                type: "error",
+                              });
+                              return;
+                            }
 
-  setSubiendo(true); // ✅ Activa spinner
+                            setSubiendo(true); // ✅ Activa spinner
 
-  try {
-    await Promise.allSettled(
-      archivos.map(async (archivo) => {
-        try {
-          await subirArchivoAS3(token, archivo);
+                            try {
+                              await Promise.allSettled(
+                                archivos.map(async (archivo) => {
+                                  try {
+                                    await subirArchivoAS3(token, archivo);
 
-          const actualizarArchivos = async () => {
-            const res = await fetch(`/api/estudios/${token}`);
-            const data = await res.json();
-            setArchivosCargados(data?.solicitud?.archivos ?? []);
-          };
+                                    const actualizarArchivos = async () => {
+                                      const res = await fetch(
+                                        `/api/estudios/${token}`
+                                      );
+                                      const data = await res.json();
+                                      setArchivosCargados(
+                                        data?.solicitud?.archivos ?? []
+                                      );
+                                    };
 
-          await actualizarArchivos();
-        } catch (e) {
-          console.error("Error al subir o registrar:", archivo.name, e);
-        }
-      })
-    );
+                                    await actualizarArchivos();
+                                  } catch (e) {
+                                    console.error(
+                                      "Error al subir o registrar:",
+                                      archivo.name,
+                                      e
+                                    );
+                                  }
+                                })
+                              );
 
-    toaster.create({
-      description: "Archivos subidos correctamente",
-      type: "success",
-    });
-    setArchivos([]); // ✅ Limpia la lista de archivos locales
-  } catch (e) {
-    console.error(e);
-    toaster.create({
-      description: "Error al subir archivos",
-      type: "error",
-    });
-  } finally {
-    setSubiendo(false); // ✅ Desactiva spinner
-  }
-}}
-                      >
-                        Subir archivo
-                      </Button>
-                    </>
-                  )}
-                </FileUpload.Root>
+                              toaster.create({
+                                description: "Archivos subidos correctamente",
+                                type: "success",
+                              });
+                              setArchivos([]); // ✅ Limpia la lista de archivos locales
+                            } catch (e) {
+                              console.error(e);
+                              toaster.create({
+                                description: "Error al subir archivos",
+                                type: "error",
+                              });
+                            } finally {
+                              setSubiendo(false); // ✅ Desactiva spinner
+                            }
+                          }}
+                        >
+                          Subir archivo
+                        </Button>
+                      </>
+                    )}
+                  </FileUpload.Root>
+                </Box>
               )}
             </Box>
             {archivosCargados.length > 0 && (

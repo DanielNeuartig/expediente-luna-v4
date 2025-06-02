@@ -10,7 +10,7 @@ import {
   Textarea,
   Wrap,
   WrapItem,
-  Icon,
+  Badge,
 } from "@chakra-ui/react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
@@ -199,18 +199,12 @@ export default function ListasolicitudesLaboratoriales() {
       >
         <HStack gap="2">
           <span>Añadir solicitud laboratorial</span>
-          <Box
-            as="span"
-            px="2"
-            py="0.5"
-            fontSize="xs"
-            fontWeight="bold"
-            bg="tema.llamativo"
-            color="white"
-            borderRadius="full"
-          >
-            <Icon as={Star} boxSize={4} /> new
-          </Box>
+
+      
+          <Badge variant="solid" bg="tema.llamativo" color="tema.claro" animation="floatGlow">
+            <Star />
+            New
+          </Badge>
         </HStack>
       </Button>
     </>

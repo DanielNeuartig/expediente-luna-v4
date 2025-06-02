@@ -26,8 +26,8 @@ export const system = createSystem(defaultConfig, {
           transform: "translateY(0px)",
           boxShadow: "0 0 0px #00ADB5",
         },
-        "50%": {
-          transform: "translateY(-6px)",
+        "25%": {
+          transform: "translateY(-5px)",
           boxShadow: "0 0 12px #00ADB5",
         },
         "100%": {
