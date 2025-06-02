@@ -10,13 +10,15 @@ import {
   Textarea,
   Wrap,
   WrapItem,
+  Icon,
 } from "@chakra-ui/react";
-import { useFieldArray, useFormContext} from "react-hook-form";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import { formatoDatetimeLocal } from "./utils"; // ⬅️ Usa el mismo util que en ListaMedicamentos
-
+import { LuStar } from "react-icons/lu";
+import { Star } from "lucide-react";
 type Solicitud = {
   estudio: string;
   proveedor: string;
@@ -63,30 +65,34 @@ export default function ListasolicitudesLaboratoriales() {
           </Field.Root>
 
           <Wrap mt="2" mb="4">
-            {["BH", "Química simple", "Química completa", "EGO", "Raspado cutáneo"].map(
-              (texto) => (
-                <WrapItem key={texto}>
-                  <Button
-                    size="2xs"
-                    bg="tema.suave"
-                    color="tema.claro"
-                    _hover={{ bg: "tema.llamativo" }}
-                    onClick={() =>
-                      setValue(
-                        `solicitudesLaboratoriales.${index}.estudio`,
-                        texto,
-                        {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        }
-                      )
-                    }
-                  >
-                    {texto}
-                  </Button>
-                </WrapItem>
-              )
-            )}
+            {[
+              "BH",
+              "Química simple",
+              "Química completa",
+              "EGO",
+              "Raspado cutáneo",
+            ].map((texto) => (
+              <WrapItem key={texto}>
+                <Button
+                  size="2xs"
+                  bg="tema.suave"
+                  color="tema.claro"
+                  _hover={{ bg: "tema.llamativo" }}
+                  onClick={() =>
+                    setValue(
+                      `solicitudesLaboratoriales.${index}.estudio`,
+                      texto,
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
+                    )
+                  }
+                >
+                  {texto}
+                </Button>
+              </WrapItem>
+            ))}
           </Wrap>
 
           {/* Proveedor */}
@@ -104,7 +110,12 @@ export default function ListasolicitudesLaboratoriales() {
           </Field.Root>
 
           <Wrap mt="2" mb="4">
-            {["ELDOC", "Labpet", "Parasitología SPP", "Hospital Veterinario del Valle Av. Munguia 2208, Lomas de Atemajac, 45178 Zapopan, Jal. - 33 38 54 67 26"].map((texto) => (
+            {[
+              "ELDOC",
+              "Labpet",
+              "Parasitología SPP",
+              "Hospital Veterinario del Valle Av. Munguia 2208, Lomas de Atemajac, 45178 Zapopan, Jal. - 33 38 54 67 26",
+            ].map((texto) => (
               <WrapItem key={texto}>
                 <Button
                   size="2xs"
@@ -187,7 +198,21 @@ export default function ListasolicitudesLaboratoriales() {
         type="button"
         mb={2}
       >
-        Añadir solicitud laboratorial
+        <HStack gap="2">
+          <span>Añadir solicitud laboratorial</span>
+          <Box
+            as="span"
+            px="2"
+            py="0.5"
+            fontSize="xs"
+            fontWeight="bold"
+            bg="tema.llamativo"
+            color="white"
+            borderRadius="full"
+          >
+            <Icon as={Star} boxSize={4} /> new
+          </Box>
+        </HStack>
       </Button>
     </>
   );
