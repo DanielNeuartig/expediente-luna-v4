@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: "row",
-    alignItems: "flex-start",
+   alignItems: "center", // ✅ Centra verticalmente el contenido
     gap: 12,
     marginBottom: 10,
   },
