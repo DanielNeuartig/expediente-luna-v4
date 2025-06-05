@@ -68,6 +68,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.76.0
         version: 5.79.0(react@19.1.0)
+      cloc:
+        specifier: 2.4.0-cloc
+        version: 2.4.0-cloc
       date-fns:
         specifier: ^2.30.0
         version: 2.30.0
@@ -1734,6 +1737,10 @@ packages:
 
   cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
+
+  cloc@2.4.0-cloc:
+    resolution: {integrity: sha512-7SH5scbWgvVkg0LLUsGpCBnUnB9hCvryGFq9uZsMsuOm/JcxDs+6XB/EBuu446MzfCV0K7ydfTxB0bkEEbHHvw==}
+    hasBin: true
 
   clone@2.1.2:
     resolution: {integrity: sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==}
@@ -5778,6 +5785,8 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wrap-ansi: 6.2.0
+
+  cloc@2.4.0-cloc: {}
 
   clone@2.1.2: {}
 

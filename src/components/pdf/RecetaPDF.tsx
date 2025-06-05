@@ -1,7 +1,18 @@
 // src/components/pdf/RecetaPDF.tsx
 "use client";
 import { Image } from "@react-pdf/renderer";
-
+function esModoNatural(m: Medicamento): boolean {
+  return (
+    m.frecuenciaHoras !== null &&
+    m.frecuenciaHoras !== undefined &&
+    m.dosis !== undefined &&
+    m.via !== undefined &&
+    m.desde !== undefined &&
+    m.veces !== null &&
+    m.veces !== undefined &&
+    m.tiempoIndefinido === false
+  );
+}
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 export type Medicamento = {
   nombre: string;
@@ -113,31 +124,30 @@ export default function RecetaPDF({
   return (
     <Document>
       <Page style={styles.page}>
-        
         {estadoNota === "EN_REVISION" && (
           <Text style={styles.marcaAgua}>EN REVISIÓN</Text>
         )}
         {estadoNota === "ANULADA" && (
           <Text style={styles.marcaAgua}>ANULADA</Text>
         )}
-       <View style={styles.headerContainer}>
-  <Image
-    src="/imagenes/LogoELDOCsm.png"
-    style={styles.logo}
-  />
-  <View style={styles.clinicaInfo}>
-    <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
-    <Text style={styles.subheader}>
-      Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara, Jal.
-    </Text>
-    <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
-    <Text style={styles.subheader}>
-      Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 · domingos de 11 a 1
-    </Text>
-    <Text style={styles.subheader}>www.eldoc.vet · contacto@eldoc.vet</Text>
-  </View>
-</View>
-
+        <View style={styles.headerContainer}>
+          <Image src="/imagenes/LogoELDOCsm.png" style={styles.logo} />
+          <View style={styles.clinicaInfo}>
+            <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
+            <Text style={styles.subheader}>
+              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240
+              Guadalajara, Jal.
+            </Text>
+            <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
+            <Text style={styles.subheader}>
+              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3
+              · domingos de 11 a 1
+            </Text>
+            <Text style={styles.subheader}>
+              www.eldoc.vet · contacto@eldoc.vet
+            </Text>
+          </View>
+        </View>
 
         <View style={styles.linea} />
         <Text style={styles.fecha}>
@@ -226,7 +236,25 @@ export default function RecetaPDF({
                 : m.paraCasa === true
                 ? "(Para casa) "
                 : ""}
-              {m.tiempoIndefinido && m.frecuenciaHoras && m.desde
+              {esModoNatural(m)
+                ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
+                    m.frecuenciaHoras
+                  } horas durante ${Math.round(
+                    ((m.veces || 0) * (m.frecuenciaHoras ?? 0)) / 24
+                  )} días a partir del ${new Date(m.desde!).toLocaleString(
+                    "es-MX",
+                    {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    }
+                  )}.`
+                : // 👇 resto de condiciones clásicas
+                m.tiempoIndefinido && m.frecuenciaHoras && m.desde
                 ? `Administrar ${m.dosis} vía ${m.via.toLowerCase()} cada ${
                     m.frecuenciaHoras
                   } horas durante tiempo indefinido a partir del ${new Date(
@@ -309,19 +337,19 @@ export default function RecetaPDF({
 
 const styles = StyleSheet.create({
   logoContainer: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10,
-},
-logoPrincipal: {
-  width: 80,
-  height: 80,
-},
-logoSecundario: {
-  width: 60,
-  height: 60,
-},
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  logoPrincipal: {
+    width: 80,
+    height: 80,
+  },
+  logoSecundario: {
+    width: 60,
+    height: 60,
+  },
   indicaciones: {
     marginTop: 14,
   },
@@ -392,18 +420,18 @@ logoSecundario: {
     marginBottom: 10,
   },
   headerContainer: {
-  flexDirection: "row",
-  gap: 12,
-   alignItems: "center", // ✅ Centra verticalmente el contenido
-  marginBottom: 10,
-},
-logo: {
-  width: 80,
-  height: 80,
-  marginRight: 8,
-},
-clinicaInfo: {
-  flexDirection: "column",
-  flexGrow: 1,
-},
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center", // ✅ Centra verticalmente el contenido
+    marginBottom: 10,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginRight: 8,
+  },
+  clinicaInfo: {
+    flexDirection: "column",
+    flexGrow: 1,
+  },
 });

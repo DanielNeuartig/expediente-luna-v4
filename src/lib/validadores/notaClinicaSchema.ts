@@ -35,20 +35,26 @@ const desdeField = z
   .refine((fecha) => !isNaN(fecha.getTime()), {
     message: "La fecha es inválida",
   })
-  .refine((fecha) => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    return fecha >= hoy;
-  }, {
-    message: "La fecha no puede ser anterior a hoy",
-  })
-  .refine((fecha) => {
-    const limite = new Date();
-    limite.setFullYear(limite.getFullYear() + 1);
-    return fecha <= limite;
-  }, {
-    message: "La fecha no puede ser demasiado en el futuro",
-  });
+  .refine(
+    (fecha) => {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      return fecha >= hoy;
+    },
+    {
+      message: "La fecha no puede ser anterior a hoy",
+    }
+  )
+  .refine(
+    (fecha) => {
+      const limite = new Date();
+      limite.setFullYear(limite.getFullYear() + 1);
+      return fecha <= limite;
+    },
+    {
+      message: "La fecha no puede ser demasiado en el futuro",
+    }
+  );
 
 // ------------------------------
 // MEDICAMENTO
@@ -76,6 +82,7 @@ const medicamentoObligatorioSchema = z
     desde: desdeField,
     observaciones: z.preprocess(formatObservaciones, z.string().optional()),
     paraCasa: z.enum(["true", "false"]),
+    duracionDias: z.number().min(1).optional(),
   })
   .refine(
     (data) => {
@@ -108,7 +115,7 @@ const medicamentoObligatorioSchema = z
       message:
         "Los medicamentos por tiempo indefinido deben ser para casa (incluidos en receta)",
     }
-  )
+  )/*
   .refine(
     (data) =>
       !(
@@ -120,7 +127,7 @@ const medicamentoObligatorioSchema = z
       path: ["frecuenciaHoras"],
       message: "No debes indicar frecuencia si es una sola vez",
     }
-  );
+  );*/
 
 // ------------------------------
 // INDICACIÓN (TEXTO LIBRE)
@@ -143,22 +150,28 @@ const fechaTomaDeMuestraField = z
   .refine((fecha) => !isNaN(fecha.getTime()), {
     message: "La fecha de toma de muestra es inválida",
   })
-  .refine((fecha) => {
-    const ahora = new Date();
-    const haceDosAnios = new Date();
-    haceDosAnios.setFullYear(ahora.getFullYear() - 2);
-    return fecha >= haceDosAnios;
-  }, {
-    message: "La fecha de toma de muestra no puede ser demasiado antigua",
-  })
-  .refine((fecha) => {
-    const ahora = new Date();
-    const dentroDeUnAnio = new Date();
-    dentroDeUnAnio.setFullYear(ahora.getFullYear() + 1);
-    return fecha <= dentroDeUnAnio;
-  }, {
-    message: "La fecha de toma de muestra no puede ser demasiado futura",
-  });
+  .refine(
+    (fecha) => {
+      const ahora = new Date();
+      const haceDosAnios = new Date();
+      haceDosAnios.setFullYear(ahora.getFullYear() - 2);
+      return fecha >= haceDosAnios;
+    },
+    {
+      message: "La fecha de toma de muestra no puede ser demasiado antigua",
+    }
+  )
+  .refine(
+    (fecha) => {
+      const ahora = new Date();
+      const dentroDeUnAnio = new Date();
+      dentroDeUnAnio.setFullYear(ahora.getFullYear() + 1);
+      return fecha <= dentroDeUnAnio;
+    },
+    {
+      message: "La fecha de toma de muestra no puede ser demasiado futura",
+    }
+  );
 
 const solicitudLaboratorialSchema = z.object({
   estudio: z.string().min(1, "El estudio es obligatorio"),
@@ -183,9 +196,7 @@ export const notaClinicaBaseSchema = z.object({
   extras: z.string().optional(),
   medicamentos: z.array(medicamentoObligatorioSchema).optional(),
   indicaciones: z.array(indicacionObligatoriaSchema).optional(),
-  solicitudesLaboratoriales: z
-    .array(solicitudLaboratorialSchema)
-    .optional(),
+  solicitudesLaboratoriales: z.array(solicitudLaboratorialSchema).optional(),
 });
 
 export type NotaClinicaInput = z.input<typeof notaClinicaBaseSchema>;

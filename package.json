@@ -29,6 +29,7 @@
     "@prisma/client": "6.7.0",
     "@react-pdf/renderer": "^4.3.0",
     "@tanstack/react-query": "^5.76.0",
+    "cloc": "2.4.0-cloc",
     "date-fns": "^2.30.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.10.5",

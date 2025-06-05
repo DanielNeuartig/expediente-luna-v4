@@ -304,7 +304,7 @@ await tx.solicitudLaboratorial.updateMany({
       } else {
         observaciones = [
           med.observaciones ?? "",
-          "🏠 SEGUIMIENTO TRIMESTAL de medicamento INDEFINIDO para casa 🏠",
+          "🏠 SEGUIMIENTO TRIMESTRAL de medicamento INDEFINIDO para casa 🏠",
         ]
           .filter(Boolean)
           .join(" | ");
