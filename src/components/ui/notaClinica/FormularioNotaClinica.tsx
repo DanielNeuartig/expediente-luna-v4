@@ -132,6 +132,7 @@ export default function FormularioNotaClinica({
             type="submit"
             disabled={crearNota.isPending}
             loading={crearNota.isPending}
+            fontSize={"lg"}
           >
             Guardar nota clínica
           </Button>

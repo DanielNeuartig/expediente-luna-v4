@@ -14,6 +14,7 @@ import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
+import { Plus, Bone } from "lucide-react";
 
 type Indicacion = NonNullable<NotaClinicaValues["indicaciones"]>[number];
 
@@ -80,19 +81,15 @@ export default function ListaIndicaciones() {
             {indicacionesPredefinidas.map((item, i) => (
               <WrapItem key={i}>
                 <Button
-                  size="xs"
+                  size="sm"
                   bg="tema.suave"
                   color="tema.claro"
                   _hover={{ bg: "tema.llamativo" }}
                   onClick={() =>
-                    setValue(
-                      `indicaciones.${index}.descripcion`,
-                      item.texto,
-                      {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      }
-                    )
+                    setValue(`indicaciones.${index}.descripcion`, item.texto, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
                   }
                 >
                   {item.nombre}
@@ -113,16 +110,24 @@ export default function ListaIndicaciones() {
       ))}
 
       <Button
+                borderColor="tema.llamativo"
+          borderWidth={"5px"}
+          borderRadius={"xl"}
+        fontSize={"lg"}
         {...estilosBotonEspecial}
+        type="button"
+        mb={2}
+        fontWeight={"bold"}
         onClick={() =>
           append({
             descripcion: "",
           } as Indicacion)
         }
-        type="button"
-        mb={2}
       >
-        Añadir indicación
+        <Plus/>
+        <Bone/>
+
+        Indicación
       </Button>
     </>
   );

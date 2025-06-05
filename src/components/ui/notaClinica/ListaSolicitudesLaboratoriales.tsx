@@ -17,7 +17,7 @@ import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosTituloInput } from "../config/estilosTituloInput";
 import { formatoDatetimeLocal } from "./utils"; // ⬅️ Usa el mismo util que en ListaMedicamentos
-import { Star } from "lucide-react";
+import { Star, Microscope, Plus } from "lucide-react";
 type Solicitud = {
   estudio: string;
   proveedor: string;
@@ -52,7 +52,7 @@ export default function ListasolicitudesLaboratoriales() {
           {/* Estudio */}
           <Field.Root>
             <HStack align="start">
-              <Field.Label minW="100px" {...estilosTituloInput} fontSize="2xs">
+              <Field.Label minW="100px" {...estilosTituloInput} fontSize="sm">
                 Estudio solicitado
               </Field.Label>
               <Textarea
@@ -73,7 +73,7 @@ export default function ListasolicitudesLaboratoriales() {
             ].map((texto) => (
               <WrapItem key={texto}>
                 <Button
-                  size="2xs"
+                  size="sm"
                   bg="tema.suave"
                   color="tema.claro"
                   _hover={{ bg: "tema.llamativo" }}
@@ -97,7 +97,7 @@ export default function ListasolicitudesLaboratoriales() {
           {/* Proveedor */}
           <Field.Root>
             <HStack align="start">
-              <Field.Label minW="100px" {...estilosTituloInput} fontSize="2xs">
+              <Field.Label minW="100px" {...estilosTituloInput} fontSize="sm">
                 Proveedor
               </Field.Label>
               <Textarea
@@ -117,7 +117,7 @@ export default function ListasolicitudesLaboratoriales() {
             ].map((texto) => (
               <WrapItem key={texto}>
                 <Button
-                  size="2xs"
+                  size="sm"
                   bg="tema.suave"
                   color="tema.claro"
                   _hover={{ bg: "tema.llamativo" }}
@@ -140,11 +140,11 @@ export default function ListasolicitudesLaboratoriales() {
 
           {/* Observaciones clínicas */}
           <Field.Root>
-            <Field.Label minW="100px" {...estilosTituloInput} fontSize="2xs">
+            <Field.Label minW="100px" {...estilosTituloInput} fontSize="sm">
               Observaciones clínicas
             </Field.Label>
             <Textarea
-              size="xs"
+              size="sm"
               placeholder="Detalles clínicos relevantes para el estudio"
               {...estilosInputBase}
               {...register(
@@ -156,12 +156,12 @@ export default function ListasolicitudesLaboratoriales() {
           {/* Fecha de toma de muestra */}
           <Field.Root>
             <HStack align="start">
-              <Field.Label minW="100px" {...estilosTituloInput} fontSize="2xs">
+              <Field.Label minW="100px" {...estilosTituloInput} fontSize="sm">
                 Fecha de toma de muestra
               </Field.Label>
               <Input
                 type="datetime-local"
-                size="2xs"
+                size="sm"
                 defaultValue={formatoDatetimeLocal(new Date())}
                 {...estilosInputBase}
                 {...register(
@@ -183,30 +183,151 @@ export default function ListasolicitudesLaboratoriales() {
           </Button>
         </Box>
       ))}
+      <HStack>
+        <Button
+          fontSize={"lg"}
+          {...estilosBotonEspecial}
+          type="button"
+          mb={2}
+          fontWeight={"bold"}
+                    borderColor="tema.llamativo"
+          borderWidth={"5px"}
+          borderRadius={"xl"}
+          onClick={() =>
+            append({
+              estudio: "",
+              proveedor: "",
+              observacionesClinica: "",
+              fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
+            } as Solicitud)
+          }
+        >
+          <HStack gap="2">
+            <Plus />
+            <Microscope size={32} />
+            Laboratorial
+            <Badge
+              variant="solid"
+              bg="tema.llamativo"
+              color="tema.claro"
+              animation="floatGlow"
+            >
+              <Star />
+              New
+            </Badge>
+          </HStack>
+        </Button>
+        <Button
+          color="tema.claro"
+          bg="tema.suave"
+          onClick={() =>
+            append({
+              estudio: "BH",
+              proveedor: "ELDOC",
+              observacionesClinica: "",
+              fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
+            } as Solicitud)
+          }
+          _hover={{ bg: "tema.llamativo" }}
+          type="button"
+          mb={2}
+          borderRadius={"2xl"}
+          fontWeight={"bold"}
+          animation="floatGlow"
+        >
+          <HStack gap="1">
+            <Badge bg="tema.rojo" borderRadius="xl" p="1" px="2">
+              BH
+            </Badge>
+            <Badge bg="tema.llamativo" borderRadius="xl" p="1" px="2">
+              ELDOC
+            </Badge>
+          </HStack>
+        </Button>
+        <Button
+          color="tema.claro"
+          bg="tema.suave"
+          onClick={() =>
+            append({
+              estudio: "Química simple",
+              proveedor: "LABPET",
+              observacionesClinica: "",
+              fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
+            } as Solicitud)
+          }
+          _hover={{ bg: "tema.llamativo" }}
+          type="button"
+          mb={2}
+          borderRadius={"2xl"}
+          fontWeight={"bold"}
+          animation="floatGlow"
+        >
+          <HStack gap="1">
+            <Badge bg="tema.verde" borderRadius="xl" p="1" px="2">
+              Q. S.
+            </Badge>
+            <Badge bg="tema.morado" borderRadius="xl" p="1" px="2">
+              LABPET
+            </Badge>
+          </HStack>
+        </Button>
 
-      <Button
-        {...estilosBotonEspecial}
-        onClick={() =>
-          append({
-            estudio: "",
-            proveedor: "",
-            observacionesClinica: "",
-            fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
-          } as Solicitud)
-        }
-        type="button"
-        mb={2}
-      >
-        <HStack gap="2">
-          <span>Añadir solicitud laboratorial</span>
+        <Button
+          color="tema.claro"
+          bg="tema.suave"
+          onClick={() =>
+            append({
+              estudio: "Química completa",
+              proveedor: "LABPET",
+              observacionesClinica: "",
+              fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
+            } as Solicitud)
+          }
+          _hover={{ bg: "tema.llamativo" }}
+          type="button"
+          mb={2}
+          borderRadius={"2xl"}
+          fontWeight={"bold"}
+          animation="floatGlow"
+        >
+          <HStack gap="1">
+            <Badge bg="tema.verde" borderRadius="xl" p="1" px="2">
+              Q. C.
+            </Badge>
+            <Badge bg="tema.morado" borderRadius="xl" p="1" px="2">
+              LABPET
+            </Badge>
+          </HStack>
+        </Button>
 
-      
-          <Badge variant="solid" bg="tema.llamativo" color="tema.claro" animation="floatGlow">
-            <Star />
-            New
-          </Badge>
-        </HStack>
-      </Button>
+        <Button
+          color="tema.claro"
+          bg="tema.suave"
+          onClick={() =>
+            append({
+              estudio: "Coproparasitoscópico seriado",
+              proveedor: "Parasitología SPP",
+              observacionesClinica: "",
+              fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
+            } as Solicitud)
+          }
+          _hover={{ bg: "tema.llamativo" }}
+          type="button"
+          mb={2}
+          borderRadius={"2xl"}
+          fontWeight={"bold"}
+          animation="floatGlow"
+        >
+          <HStack gap="1">
+            <Badge bg="tema.naranja" borderRadius="xl" p="1" px="2">
+              Copro S.
+            </Badge>
+            <Badge bg="tema.naranja" borderRadius="xl" p="1" px="2">
+              SPP
+            </Badge>
+          </HStack>
+        </Button>
+      </HStack>
     </>
   );
 }

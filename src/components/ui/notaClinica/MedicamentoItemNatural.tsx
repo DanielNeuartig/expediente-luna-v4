@@ -26,14 +26,10 @@ import { calcularFechas, formatoDatetimeLocal } from "./utils";
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
+import { X } from "lucide-react";
 
-
-
-
-
-
-const botonesFrecuencia = [8, 12, 24];
-const botonesDuracion = [1, 3, 5, 7];
+const botonesFrecuencia = [6, 8, 12, 24, 48, 72];
+const botonesDuracion = [1, 2, 3, 5, 7, 10, 15, 30];
 
 interface Props {
   index: number;
@@ -68,7 +64,7 @@ export default function MedicamentoItemNatural({
   useEffect(() => {
     const indefinido = tiempoIndefinido === "true";
 
-const cadaEsValido = typeof cada === "number" && cada > 0;
+    const cadaEsValido = typeof cada === "number" && cada > 0;
     const duranteEsValido = typeof durante === "number" && durante > 0;
 
     if (indefinido) {
@@ -107,6 +103,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
   }, [cada, durante, tiempoIndefinido]);
   return (
     <Box
+    position="relative" // 🟡 Añade esto
       borderWidth="2px"
       p="4"
       rounded="md"
@@ -118,11 +115,11 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* Nombre */}
       <Field.Root>
         <HStack align="start">
-          <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
             Nombre
           </Field.Label>
           <Input
-            size="2xs"
+            size="sm"
             {...estilosInputBase}
             {...register(`medicamentos.${index}.nombre`)}
           />
@@ -132,11 +129,11 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* Dosis */}
       <Field.Root>
         <HStack>
-          <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
             Dosis
           </Field.Label>
           <Input
-            size="2xs"
+            size="sm"
             {...estilosInputBase}
             {...register(`medicamentos.${index}.dosis`)}
           />
@@ -146,10 +143,10 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* Vía */}
       <Field.Root>
         <HStack>
-          <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
             Vía
           </Field.Label>
-          <NativeSelect.Root size="xs">
+          <NativeSelect.Root size="sm">
             <NativeSelect.Field
               {...estilosInputBase}
               {...register(`medicamentos.${index}.via`)}
@@ -171,11 +168,11 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* seccion de CADA */}
       <Field.Root>
         <HStack align="center" gap="2">
-          <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
             CADA (horas)
           </Field.Label>
           <Input
-            size="2xs"
+            size="sm"
             type="number"
             min={1}
             {...estilosInputBase}
@@ -192,7 +189,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
             {botonesFrecuencia.map((valor) => (
               <Button
                 key={valor}
-                size="2xs"
+                size="sm"
                 color="tema.claro"
                 bg={cada === valor ? "tema.llamativo" : "tema.suave"}
                 colorScheme="teal"
@@ -213,11 +210,11 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {tiempoIndefinido !== "true" && (
         <Field.Root>
           <HStack align="center" gap="2">
-            <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+            <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
               DURANTE (días)
             </Field.Label>
             <Input
-              size="2xs"
+              size="sm"
               type="number"
               min={1}
               {...estilosInputBase}
@@ -229,7 +226,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
               {botonesDuracion.map((valor) => (
                 <Button
                   key={valor}
-                  size="2xs"
+                  size="sm"
                   color="tema.claro"
                   bg={durante === valor ? "tema.llamativo" : "tema.suave"}
                   colorScheme="teal"
@@ -251,7 +248,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* Desde */}
       <Field.Root>
         <HStack align="center" gap="2">
-          <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
             A PARTIR DE
           </Field.Label>
           <Controller
@@ -308,7 +305,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
               return (
                 <>
                   <Input
-                    size="2xs"
+                    size="sm"
                     type="datetime-local"
                     min={formatoDatetimeLocal(new Date(Date.now() - 86400000))}
                     {...estilosInputBase}
@@ -322,7 +319,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
                     {botonesFecha.map(({ label, valor }) => (
                       <Button
                         key={label}
-                        size="2xs"
+                        size="sm"
                         variant="solid"
                         bg={
                           Math.abs(
@@ -381,7 +378,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
                 }
               }}
               onBlur={field.onBlur}
-              size="xs"
+              size="sm"
               colorPalette="tema.llamativo"
             >
               <SegmentGroup.Items
@@ -399,7 +396,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       {/* Observaciones */}
       <Field.Root>
         <Textarea
-          size="xs"
+          size="sm"
           placeholder="Observaciones"
           {...estilosInputBase}
           {...register(`medicamentos.${index}.observaciones`)}
@@ -462,7 +459,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
       <HStack>
         <Field.Root>
           <HStack>
-            <Field.Label minW="100px" fontSize="2xs" {...estilosTituloInput}>
+            <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
               APLICACIÓN EN:
             </Field.Label>
             <Controller
@@ -489,7 +486,7 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
                     field.onChange(value);
                   }}
                   onBlur={field.onBlur}
-                  size="xs"
+                  size="sm"
                   colorPalette="tema.llamativo"
                 >
                   <SegmentGroup.Items
@@ -506,13 +503,15 @@ const cadaEsValido = typeof cada === "number" && cada > 0;
         </Field.Root>
 
         <Button
+          position="absolute" // 🟡 Posicionamiento absoluto
+          top="2" // 🟡 Separación desde arriba
+          right="2" // 🟡 Separación desde la derecha
           variant="ghost"
-          color="red.500"
-          size="sm"
-          mt={3}
+          color="tema.rojo"
+          size="xs"
           onClick={() => remove(index)}
         >
-          Eliminar medicamento
+          <X />
         </Button>
       </HStack>
     </Box>

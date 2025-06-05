@@ -7,7 +7,7 @@ import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 import MedicamentoItemActual from "./MedicamentoItemActual";
 import MedicamentoItemNatural from "./MedicamentoItemNatural";
-
+import { Plus, Pill } from "lucide-react";
 type Props = {
   fechaBase: string;
 };
@@ -30,8 +30,6 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
     const currentStr = JSON.stringify(valores);
     if (currentStr === prevValoresStr.current) return;
     prevValoresStr.current = currentStr;
-
-
   }, [valores, setValue]);
 
   return (
@@ -90,7 +88,11 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
         </Button>*/}
 
         <Button
+          fontSize={"lg"}
           {...estilosBotonEspecial}
+          type="button"
+          mb={2}
+          fontWeight={"bold"}
           onClick={() =>
             append({
               nombre: "",
@@ -103,10 +105,13 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
               modo: "natural",
             } as Medicamento)
           }
-          type="button"
-          mb={2}
+          borderColor="tema.llamativo"
+          borderWidth={"5px"}
+          borderRadius={"xl"}
         >
-          Añadir medicamento natural
+          <Plus/>
+          <Pill/>
+          Medicamento
         </Button>
       </Box>
     </>
