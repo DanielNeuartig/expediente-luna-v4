@@ -68,8 +68,7 @@ export default function MedicamentoItemNatural({
   useEffect(() => {
     const indefinido = tiempoIndefinido === "true";
 
-    const cadaEsValido =
-      typeof cada === "number" && cada > 0 && 24 % cada === 0;
+const cadaEsValido = typeof cada === "number" && cada > 0;
     const duranteEsValido = typeof durante === "number" && durante > 0;
 
     if (indefinido) {
