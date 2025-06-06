@@ -39,7 +39,7 @@ export default function MenuIniciarAtencion({
 
   return (
     <Box mt="4">
-      <Text fontSize="sm" mb="2">
+      <Text fontWeight="bold" fontSize="sm" mb="2" color="tema.rojo">
         No hay expediente médico activo actualmente.
       </Text>
       <Menu.Root>

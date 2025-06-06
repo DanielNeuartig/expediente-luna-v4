@@ -33,7 +33,7 @@ Bañar a la mascota cada 5 días ó al terminar el tratamiento de desparasitante
     texto: `No permitir a la mascota hacer esfuerzos, es decir: no sacar a pasear, no dejar subir escaleras, no permitir brincar al sofá, cama u otro objeto. 
     Dejar a la mascota lo más relajada posible, no estresarla. 
     Usar collar isabelino durante al menos 10 días. 
-    Lavar la herida cada 24 horas con antiséptico y gasas estériles. 
+    Lavar la herida cada 12 horas con antiséptico y gasas estériles. 
     En caso de que la herida supure contenido blanquecino, verdoso ó con mal olor, acudir a clínica. 
     En caso de que la herida se abra, acudir a clínica. 
     No permitir que la mascota se lama ó rasque la herida, ni que alguna otra mascota con la que conviva le manipule la herida.`,

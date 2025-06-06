@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Box,
@@ -13,12 +13,12 @@ import {
   Image,
   CloseButton,
   Icon,
-} from '@chakra-ui/react';
-import { useSession, signOut } from 'next-auth/react';
-import SearchBar from '../layout/Searchbar';
-import { Menu, Home, PlusSquare } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+} from "@chakra-ui/react";
+import { useSession, signOut } from "next-auth/react";
+import SearchBar from "../layout/Searchbar";
+import { Menu, Home, PlusSquare } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function DashboardHeader() {
   const { data: session } = useSession();
@@ -29,8 +29,12 @@ export default function DashboardHeader() {
   const { email, tipoUsuario, image, name, perfil } = session.user;
 
   const menu = [
-    { label: 'Inicio', icon: Home, href: '/dashboard' },
-    { label: 'Crear perfil', icon: PlusSquare, href: '/dashboard/crear-perfil-propietario' },
+    { label: "Inicio", icon: Home, href: "/dashboard" },
+    {
+      label: "Crear perfil",
+      icon: PlusSquare,
+      href: "/dashboard/crear-perfil-propietario",
+    },
   ];
 
   return (
@@ -40,8 +44,8 @@ export default function DashboardHeader() {
       position="fixed"
       top={0}
       left={0}
-      ml={{ base: 0, md: '60' }}
-      w={{ base: '100%', md: 'calc(100% - 15rem)' }}
+      ml={{ base: 0, md: "60" }}
+      w={{ base: "100%", md: "calc(100% - 15rem)" }}
       h="auto"
       zIndex="overlay"
       borderBottom="1px solid"
@@ -57,7 +61,7 @@ export default function DashboardHeader() {
         direction="row"
       >
         {/* Botón Drawer móvil */}
-        <Box display={{ base: 'block', md: 'none' }}>
+        <Box display={{ base: "block", md: "none" }}>
           <Drawer.Root placement="start">
             <Drawer.Trigger asChild>
               <Button variant="ghost" size="sm" px="2" aria-label="Abrir menú">
@@ -81,7 +85,10 @@ export default function DashboardHeader() {
                   justifyContent="space-between"
                   boxShadow="lg"
                 >
-                  <Drawer.Header borderBottom="1px solid" borderColor="whiteAlpha.300">
+                  <Drawer.Header
+                    borderBottom="1px solid"
+                    borderColor="whiteAlpha.300"
+                  >
                     <Image
                       src="/imagenes/LogoBordesReducidos.png"
                       alt="Logo"
@@ -107,32 +114,36 @@ export default function DashboardHeader() {
                               borderRadius="lg"
                               transition="all 0.2s"
                               position="relative"
-                              bg={isActive ? '#1A1E24' : 'transparent'}
-                              color={isActive ? 'tema.llamativo' : 'inherit'}
+                              bg={isActive ? "#1A1E24" : "transparent"}
+                              color={isActive ? "tema.llamativo" : "inherit"}
                               _hover={
                                 isActive
                                   ? {}
                                   : {
-                                      bg: 'gray.500',
-                                      cursor: 'pointer',
+                                      bg: "gray.500",
+                                      cursor: "pointer",
                                     }
                               }
                               _before={
                                 isActive
                                   ? {
                                       content: '""',
-                                      position: 'absolute',
+                                      position: "absolute",
                                       left: 0,
-                                      top: '8%',
-                                      bottom: '8%',
-                                      width: '4px',
-                                      borderRadius: 'full',
-                                      bg: 'tema.llamativo',
+                                      top: "8%",
+                                      bottom: "8%",
+                                      width: "4px",
+                                      borderRadius: "full",
+                                      bg: "tema.llamativo",
                                     }
                                   : undefined
                               }
                             >
-                              <Icon as={MenuIcon} boxSize="5" color="tema.claro" />
+                              <Icon
+                                as={MenuIcon}
+                                boxSize="5"
+                                color="tema.claro"
+                              />
                               <Text color="tema.claro" fontSize="sm">
                                 {label}
                               </Text>
@@ -175,24 +186,23 @@ export default function DashboardHeader() {
         </Badge>
 
         {/* Usuario */}
-        <Flex
-          align="center"
-          direction="row"
-          gap="3"
-          wrap="wrap"
-          minW="200px"
-        >
+        <Flex align="center" direction="row" gap="3" wrap="wrap" minW="200px">
           <Avatar.Root>
-            <Avatar.Fallback name={name ?? ''} />
-            <Avatar.Image src={image ?? ''} />
+            <Avatar.Fallback name={name ?? ""} />
+            <Avatar.Image src={image ?? ""} />
           </Avatar.Root>
 
           <Box minW="150px">
-          <Text color="tema.claro" fontWeight="md" fontSize="sm" truncate>
+            <Text color="tema.claro" fontWeight="md" fontSize="sm" truncate>
               {email}
             </Text>
             {perfil?.nombre && (
-           <Text fontSize="sm" color="tema.claro" fontWeight="light" truncate>
+              <Text
+                fontSize="sm"
+                color="tema.claro"
+                fontWeight="light"
+                truncate
+              >
                 {perfil.nombre} • {perfil.telefonoPrincipal}
               </Text>
             )}
@@ -203,8 +213,10 @@ export default function DashboardHeader() {
             size="sm"
             variant="outline"
             colorScheme="red"
-            onClick={() => signOut({ callbackUrl: '/' })}
-            _hover={{ bg: 'tema.llamativo' }}
+            onClick={() => {
+              signOut({ callbackUrl: "/", redirect: true });
+            }}
+            _hover={{ bg: "tema.llamativo" }}
           >
             Cerrar sesión
           </Button>
