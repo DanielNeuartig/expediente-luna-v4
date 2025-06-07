@@ -3,12 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import HistoricoExpedientes from "@/components/ui/HistoricoExpedientes";
-import { Box, Tabs, Spinner, Text } from "@chakra-ui/react";
+import { Box, Tabs, Spinner, Text, Button } from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
 import ListaAplicacionesMedicamento from "@/components/ui/aplicaciones/ListaAplicacionesMedicamento";
 import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaClinica";
-import { LuFileText, LuCircleCheck, LuHistory } from "react-icons/lu";
+import { LuFileText, LuCircleCheck, LuMicroscope } from "react-icons/lu";
 import ResumenExpedienteActivo from "@/components/ui/expediente/ResumenExpedienteActivo";
 import type { Mascota } from "@/types/mascota";
 import type { ExpedienteConNotas } from "@/types/expediente";
@@ -16,9 +16,9 @@ import BotonIniciarAtencion from "@/components/ui/expediente/BotonIniciarAtencio
 import { EstadoExpediente } from "@prisma/client";
 import ProgresoExpediente from "@/components/ui/expediente/ProgresoExpediente";
 import { useSession } from "next-auth/react";
-
-
-
+import { pdf } from "@react-pdf/renderer";
+import LaboratorialResultadosPDF from "@/components/pdf/LaboratorialResultadoPDF";
+import { LaboratorialConResultados } from "@/types/laboratorial";
 export default function MascotaDetalleClient({
   mascota,
 }: {
@@ -94,8 +94,6 @@ export default function MascotaDetalleClient({
   const queryClient = useQueryClient();
   const perfilActualId = session?.user?.perfilid ?? null;
 
-
-
   const finalizarExpediente = async () => {
     if (!expedienteSeleccionado) return;
     try {
@@ -154,7 +152,10 @@ export default function MascotaDetalleClient({
     return (
       <Box gridColumn="1 / span 2" gridRow="1">
         <TarjetaBase>
-          <Text color="red.500">Este usuario no tiene un perfil creado. Si crees que es un error, refresca la pantalla o espera unos minutos.</Text>
+          <Text color="red.500">
+            Este usuario no tiene un perfil creado. Si crees que es un error,
+            refresca la pantalla o espera unos minutos.
+          </Text>
         </TarjetaBase>
       </Box>
     );
@@ -245,12 +246,13 @@ export default function MascotaDetalleClient({
               <Tabs.Trigger
                 value="nota"
                 fontWeight="bold"
+                color="tema.llamativo"
                 disabled={!expedienteSeleccionado}
               >
                 <LuFileText style={{ marginRight: 6 }} /> Nueva nota clínica
               </Tabs.Trigger>
               <Tabs.Trigger value="historico" fontWeight="bold">
-                <LuHistory style={{ marginRight: 6 }} /> Históricos
+                <LuMicroscope style={{ marginRight: 6 }} /> Laboratoriales
               </Tabs.Trigger>
             </Tabs.List>
 
@@ -261,7 +263,6 @@ export default function MascotaDetalleClient({
             </Tabs.Content>
 
             <Tabs.Content value="nota">
-
               {expedienteSeleccionado && mostrarFormularioNota ? (
                 <FormularioNotaClinica
                   expedienteSeleccionado={expedienteSeleccionado}
@@ -284,7 +285,62 @@ export default function MascotaDetalleClient({
               )}
             </Tabs.Content>
 
-            <Tabs.Content value="historico"></Tabs.Content>
+            <Tabs.Content value="historico">
+              {expedienteSeleccionado?.notasClinicas?.flatMap(
+                (nota) => nota.laboratoriales ?? []
+              ).length === 0 ? (
+                <Box py={4} color="tema.suave">
+                  No hay estudios laboratoriales registrados.
+                </Box>
+              ) : (
+                <Box display="flex" flexDirection="column" gap={4} py={4}>
+                  {expedienteSeleccionado?.notasClinicas
+                    ?.flatMap((nota) =>
+                      Array.isArray(nota.laboratoriales)
+                        ? nota.laboratoriales
+                        : []
+                    )
+                    .map((lab: LaboratorialConResultados) => (
+                      <Box key={lab.id}>
+                      <Button
+                        variant="outline"
+                        colorScheme="teal"
+                        onClick={async () => {
+                          console.log("Resultados con analito:", lab.resultados);
+                          const blob = await pdf(
+                            <LaboratorialResultadosPDF
+                              laboratorial={{
+                                id: lab.id,
+                                fechaToma: lab.fechaToma,
+                                fechaCreacion: lab.fechaCreacion,
+                                tipoEstudio: lab.tipoEstudio,
+                                resultados: lab.resultados,
+                              }}
+                              datosMascota={{
+                                nombre: mascota.nombre,
+                                especie: mascota.especie,
+                                raza: mascota.raza?.nombre,
+                                fechaNacimiento: mascota.fechaNacimiento,
+                                sexo: mascota.sexo,
+                                esterilizado: mascota.esterilizado,
+                              }}
+                            />
+                          ).toBlob();
+
+                          const url = URL.createObjectURL(blob);
+                          window.open(url, "_blank");
+                        }}
+                      >
+                        Estudio: {lab.tipoEstudio?.nombre ?? "Sin nombre"} ·{" "}
+                        {lab.fechaToma
+                          ? new Date(lab.fechaToma).toLocaleDateString("es-MX")
+                          : "Sin fecha"}
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Tabs.Content>
           </Tabs.Root>
         </TarjetaBase>
       </Box>

@@ -48,10 +48,11 @@ model Perfil {
   autor                  User?                   @relation("PerfilCreadoPor", fields: [autorId], references: [id])
   usuario                User?                   @relation("UserAPerfil", fields: [usuarioId], references: [id])
   SolicitudLaboratorial  SolicitudLaboratorial[]
+  laboratorialesCreados  LaboratorialPaciente[]  @relation("LaboratorialesCreados")
 }
 
 model Mascota {
-  id              Int                @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   nombre          String
   especie         Especie
   sexo            Sexo
@@ -59,19 +60,20 @@ model Mascota {
   color           String?
   señas          String?
   fechaNacimiento DateTime?
-  microchip       String?            @unique
+  microchip       String?                @unique
   alergias        String?
   imagen          String?
-  activo          Boolean            @default(true)
-  fechaCreacion   DateTime           @default(now())
-  ultimaActividad DateTime           @updatedAt
+  activo          Boolean                @default(true)
+  fechaCreacion   DateTime               @default(now())
+  ultimaActividad DateTime               @updatedAt
   razaId          Int?
   perfilId        Int
   autorId         Int?
   expedientes     ExpedienteMedico[]
-  autor           User?              @relation("MascotaCreadaPor", fields: [autorId], references: [id])
-  perfil          Perfil             @relation(fields: [perfilId], references: [id])
-  raza            Raza?              @relation(fields: [razaId], references: [id])
+  autor           User?                  @relation("MascotaCreadaPor", fields: [autorId], references: [id])
+  perfil          Perfil                 @relation(fields: [perfilId], references: [id])
+  raza            Raza?                  @relation(fields: [razaId], references: [id])
+  laboratoriales  LaboratorialPaciente[]
 }
 
 model ExpedienteMedico {
@@ -124,6 +126,7 @@ model NotaClinica {
   autor                     Perfil                  @relation("NotaClinicaToPerfil", fields: [autorId], references: [id])
   expediente                ExpedienteMedico        @relation(fields: [expedienteId], references: [id])
   solicitudesLaboratoriales SolicitudLaboratorial[]
+  laboratoriales            LaboratorialPaciente[]
 }
 
 model Medicamento {
@@ -251,24 +254,25 @@ model VerificationToken {
 }
 
 model SolicitudLaboratorial {
-  id                       Int                    @id @default(autoincrement())
-  estudio                  String?               
+  id                       Int                         @id @default(autoincrement())
+  estudio                  String?
   proveedor                String
-  observacionesClinica     String?                @db.Text
-  observacionesLaboratorio String?                @db.Text
+  observacionesClinica     String?                     @db.Text
+  observacionesLaboratorio String?                     @db.Text
   fechaTomaDeMuestra       DateTime
-  fechaSolicitud           DateTime               @default(now())
+  fechaSolicitud           DateTime                    @default(now())
   fechaSubida              DateTime?
   fechaCierre              DateTime?
   estado                   EstadoSolicitudLaboratorial @default(EN_REVISION)
-  tokenAcceso              String                 @unique
+  tokenAcceso              String                      @unique
   creadoPorId              Int
 
-  archivos                 ArchivoLaboratorial[]
+  archivos ArchivoLaboratorial[]
 
-  creadoPor                Perfil                 @relation(fields: [creadoPorId], references: [id])
-  notaClinicaId Int
-  notaClinica              NotaClinica            @relation(fields: [notaClinicaId], references: [id])
+  creadoPor      Perfil                 @relation(fields: [creadoPorId], references: [id])
+  notaClinicaId  Int
+  notaClinica    NotaClinica            @relation(fields: [notaClinicaId], references: [id])
+  laboratoriales LaboratorialPaciente[] @relation(name: "SolicitudALaboratorio")
 
   @@index([creadoPorId])
   @@index([notaClinicaId])
@@ -282,13 +286,15 @@ enum EstadoSolicitudLaboratorial {
 }
 
 model ArchivoLaboratorial {
-  id          Int                     @id @default(autoincrement())
-  solicitudId Int
-  url         String
-  nombre      String
-  tipo        TipoArchivoLaboratorial
-  fechaSubida DateTime                @default(now())
-  solicitud   SolicitudLaboratorial   @relation(fields: [solicitudId], references: [id])
+  id             Int                     @id @default(autoincrement())
+  solicitudId    Int
+  url            String
+  nombre         String
+  tipo           TipoArchivoLaboratorial
+  fechaSubida    DateTime                @default(now())
+  solicitud      SolicitudLaboratorial   @relation(fields: [solicitudId], references: [id])
+  laboratorialId Int?   // ← antes era Int (obligatorio)
+laboratorial   LaboratorialPaciente? @relation(fields: [laboratorialId], references: [id])
 
   @@index([solicitudId])
 }
@@ -299,8 +305,6 @@ enum TipoArchivoLaboratorial {
   JPG
   JPEG
 }
-
-
 
 enum TipoUsuario {
   CEO
@@ -393,4 +397,65 @@ enum EstadoExpediente {
   FINALIZADO_AUTO
 }
 
+model TipoEstudioLaboratorial {
+  id             Int                    @id @default(autoincrement())
+  nombre         String @unique
+  analitos       Analito[]
+  fechaCreacion  DateTime               @default(now())
+  laboratoriales LaboratorialPaciente[]
+}
 
+model Analito {
+  id                Int                      @id @default(autoincrement())
+  nombre            String
+  unidad            String?
+  tipoEstudioId     Int
+  tipoEstudio       TipoEstudioLaboratorial  @relation(fields: [tipoEstudioId], references: [id])
+  valoresReferencia ValorReferenciaAnalito[]
+  resultados        ResultadoAnalito[]
+  @@unique([nombre, tipoEstudioId])  // ✅ necesario para el upsert
+}
+
+model ValorReferenciaAnalito {
+  id        Int     @id @default(autoincrement())
+  analitoId Int
+  especie   Especie
+  minimo    Float?
+  maximo    Float?
+  analito   Analito @relation(fields: [analitoId], references: [id])
+  @@unique([analitoId, especie], name: "analitoId_especie")
+}
+
+model LaboratorialPaciente {
+  id            Int       @id @default(autoincrement())
+  mascotaId     Int
+  tipoEstudioId Int
+  notaClinicaId Int?
+  creadoPorId   Int
+  solicitudId   Int?
+  fechaToma     DateTime?
+  fechaCreacion DateTime  @default(now())
+
+  mascota               Mascota                 @relation(fields: [mascotaId], references: [id])
+  tipoEstudio           TipoEstudioLaboratorial @relation(fields: [tipoEstudioId], references: [id])
+  creadoPor             Perfil                  @relation("LaboratorialesCreados", fields: [creadoPorId], references: [id])
+  notaClinica           NotaClinica?            @relation(fields: [notaClinicaId], references: [id])
+  solicitudLaboratorial SolicitudLaboratorial?  @relation(name: "SolicitudALaboratorio", fields: [solicitudId], references: [id])
+
+  resultados ResultadoAnalito[]
+  archivos   ArchivoLaboratorial[]
+}
+
+model ResultadoAnalito {
+  id             Int     @id @default(autoincrement())
+  laboratorialId Int
+  analitoId      Int?
+  nombreManual   String?
+  valorNumerico  Float?
+  valorTexto     String?
+  observaciones  String?
+
+  laboratorial LaboratorialPaciente @relation(fields: [laboratorialId], references: [id])
+  analito      Analito?             @relation(fields: [analitoId], references: [id])
+  @@unique([laboratorialId, analitoId])
+}

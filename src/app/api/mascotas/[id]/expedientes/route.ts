@@ -53,7 +53,6 @@ export async function GET(
             frecuenciaRespiratoria: true,
             diagnosticoPresuntivo: true,
             pronostico: true,
-            //laboratoriales: true,
             extras: true,
             archivos: true,
             fechaCreacion: true,
@@ -122,7 +121,6 @@ export async function GET(
                 descripcion: true,
               },
             },
-
             solicitudesLaboratoriales: {
               select: {
                 id: true,
@@ -140,6 +138,53 @@ export async function GET(
                     nombre: true,
                     tipo: true,
                     fechaSubida: true,
+                  },
+                },
+              },
+            },
+            laboratoriales: {
+              orderBy: { fechaCreacion: "desc" },
+              select: {
+                id: true,
+                fechaToma: true,
+                fechaCreacion: true,
+                tipoEstudio: {
+                  select: { nombre: true },
+                },
+                solicitudLaboratorial: {
+                  select: {
+                    id: true,
+                    proveedor: true,
+                    archivos: {
+                      select: {
+                        id: true,
+                        url: true,
+                        nombre: true,
+                        tipo: true,
+                        fechaSubida: true,
+                      },
+                    },
+                  },
+                },
+                resultados: {
+                  select: {
+                    id: true,
+                    nombreManual: true,
+                    valorNumerico: true,
+                    valorTexto: true,
+                    observaciones: true,
+                    analito: {
+                      select: {
+                        nombre: true,
+                        unidad: true,
+                        valoresReferencia: {
+                          select: {
+                            minimo: true,
+                            maximo: true,
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },

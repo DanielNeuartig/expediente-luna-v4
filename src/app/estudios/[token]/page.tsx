@@ -16,6 +16,7 @@ import {
   Input,
   Image,
 } from "@chakra-ui/react";
+
 import {
   ClipboardSignature,
   FlaskConical,
@@ -32,13 +33,17 @@ import { toaster } from "@/components/ui/toaster";
 import type { ResultadoMascota } from "@/components/ui/BoxMascota";
 import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
 import { estilosInputBase } from "@/components/ui/config/estilosInputBase";
-
+import DrawerResultadosGPT from "@/components/ui/laboratorio/DrawerResultadosGPT";
 type ArchivoLaboratorial = {
   id: number;
   url: string;
   nombre: string;
   tipo: string;
   fechaSubida: string;
+};
+type ResultadoGPT = {
+  nombre: string;
+  valor: number | null;
 };
 
 const TIPOS_PERMITIDOS = [
@@ -58,6 +63,10 @@ type SolicitudLaboratorialPlano = {
 };
 
 export default function DemoUploadConBorrado() {
+const [resultadosAnalisis, setResultadosAnalisis] = useState<{
+  datos: ResultadoGPT[];
+} | null>(null);
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [autenticado, setAutenticado] = useState(false);
   const [codigoIngresado, setCodigoIngresado] = useState("");
   const [subiendo, setSubiendo] = useState(false);
@@ -608,7 +617,6 @@ export default function DemoUploadConBorrado() {
                             bg="tema.llamativo"
                             color="tema.claro"
                             size="sm"
-                            // variant="outline"
                             onClick={async () => {
                               try {
                                 const res = await fetch(
@@ -632,6 +640,73 @@ export default function DemoUploadConBorrado() {
                             Ver
                           </Button>
 
+                          {solicitud?.proveedor === "ELDOC" && (
+                            <Button
+                              animation="floatGlow"
+                              bg="tema.llamativo"
+                              color="white"
+                              size="sm"
+                              borderRadius="xl"
+                              //variant="outline"
+                              onClick={async () => {
+                                const toastId = toaster.create({
+                                  description: "Analizando con IA...",
+                                  type: "loading",
+                                });
+
+                                try {
+                                  const res = await fetch(
+                                    "/api/procesarTemporal",
+                                    {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "application/json",
+                                      },
+                                      body: JSON.stringify({
+                                        token,
+                                        id: archivo.id,
+                                      }),
+                                    }
+                                  );
+                                  console.log("📬 Status:", res.status);
+                                  // console.log("📦 Resultado JSON:", resultado);
+                                  console.log("🔓 Abriendo drawer...");
+
+                                  if (res.ok) {
+                                    const json = await res.json();
+                                    setResultadosAnalisis(json); // ✅ Guarda resultado
+                                    console.log("RESULTADO!!!!:", json);
+                                    console.log(
+                                      "RESULTADO!!!!2:",
+                                      resultadosAnalisis
+                                    );
+                                    setDrawerAbierto(true); // ✅ Solo abre el drawer si res.ok
+                                    toaster.dismiss(toastId);
+                                    toaster.create({
+                                      description:
+                                        "Análisis completado exitosamente",
+                                      type: "success",
+                                    });
+                                  } else {
+                                    throw new Error("Fallo en el análisis");
+                                  }
+                                } catch (e) {
+                                  console.error(
+                                    "Error al analizar con GPT:",
+                                    e
+                                  );
+                                  toaster.dismiss(toastId);
+                                  toaster.create({
+                                    description: "Error al analizar el archivo",
+                                    type: "error",
+                                  });
+                                }
+                              }}
+                            >
+                              Analizar
+                            </Button>
+                          )}
+
                           <Button
                             bg="tema.rojo"
                             color="tema.claro"
@@ -647,7 +722,6 @@ export default function DemoUploadConBorrado() {
                                 if (!res.ok)
                                   throw new Error("Error al borrar archivo");
 
-                                // Actualizar archivos en estado
                                 setArchivosCargados((prev) =>
                                   prev.filter((a) => a.id !== archivo.id)
                                 );
@@ -677,6 +751,16 @@ export default function DemoUploadConBorrado() {
           </Box>
         </Box>
       </Box>
+      {mascota && solicitud && (
+        <DrawerResultadosGPT
+          isOpen={drawerAbierto}
+          onClose={() => setDrawerAbierto(false)}
+          resultados={resultadosAnalisis}
+          mascota={mascota}
+          solicitudId={solicitud.id}
+          fechaToma={solicitud.fechaTomaDeMuestra}
+        />
+      )}
     </FondoConBotones>
   );
 }

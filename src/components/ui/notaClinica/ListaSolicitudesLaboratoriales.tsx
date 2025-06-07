@@ -222,7 +222,7 @@ export default function ListasolicitudesLaboratoriales() {
           bg="tema.suave"
           onClick={() =>
             append({
-              estudio: "BH",
+              estudio: "Biometria Hematica",
               proveedor: "ELDOC",
               observacionesClinica: "",
               fechaTomaDeMuestra: formatoDatetimeLocal(new Date()),
