@@ -12,6 +12,7 @@ export type ResultadoAnalitoCompleto = {
     valoresReferencia: {
       minimo: number | null;
       maximo: number | null;
+      especie: string; // ✅ Añadir esta línea
     }[];
   } | null;
 };

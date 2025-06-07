@@ -179,6 +179,7 @@ export async function GET(
                         unidad: true,
                         valoresReferencia: {
                           select: {
+                            especie: true, // ✅ importante
                             minimo: true,
                             maximo: true,
                           },

@@ -28,6 +28,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { estilosInputBase } from "../config/estilosInputBase";
 import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
+import { useState } from "react"; // ya lo tienes implícito
 
 export type ResultadoMascota = {
   id: number;
@@ -108,7 +109,7 @@ type ResultadoGPT = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-resultados: { datos: ResultadoGPT[] } | null;
+  resultados: { datos: ResultadoGPT[] } | null;
   mascota: ResultadoMascota;
   tipoEstudioId?: string;
   solicitudId?: number;
@@ -124,6 +125,7 @@ export default function DrawerResultadosGPT({
   tipoEstudioId,
   fechaToma,
 }: Props) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const methods = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: { resultados: [] },
@@ -164,6 +166,8 @@ export default function DrawerResultadosGPT({
   }, [resultados, reset]);
 
   const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true); // 👈 deshabilita botones
+
     try {
       const payload = {
         solicitudId,
@@ -186,9 +190,11 @@ export default function DrawerResultadosGPT({
       }
 
       console.log("✅ Laboratorial creado:", json.laboratorial);
-      onClose(); // cerrar el Drawer si todo salió bien
+      onClose();
     } catch (error) {
       console.error("Error en la solicitud:", error);
+    } finally {
+      setIsSubmitting(false); // ✅ reactiva si quieres permitir reintento
     }
   };
 
@@ -201,7 +207,7 @@ export default function DrawerResultadosGPT({
       <Portal>
         <DrawerBackdrop />
         <DrawerPositioner>
-          <DrawerContent maxW="2xl" bg="tema.intenso">
+          <DrawerContent maxW="2xl" bg="tema.intenso" maxH="100dvh">
             <DrawerHeader>
               <BoxMascota mascota={mascota} />
               <Badge
@@ -219,7 +225,7 @@ export default function DrawerResultadosGPT({
 
             <FormProvider {...methods}>
               <form onSubmit={handleSubmit(onSubmit)}>
-                <DrawerBody>
+                <DrawerBody overflowY="auto" maxH="calc(100dvh - 12rem)" px={6}>
                   <Fieldset.Root>
                     <Grid
                       templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
@@ -300,9 +306,6 @@ export default function DrawerResultadosGPT({
                       </VStack>
                     </Grid>
                   </Fieldset.Root>
-                </DrawerBody>
-
-                <DrawerFooter>
                   <Button
                     variant="outline"
                     bg="tema.rojo"
@@ -311,6 +314,7 @@ export default function DrawerResultadosGPT({
                       reset();
                       onClose();
                     }}
+                    disabled={isSubmitting} // 👈 aquí
                   >
                     Cancelar
                   </Button>
@@ -319,11 +323,14 @@ export default function DrawerResultadosGPT({
                     type="submit"
                     colorScheme="teal"
                     ml={1}
-                    disabled={!isValid}
+                    disabled={!isValid || isSubmitting} // 👈 aquí
+                    loading={isSubmitting} // 👈 muestra spinner opcional
                   >
                     Guardar
                   </Button>
-                </DrawerFooter>
+                </DrawerBody>
+
+                <DrawerFooter></DrawerFooter>
               </form>
             </FormProvider>
 

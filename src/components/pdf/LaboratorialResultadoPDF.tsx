@@ -9,9 +9,6 @@ import {
   Image,
 } from "@react-pdf/renderer";
 
-
-
-
 export type DatosMascota = {
   nombre: string;
   especie: string;
@@ -21,7 +18,10 @@ export type DatosMascota = {
   esterilizado: string;
 };
 
-function calcularEdad(fechaNacimiento: string, fechaReferencia: string): string {
+function calcularEdad(
+  fechaNacimiento: string,
+  fechaReferencia: string
+): string {
   const nacimiento = new Date(fechaNacimiento);
   const ref = new Date(fechaReferencia);
 
@@ -64,13 +64,17 @@ export default function LaboratorialResultadosPDF({
           <View style={styles.clinicaInfo}>
             <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
             <Text style={styles.subheader}>
-              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara, Jal.
+              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240
+              Guadalajara, Jal.
             </Text>
             <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
             <Text style={styles.subheader}>
-              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 · domingos de 11 a 1
+              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3
+              · domingos de 11 a 1
             </Text>
-            <Text style={styles.subheader}>www.eldoc.vet · contacto@eldoc.vet</Text>
+            <Text style={styles.subheader}>
+              www.eldoc.vet · contacto@eldoc.vet
+            </Text>
           </View>
         </View>
 
@@ -84,7 +88,9 @@ export default function LaboratorialResultadosPDF({
           <>
             <Text>
               Fecha de nacimiento:{" "}
-              {new Date(datosMascota.fechaNacimiento).toLocaleDateString("es-MX")}
+              {new Date(datosMascota.fechaNacimiento).toLocaleDateString(
+                "es-MX"
+              )}
             </Text>
             <Text>
               Edad al momento del estudio:{" "}
@@ -101,9 +107,7 @@ export default function LaboratorialResultadosPDF({
         <View style={styles.linea} />
 
         <Text style={styles.title}>Resultados laboratoriales</Text>
-        <Text>
-          Estudio: {laboratorial.tipoEstudio.nombre}
-        </Text>
+        <Text>Estudio: {laboratorial.tipoEstudio.nombre}</Text>
         <Text>
           Fecha de toma:{" "}
           {new Date(
@@ -127,15 +131,51 @@ export default function LaboratorialResultadosPDF({
               res.valorNumerico !== null
                 ? `${res.valorNumerico} ${unidad}`
                 : res.valorTexto ?? "(no disponible)";
-            const min =
-              res.analito?.valoresReferencia?.[0]?.minimo?.toString() ?? "-";
-            const max =
-              res.analito?.valoresReferencia?.[0]?.maximo?.toString() ?? "-";
+
+            const valorRef = res.analito?.valoresReferencia?.find(
+              (vr) => vr.especie === datosMascota.especie
+            );
+
+            const min = valorRef?.minimo?.toString() ?? "-";
+            const max = valorRef?.maximo?.toString() ?? "-";
+
+            let alteracionTexto = "";
+            let valorMostrado = valor;
+
+            if (res.valorNumerico !== null && valorRef) {
+              const valorNum = res.valorNumerico;
+              const min = valorRef.minimo;
+              const max = valorRef.maximo;
+
+              if (max !== null && valorNum > max) {
+                const porcentaje = (((valorNum - max) / max) * 100).toFixed(1);
+                alteracionTexto = `↑aumentado un ${porcentaje}%`;
+              } else if (min !== null && valorNum < min) {
+                const porcentaje = (((min - valorNum) / min) * 100).toFixed(1);
+                alteracionTexto = `↓disminuido un ${porcentaje}%`;
+              }
+
+              if (alteracionTexto) {
+                valorMostrado = `${valorNum} ${unidad} ${alteracionTexto}`;
+              }
+            }
 
             return (
               <View key={i} style={styles.fila}>
                 <Text style={styles.columnaNombre}>{nombre}</Text>
-                <Text style={styles.columnaValor}>{valor}</Text>
+                <Text
+                  style={{
+                    ...styles.columnaValor,
+                    ...(alteracionTexto.startsWith("↑")
+                      ? styles.valorAlto
+                      : {}),
+                    ...(alteracionTexto.startsWith("↓")
+                      ? styles.valorBajo
+                      : {}),
+                  }}
+                >
+                  {valorMostrado}
+                </Text>
                 <Text style={styles.columnaValorRef}>{min}</Text>
                 <Text style={styles.columnaValorRef}>{max}</Text>
               </View>
@@ -144,7 +184,8 @@ export default function LaboratorialResultadosPDF({
         </View>
 
         <Text style={{ marginTop: 12 }}>
-          Interpretación clínica sujeta a revisión por el médico veterinario tratante.
+          Interpretación clínica sujeta a revisión por el médico veterinario
+          tratante.
         </Text>
       </Page>
     </Document>
@@ -202,7 +243,7 @@ const styles = StyleSheet.create({
     borderColor: "#999",
     borderStyle: "solid",
     paddingVertical: 2,
-    fontSize:10
+    fontSize: 10,
   },
   fila: {
     flexDirection: "row",
@@ -218,6 +259,24 @@ const styles = StyleSheet.create({
   columnaValor: {
     width: "25%",
     paddingHorizontal: 4,
+  },
+  valorAlterado: {
+    color: "#b91c1c", // rojo fuerte
+    fontWeight: "bold",
+    backgroundColor: "#fee2e2",
+    borderRadius: 2,
+  },
+  valorAlto: {
+    color: "#b91c1c", // rojo intenso
+    fontWeight: "bold",
+    backgroundColor: "#fee2e2", // rojo claro
+    borderRadius: 2,
+  },
+  valorBajo: {
+    color: "#1e40af", // azul intenso
+    fontWeight: "bold",
+    backgroundColor: "#e0f2fe", // azul claro
+    borderRadius: 2,
   },
   columnaValorRef: {
     width: "20%",
