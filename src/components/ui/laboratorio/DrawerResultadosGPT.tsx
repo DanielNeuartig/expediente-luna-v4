@@ -114,6 +114,7 @@ type Props = {
   tipoEstudioId?: string;
   solicitudId?: number;
   fechaToma?: string;
+  estudio?: string;
 };
 
 export default function DrawerResultadosGPT({
@@ -131,6 +132,7 @@ export default function DrawerResultadosGPT({
     defaultValues: { resultados: [] },
     mode: "onChange",
   });
+
 
   const {
     control,
@@ -227,10 +229,7 @@ export default function DrawerResultadosGPT({
               <form onSubmit={handleSubmit(onSubmit)}>
                 <DrawerBody overflowY="auto" maxH="calc(100dvh - 12rem)" px={6}>
                   <Fieldset.Root>
-                    <Grid
-                      templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
-                      gap={2}
-                    >
+                    <Grid templateColumns="repeat(2, 1fr)" gap={2}>
                       {/* Columna 1 */}
                       <VStack gap={1} align="stretch">
                         {analitosEsperadosColumna1.map((nombre) => {

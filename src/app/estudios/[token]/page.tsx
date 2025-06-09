@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { LuUpload } from "react-icons/lu";
 import { useState, useEffect } from "react";
-import FondoConBotones from "@/components/ui/fondos/FondoConBotones";
+import FondoSinBotones from "@/components/ui/fondos/FondoSinBotones";
 import BoxMascota from "@/components/ui/BoxMascota";
 import { useParams } from "next/navigation";
 import { toaster } from "@/components/ui/toaster";
@@ -57,15 +57,16 @@ const LIMITE_MB = 5;
 type SolicitudLaboratorialPlano = {
   id: number;
   estudio?: string;
+  tipoEstudioId?: number; // ✅ nuevo
   proveedor: string;
   observacionesClinica?: string;
   fechaTomaDeMuestra: string;
 };
 
 export default function DemoUploadConBorrado() {
-const [resultadosAnalisis, setResultadosAnalisis] = useState<{
-  datos: ResultadoGPT[];
-} | null>(null);
+  const [resultadosAnalisis, setResultadosAnalisis] = useState<{
+    datos: ResultadoGPT[];
+  } | null>(null);
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [autenticado, setAutenticado] = useState(false);
   const [codigoIngresado, setCodigoIngresado] = useState("");
@@ -85,6 +86,7 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nuevos = e.target.files ? Array.from(e.target.files) : [];
+
     const validos = nuevos.filter((archivo) => {
       if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
         toaster.create({
@@ -102,7 +104,25 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
       }
       return true;
     });
-    setArchivos((prev) => [...prev, ...validos]);
+
+    setArchivos((prev) => {
+      const nombresPrevios = new Set(prev.map((a) => a.name));
+      const nuevosUnicos = validos.filter((a) => !nombresPrevios.has(a.name));
+      const combinados = [...prev, ...nuevosUnicos];
+
+      if (archivosCargados.length + combinados.length > 5) {
+        toaster.create({
+          description: `Máximo 5 archivos en total (ya hay ${archivosCargados.length} subidos)`,
+          type: "warning",
+        });
+        return prev;
+      }
+
+      return combinados;
+    });
+
+    // Limpia el input para evitar problemas si el usuario selecciona el mismo archivo dos veces
+    e.target.value = "";
   };
 
   const eliminarArchivo = (index: number) => {
@@ -145,6 +165,7 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
             proveedor: rawSolicitud.proveedor,
             observacionesClinica: rawSolicitud.observacionesClinica,
             fechaTomaDeMuestra: rawSolicitud.fechaTomaDeMuestra,
+            tipoEstudioId: rawSolicitud.estudio?.id ?? undefined, // 👈 aquí extraes el ID
           });
           if (rawSolicitud.archivos) {
             setArchivosCargados(rawSolicitud.archivos);
@@ -242,7 +263,7 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
 
   if (!autenticado) {
     return (
-      <FondoConBotones>
+      <FondoSinBotones>
         <Stack
           minH="100vh"
           justify="center"
@@ -304,11 +325,11 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
             </Stack>
           </Box>
         </Stack>
-      </FondoConBotones>
+      </FondoSinBotones>
     );
   }
   return (
-    <FondoConBotones>
+    <FondoSinBotones>
       <Box
         display="flex"
         justifyContent="center"
@@ -599,150 +620,156 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
                       borderRadius="xl"
                       bg="gray.50"
                     >
-                      <HStack justify="space-between">
-                        <VStack align="start" gap={0}>
-                          <Text fontWeight="bold" color="tema.intenso">
-                            {archivo.nombre}
-                          </Text>
-                          <Text fontSize="sm" color="gray.500">
-                            {archivo.tipo} · Subido el{" "}
-                            {new Date(archivo.fechaSubida).toLocaleDateString(
-                              "es-MX"
-                            )}
-                          </Text>
-                        </VStack>
+                      <Box
+                        key={archivo.id}
+                        p={3}
+                        w="full"
+                        borderWidth="1px"
+                        borderRadius="xl"
+                        bg="gray.50"
+                      >
+                        <VStack align="start" gap={3}>
+                          {/* Nombre y fecha */}
+                          <Box>
+                            <Text fontWeight="bold" color="tema.intenso">
+                              {archivo.nombre}
+                            </Text>
+                            <Text fontSize="sm" color="gray.500">
+                              {archivo.tipo} · Subido el{" "}
+                              {new Date(archivo.fechaSubida).toLocaleDateString(
+                                "es-MX"
+                              )}
+                            </Text>
+                          </Box>
 
-                        <HStack gap={2}>
-                          <Button
-                            bg="tema.llamativo"
-                            color="tema.claro"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                const res = await fetch(
-                                  `/api/estudios/${token}/archivo/${archivo.id}/url`
-                                );
-                                if (!res.ok)
-                                  throw new Error(
-                                    "No se pudo obtener la URL del archivo"
-                                  );
-                                const { url } = await res.json();
-                                window.open(url, "_blank");
-                              } catch (e) {
-                                console.error("Error al abrir archivo:", e);
-                                toaster.create({
-                                  description: "No se pudo abrir el archivo",
-                                  type: "error",
-                                });
-                              }
-                            }}
-                          >
-                            Ver
-                          </Button>
-
-                          {solicitud?.proveedor === "ELDOC" && (
+                          {/* Botones en fila debajo */}
+                          <HStack gap={2} wrap="wrap">
                             <Button
-                              animation="floatGlow"
                               bg="tema.llamativo"
-                              color="white"
+                              color="tema.claro"
                               size="sm"
-                              borderRadius="xl"
-                              //variant="outline"
                               onClick={async () => {
-                                const toastId = toaster.create({
-                                  description: "Analizando con IA...",
-                                  type: "loading",
-                                });
-
                                 try {
                                   const res = await fetch(
-                                    "/api/procesarTemporal",
-                                    {
-                                      method: "POST",
-                                      headers: {
-                                        "Content-Type": "application/json",
-                                      },
-                                      body: JSON.stringify({
-                                        token,
-                                        id: archivo.id,
-                                      }),
-                                    }
+                                    `/api/estudios/${token}/archivo/${archivo.id}/url`
                                   );
-                                  console.log("📬 Status:", res.status);
-                                  // console.log("📦 Resultado JSON:", resultado);
-                                  console.log("🔓 Abriendo drawer...");
-
-                                  if (res.ok) {
-                                    const json = await res.json();
-                                    setResultadosAnalisis(json); // ✅ Guarda resultado
-                                    console.log("RESULTADO!!!!:", json);
-                                    console.log(
-                                      "RESULTADO!!!!2:",
-                                      resultadosAnalisis
+                                  if (!res.ok)
+                                    throw new Error(
+                                      "No se pudo obtener la URL del archivo"
                                     );
-                                    setDrawerAbierto(true); // ✅ Solo abre el drawer si res.ok
-                                    toaster.dismiss(toastId);
-                                    toaster.create({
-                                      description:
-                                        "Análisis completado exitosamente",
-                                      type: "success",
-                                    });
-                                  } else {
-                                    throw new Error("Fallo en el análisis");
-                                  }
+                                  const { url } = await res.json();
+                                  window.open(url, "_blank");
                                 } catch (e) {
-                                  console.error(
-                                    "Error al analizar con GPT:",
-                                    e
-                                  );
-                                  toaster.dismiss(toastId);
+                                  console.error("Error al abrir archivo:", e);
                                   toaster.create({
-                                    description: "Error al analizar el archivo",
+                                    description: "No se pudo abrir el archivo",
                                     type: "error",
                                   });
                                 }
                               }}
                             >
-                              Analizar
+                              Ver
                             </Button>
-                          )}
 
-                          <Button
-                            bg="tema.rojo"
-                            color="tema.claro"
-                            size="sm"
-                            variant="ghost"
-                            colorScheme="red"
-                            onClick={async () => {
-                              try {
-                                const res = await fetch(
-                                  `/api/estudios/${token}/archivo/${archivo.id}`,
-                                  { method: "DELETE" }
-                                );
-                                if (!res.ok)
-                                  throw new Error("Error al borrar archivo");
+                            {solicitud?.proveedor === "ELDOC" && (
+                              <Button
+                                animation="floatGlow"
+                                bg="tema.llamativo"
+                                color="white"
+                                size="sm"
+                                borderRadius="xl"
+                                onClick={async () => {
+                                  const toastId = toaster.create({
+                                    description: "Analizando con IA...",
+                                    type: "loading",
+                                  });
 
-                                setArchivosCargados((prev) =>
-                                  prev.filter((a) => a.id !== archivo.id)
-                                );
+                                  try {
+                                    const res = await fetch(
+                                      "/api/procesarTemporal",
+                                      {
+                                        method: "POST",
+                                        headers: {
+                                          "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                          token,
+                                          id: archivo.id,
+                                        }),
+                                      }
+                                    );
 
-                                toaster.create({
-                                  description: "Archivo eliminado",
-                                  type: "success",
-                                });
-                              } catch (e) {
-                                console.error("Error al borrar archivo:", e);
-                                toaster.create({
-                                  description: "No se pudo eliminar el archivo",
-                                  type: "error",
-                                });
-                              }
-                            }}
-                          >
-                            Eliminar
-                          </Button>
-                        </HStack>
-                      </HStack>
+                                    if (res.ok) {
+                                      const json = await res.json();
+                                      setResultadosAnalisis(json);
+                                      setDrawerAbierto(true);
+                                      toaster.dismiss(toastId);
+                                      toaster.create({
+                                        description:
+                                          "Análisis completado exitosamente",
+                                        type: "success",
+                                      });
+                                    } else {
+                                      throw new Error("Fallo en el análisis");
+                                    }
+                                  } catch (e) {
+                                    console.error(
+                                      "Error al analizar con GPT:",
+                                      e
+                                    );
+                                    toaster.dismiss(toastId);
+                                    toaster.create({
+                                      description:
+                                        "Error al analizar el archivo",
+                                      type: "error",
+                                    });
+                                  }
+                                }}
+                              >
+                                Analizar
+                              </Button>
+                            )}
+
+                            <Button
+                              bg="tema.rojo"
+                              color="tema.claro"
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(
+                                    `/api/estudios/${token}/archivo/${archivo.id}`,
+                                    {
+                                      method: "DELETE",
+                                    }
+                                  );
+                                  if (!res.ok)
+                                    throw new Error("Error al borrar archivo");
+
+                                  setArchivosCargados((prev) =>
+                                    prev.filter((a) => a.id !== archivo.id)
+                                  );
+
+                                  toaster.create({
+                                    description: "Archivo eliminado",
+                                    type: "success",
+                                  });
+                                } catch (e) {
+                                  console.error("Error al borrar archivo:", e);
+                                  toaster.create({
+                                    description:
+                                      "No se pudo eliminar el archivo",
+                                    type: "error",
+                                  });
+                                }
+                              }}
+                            >
+                              Eliminar
+                            </Button>
+                          </HStack>
+                        </VStack>
+                      </Box>
                     </Box>
                   ))}
                 </VStack>
@@ -759,8 +786,9 @@ const [resultadosAnalisis, setResultadosAnalisis] = useState<{
           mascota={mascota}
           solicitudId={solicitud.id}
           fechaToma={solicitud.fechaTomaDeMuestra}
+          tipoEstudioId={solicitud.tipoEstudioId?.toString()} // 👈 importante que sea string si tu prop lo espera así
         />
       )}
-    </FondoConBotones>
+    </FondoSinBotones>
   );
 }
