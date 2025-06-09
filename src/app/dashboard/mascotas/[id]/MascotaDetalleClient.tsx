@@ -302,42 +302,55 @@ export default function MascotaDetalleClient({
                     )
                     .map((lab: LaboratorialConResultados) => (
                       <Box key={lab.id}>
-                      <Button
-                        variant="outline"
-                        colorScheme="teal"
-                        onClick={async () => {
-                          console.log("Resultados con analito:", lab.resultados);
-                          const blob = await pdf(
-                            <LaboratorialResultadosPDF
-                              laboratorial={{
-                                id: lab.id,
-                                fechaToma: lab.fechaToma,
-                                fechaCreacion: lab.fechaCreacion,
-                                tipoEstudio: lab.tipoEstudio,
-                                resultados: lab.resultados,
-                              }}
-                              datosMascota={{
-                                nombre: mascota.nombre,
-                                especie: mascota.especie,
-                                raza: mascota.raza?.nombre,
-                                fechaNacimiento: mascota.fechaNacimiento,
-                                sexo: mascota.sexo,
-                                esterilizado: mascota.esterilizado,
-                              }}
-                            />
-                          ).toBlob();
+                        <Button
+                        borderRadius={"xl"}
+                          bg="tema.rojo"
+                          color="tema.claro"
+                          fontWeight={"bold"}
+                          colorScheme="teal"
+                          onClick={async () => {
+                            console.log(
+                              "Resultados con analito:",
+                              lab.resultados
+                            );
+                            const blob = await pdf(
+                              <LaboratorialResultadosPDF
+                                laboratorial={{
+                                  id: lab.id,
+                                  fechaToma: lab.fechaToma,
+                                  fechaCreacion: lab.fechaCreacion,
+                                  tipoEstudio: lab.tipoEstudio,
+                                  resultados: lab.resultados,
+                                }}
+                                datosMascota={{
+                                  nombre: mascota.nombre,
+                                  especie: mascota.especie,
+                                  raza: mascota.raza?.nombre,
+                                  fechaNacimiento: mascota.fechaNacimiento,
+                                  sexo: mascota.sexo,
+                                  esterilizado: mascota.esterilizado,
+                                }}
+                              />
+                            ).toBlob();
 
-                          const url = URL.createObjectURL(blob);
-                          window.open(url, "_blank");
-                        }}
-                      >
-                        Estudio: {lab.tipoEstudio?.nombre ?? "Sin nombre"} ·{" "}
-                        {lab.fechaToma
-                          ? new Date(lab.fechaToma).toLocaleDateString("es-MX")
-                          : "Sin fecha"}
-                      </Button>
-                    </Box>
-                  ))}
+                            const url = URL.createObjectURL(blob);
+                            window.open(url, "_blank");
+                          }}
+                        >
+                          {lab.tipoEstudio?.nombre ?? "Sin nombre"} ·{" "}
+                          {lab.fechaToma
+                            ? new Date(lab.fechaToma).toLocaleString("es-MX", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false, // ⬅️ 24h (usa true si prefieres AM/PM)
+                              })
+                            : "Sin fecha"}
+                        </Button>
+                      </Box>
+                    ))}
                 </Box>
               )}
             </Tabs.Content>
