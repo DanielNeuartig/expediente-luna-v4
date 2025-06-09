@@ -105,7 +105,7 @@ export default function MedicamentoItemNatural({
     <Box
     position="relative" // 🟡 Añade esto
       borderWidth="2px"
-      p="4"
+      p="1"
       rounded="md"
       borderColor="tema.llamativo"
       bg="blue.50"
@@ -122,6 +122,7 @@ export default function MedicamentoItemNatural({
             size="sm"
             {...estilosInputBase}
             {...register(`medicamentos.${index}.nombre`)}
+            
           />
         </HStack>
       </Field.Root>

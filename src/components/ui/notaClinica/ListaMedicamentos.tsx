@@ -40,7 +40,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
         //const modo = item?.modo ?? "clasico";
 
         return (
-          <Box key={field.id} mb={4}>
+          <Box key={field.id} mb={1}>
            {/*{modo === "clasico" ? (
               <MedicamentoItemActual
                 index={index}
@@ -66,7 +66,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
         );
       })}
 
-      <Box mt={4}>
+      <Box mt={1}>
         {/*<Button
           {...estilosBotonEspecial}
           onClick={() =>
@@ -92,7 +92,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
           fontSize={"lg"}
           {...estilosBotonEspecial}
           type="button"
-          mb={2}
+          mb={1}
           fontWeight={"bold"}
           onClick={() =>
             append({
@@ -118,7 +118,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
           fontSize="sm"
           {...estilosBotonEspecial}
           onClick={() => append(generarKitDermatitis())}
-          mb={2}
+          mb={1}
           borderRadius="xl"
         >
           <Pill />

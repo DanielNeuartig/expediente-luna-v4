@@ -1,48 +1,39 @@
 // src/data/combosMedicamentos.ts
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 
-function sumarDias(base: Date, dias: number): Date {
+function sumarHoras(base: Date, horas: number): Date {
   const nueva = new Date(base);
-  nueva.setDate(nueva.getDate() + dias);
+  nueva.setHours(nueva.getHours() + horas);
   return nueva;
 }
 
 export function generarKitDermatitis(): NotaClinicaValues["medicamentos"] {
   const inicio = new Date();
 
-  return [
-    {
-      nombre: "Prednisona",
-      dosis: "",
-      via: "ORAL",
-      frecuenciaHoras: 12,
-      duracionDias: 5,
-      desde: inicio,
-      tiempoIndefinido: "false",
-      paraCasa: "true",
-     //  modo: "natural",
-    },
-    {
-      nombre: "Prednisona",
-      dosis: "",
-      via: "ORAL",
-      frecuenciaHoras: 24,
-      duracionDias: 5,
-      desde: sumarDias(inicio, 6),
-      tiempoIndefinido: "false",
-      paraCasa: "true",
-      // modo: "natural",
-    },
-    {
-      nombre: "Prednisona",
-      dosis: "",
-      via: "ORAL",
-      frecuenciaHoras: 48,
-      duracionDias: 6,
-      desde: sumarDias(inicio, 12),
-      tiempoIndefinido: "false",
-      paraCasa: "true",
-     //  modo: "natural",
-    },
-  ];
+  const prednisona1 = {
+    nombre: "Prednisona",
+    dosis: "",
+    via: "ORAL" as const,
+    frecuenciaHoras: 12,
+    duracionDias: 5,
+    desde: inicio,
+    tiempoIndefinido: "false" as const,
+    paraCasa: "true" as const,
+  };
+
+  const prednisona2 = {
+    ...prednisona1,
+    frecuenciaHoras: 24,
+    duracionDias: 5,
+    desde: sumarHoras(prednisona1.desde, prednisona1.duracionDias * prednisona1.frecuenciaHoras),
+  };
+
+  const prednisona3 = {
+    ...prednisona1,
+    frecuenciaHoras: 48,
+    duracionDias: 10,
+    desde: sumarHoras(prednisona2.desde, prednisona2.duracionDias * prednisona2.frecuenciaHoras),
+  };
+
+  return [prednisona1, prednisona2, prednisona3];
 }
