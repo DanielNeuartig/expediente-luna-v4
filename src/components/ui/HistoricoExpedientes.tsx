@@ -181,6 +181,7 @@ export default function HistoricoExpedientes({
                         ? ""
                         : "pulseCloud"
                     }
+                    
                     color="tema.claro"
                   >
                     <Table.Cell colSpan={4}>

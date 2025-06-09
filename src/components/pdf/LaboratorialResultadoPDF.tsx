@@ -149,10 +149,10 @@ export default function LaboratorialResultadosPDF({
 
               if (max !== null && valorNum > max) {
                 const porcentaje = (((valorNum - max) / max) * 100).toFixed(1);
-                alteracionTexto = `↑aumentado un ${porcentaje}%`;
+                alteracionTexto = `(AUMENTADO ${porcentaje}%)`;
               } else if (min !== null && valorNum < min) {
                 const porcentaje = (((min - valorNum) / min) * 100).toFixed(1);
-                alteracionTexto = `↓disminuido un ${porcentaje}%`;
+                alteracionTexto = `(DISMINUIDO ${porcentaje}%)`;
               }
 
               if (alteracionTexto) {
@@ -166,10 +166,10 @@ export default function LaboratorialResultadosPDF({
                 <Text
                   style={{
                     ...styles.columnaValor,
-                    ...(alteracionTexto.startsWith("↑")
+                    ...(alteracionTexto.startsWith("(AUMENTADO")
                       ? styles.valorAlto
                       : {}),
-                    ...(alteracionTexto.startsWith("↓")
+                    ...(alteracionTexto.startsWith("(DISMINUIDO")
                       ? styles.valorBajo
                       : {}),
                   }}
