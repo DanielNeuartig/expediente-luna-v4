@@ -20,28 +20,58 @@ export async function POST(req: Request) {
     });
 
     if (!solicitud) {
-      return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Solicitud no encontrada" },
+        { status: 404 }
+      );
     }
 
     if (!solicitud.estudio) {
-      return NextResponse.json({ error: "La solicitud no tiene tipo de estudio" }, { status: 400 });
+      return NextResponse.json(
+        { error: "La solicitud no tiene tipo de estudio" },
+        { status: 400 }
+      );
     }
 
+    // Tabla de alias de estudios → nombre real en DB
+    const aliasEstudios: Record<string, string> = {
+      BH: "Biometría Hemática",
+    };
+
+    // Normaliza nombre del estudio a partir de alias
+    const estudioSolicitado = solicitud.estudio.trim().toUpperCase();
+    const nombreEstudio =
+      aliasEstudios[estudioSolicitado] ?? solicitud.estudio.trim();
+
     const tipoEstudio = await prisma.tipoEstudioLaboratorial.findFirst({
-      where: { nombre: solicitud.estudio },
+      where: {
+        nombre: {
+          equals: nombreEstudio,
+          mode: "insensitive", // permite mayúsculas/minúsculas
+        },
+      },
     });
 
     if (!tipoEstudio) {
-      return NextResponse.json({ error: `Tipo de estudio '${solicitud.estudio}' no encontrado` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Tipo de estudio '${solicitud.estudio}' no encontrado` },
+        { status: 400 }
+      );
     }
 
     const mascotaId = solicitud.notaClinica?.expediente?.mascotaId;
     if (!mascotaId) {
-      return NextResponse.json({ error: "No se puede determinar la mascota asociada" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No se puede determinar la mascota asociada" },
+        { status: 400 }
+      );
     }
 
     if (!solicitud.notaClinica?.autorId) {
-      return NextResponse.json({ error: "No se puede determinar el autor de la nota clínica" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No se puede determinar el autor de la nota clínica" },
+        { status: 400 }
+      );
     }
 
     // Obtener todos los analitos válidos para este tipo de estudio
@@ -86,6 +116,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, laboratorial });
   } catch (error) {
     console.error("Error al crear resultado laboratorial:", error);
-    return NextResponse.json({ error: "Error al crear resultado laboratorial" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error al crear resultado laboratorial" },
+      { status: 500 }
+    );
   }
 }
