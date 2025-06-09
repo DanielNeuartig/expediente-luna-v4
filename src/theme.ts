@@ -10,6 +10,37 @@ import "@fontsource-variable/geologica";
 export const system = createSystem(defaultConfig, {
   theme: {
     keyframes: {
+      parpadeoLateral: {
+        "0%": {
+          transform: "translateX(0)",
+          boxShadow: "0 0 0px #FFC107",
+        },
+        "50%": {
+          transform: "translateX(2px)",
+          boxShadow: "2px 0 10px #FFC107",
+        },
+        "100%": {
+          transform: "translateX(0)",
+          boxShadow: "0 0 0px #FFC107",
+        },
+      },
+      alertaNotaRevision: {
+        "0%": {
+          transform: "translateY(0px)",
+          backgroundColor: "#FFC107", // amarillo suave
+          boxShadow: "0 0 0px #FFC107",
+        },
+        "50%": {
+          transform: "translateY(-3px)",
+          backgroundColor: "#FFC107", // más brillante
+          boxShadow: "0 0 12px #FFC107",
+        },
+        "100%": {
+          transform: "translateY(0px)",
+          backgroundColor: "#FFC107",
+          boxShadow: "0 0 0px #FFC107",
+        },
+      },
       fadeInUp: {
         "0%": {
           transform: "translateY(30px)",
@@ -41,8 +72,8 @@ export const system = createSystem(defaultConfig, {
           opacity: "1",
         },
         "50%": {
-          transform: "scale(1.06)",
-          opacity: "0.8",
+          transform: "scale(1.03)",
+          opacity: "1",
         },
         "100%": {
           transform: "scale(1)",
@@ -52,6 +83,12 @@ export const system = createSystem(defaultConfig, {
     },
     tokens: {
       animations: {
+        parpadeoLateral: {
+          value: "parpadeoLateral 1.4s ease-in-out infinite",
+        },
+        alertaNotaRevision: {
+          value: "alertaNotaRevision 1.6s ease-in-out infinite",
+        },
         fadeInUp: {
           value: "fadeInUp .8s ease-out forwards",
         },

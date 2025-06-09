@@ -174,6 +174,13 @@ export default function HistoricoExpedientes({
                         ? "tema.rojo"
                         : "gray.400"
                     }
+                    animation={
+                      nota.estado === "FINALIZADA"
+                        ? ""
+                        : nota.estado === "ANULADA"
+                        ? ""
+                        : "pulseCloud"
+                    }
                     color="tema.claro"
                   >
                     <Table.Cell colSpan={4}>
