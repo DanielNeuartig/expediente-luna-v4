@@ -44,6 +44,13 @@ type Props = {
     esterilizado: string;
   };
   perfilActualId: number; // ✅ Nuevo prop requerido
+  tutor: {
+    id: number;
+    nombre: string;
+    prefijo: string;
+    clave: string;
+    telefonoPrincipal: string;
+  } | null;
 };
 function obtenerEstilosAplicacion(estado: string) {
   switch (estado) {
@@ -64,6 +71,7 @@ export default function HistoricoExpedientes({
   expedienteSeleccionado,
   datosMascota,
   perfilActualId, // ✅ recibido aquí
+  tutor,
 }: Props) {
   const crearNotaClinica = useCrearNotaClinica();
   const [filtro, setFiltro] = useState<"todas" | "activas" | "anuladas">(
@@ -181,7 +189,6 @@ export default function HistoricoExpedientes({
                         ? ""
                         : "pulseCloud"
                     }
-                    
                     color="tema.claro"
                   >
                     <Table.Cell colSpan={4}>
@@ -642,7 +649,76 @@ export default function HistoricoExpedientes({
                                     }}
                                   >
                                     📎 {a.nombre} ({a.tipo})
-                                  </Button>{" "}
+                                  </Button>
+                                  {tutor && (
+                                    <Box
+                                      mt={2}
+                                      display="flex"
+                                      justifyContent="flex-end"
+                                    >
+                                      <Button
+                                        size="sm"
+                                        colorScheme="green"
+                                        bg="tema.verde"
+                                        color="tema.claro"
+                                        onClick={async () => {
+                                          const numero = `${tutor.clave}${tutor.telefonoPrincipal}`;
+
+                                          try {
+                                            const res = await fetch(
+                                              `/api/estudios/${sol.tokenAcceso}/archivo/${a.id}/url`
+                                            );
+
+                                            if (!res.ok) {
+                                              const error = await res.json();
+                                              throw new Error(
+                                                error?.error ??
+                                                  "No se pudo obtener la URL firmada"
+                                              );
+                                            }
+
+                                            const { url } = await res.json();
+
+                                            const texto = `¡Hola!
+
+Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
+                                              sol.estudio ?? "laboratorial"
+                                            }_* con fecha de solicitud *_${
+                                              sol.fechaTomaDeMuestra
+                                                ? new Date(
+                                                    sol.fechaTomaDeMuestra
+                                                  ).toLocaleDateString("es-MX")
+                                                : "desconocida"
+                                            }_*.
+*_Esta liga solo estará disponible durante 2 horas_*.
+Te recomendamos descargar el archivo para conservarlo.
+
+${url}
+
+_Gracias por confiar en nosotros_.`;
+
+                                            const waUrl = `https://wa.me/${numero}?text=${encodeURIComponent(
+                                              texto
+                                            )}`;
+
+                                            window.open(waUrl, "_blank");
+                                          } catch (e) {
+                                            console.error(
+                                              "Error al generar link de WhatsApp:",
+                                              e
+                                            );
+                                            toaster.create({
+                                              description:
+                                                "No se pudo generar el mensaje de WhatsApp",
+                                              type: "error",
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        Enviar por WhatsApp
+                                      </Button>
+                                    </Box>
+                                  )}{" "}
                                   —{" "}
                                   <Text as="span" fontSize="sm">
                                     Subido el: {formatearFecha(a.fechaSubida)}

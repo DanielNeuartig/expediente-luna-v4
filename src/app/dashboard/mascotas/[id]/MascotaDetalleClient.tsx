@@ -26,6 +26,13 @@ export default function MascotaDetalleClient({
 }) {
   const { data, isLoading, isError } = useQuery<{
     expedientes: ExpedienteConNotas[];
+    perfil: {
+      id: number;
+      nombre: string;
+      prefijo: string;
+      clave: string;
+      telefonoPrincipal: string;
+    } | null;
   }>({
     queryKey: ["expedientes", mascota.id],
     queryFn: async () => {
@@ -227,6 +234,7 @@ export default function MascotaDetalleClient({
               sexo: mascota.sexo,
               esterilizado: mascota.esterilizado,
             }}
+            tutor={data?.perfil ?? null}
           />
         </TarjetaBase>
       </Box>
@@ -303,7 +311,7 @@ export default function MascotaDetalleClient({
                     .map((lab: LaboratorialConResultados) => (
                       <Box key={lab.id}>
                         <Button
-                        borderRadius={"xl"}
+                          borderRadius={"xl"}
                           bg="tema.rojo"
                           color="tema.claro"
                           fontWeight={"bold"}

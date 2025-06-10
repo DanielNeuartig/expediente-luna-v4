@@ -17,6 +17,21 @@ export async function GET(
   }
 
   try {
+    const mascotaConPerfil = await prisma.mascota.findUnique({
+      where: { id: mascotaId },
+      select: {
+        perfil: {
+          select: {
+            id: true,
+            nombre: true,
+            prefijo: true,
+            clave: true,
+            telefonoPrincipal: true,
+          },
+        },
+      },
+    });
+
     const expedientes = await prisma.expedienteMedico.findMany({
       where: { mascotaId },
       orderBy: { fechaCreacion: "desc" },
@@ -195,7 +210,10 @@ export async function GET(
       },
     });
 
-    return NextResponse.json({ expedientes });
+    return NextResponse.json({
+      expedientes,
+      perfil: mascotaConPerfil?.perfil ?? null,
+    });
   } catch (error) {
     console.error("💥 Error al obtener expedientes:", error);
     return NextResponse.json(

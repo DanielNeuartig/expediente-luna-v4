@@ -217,9 +217,9 @@ export default function RecetaPDF({
             {datosClinicos.pronostico && (
               <Text>Pronóstico: {datosClinicos.pronostico}</Text>
             )}
-            {datosClinicos.laboratoriales && (
+            {/*datosClinicos.laboratoriales?.trim() && (
               <Text>Laboratoriales: {datosClinicos.laboratoriales}</Text>
-            )}
+            )*/}
             {datosClinicos.extras && (
               <Text>Extras: {datosClinicos.extras}</Text>
             )}
