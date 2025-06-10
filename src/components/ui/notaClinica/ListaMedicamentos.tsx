@@ -8,7 +8,7 @@ import { estilosBotonEspecial } from "../config/estilosBotonEspecial";
 //import MedicamentoItemActual from "./MedicamentoItemActual";
 import MedicamentoItemNatural from "./MedicamentoItemNatural";
 import { Plus, Pill } from "lucide-react";
-import { generarKitDermatitis } from "@/data/combosMedicamentos";
+//import { generarKitDermatitis } from "@/data/combosMedicamentos";
 type Props = {
   fechaBase: string;
 };
@@ -114,6 +114,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
           <Pill />
           Medicamento
         </Button>
+        {/*
         <Button
           fontSize="sm"
           {...estilosBotonEspecial}
@@ -123,7 +124,7 @@ export default function ListaMedicamentos({ fechaBase }: Props) {
         >
           <Pill />
           Kit dermatitis (escalonado)
-        </Button>
+        </Button>*/}
 
 
 
