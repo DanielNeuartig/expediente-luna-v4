@@ -9,6 +9,32 @@ import {
   Image,
 } from "@react-pdf/renderer";
 
+const aliasAnalitos: Record<string, string> = {
+  "WBC": "Leucocitos totales",
+  "Neu#": "Neutrófilos",
+  "Lym#": "Linfocitos",
+  "Mon#": "Monocitos",
+  "Eos#": "Eosinófilos",
+  "Neu%": "Neutrófilos (proporción)",
+  "Lym%": "Linfocitos (proporción)",
+  "Mon%": "Monocitos (proporción)",
+  "Eos%": "Eosinófilos (proporción)",
+  "RBC": "Eritrocitos",
+  "HGB": "Hemoglobina",
+  "HCT": "Hematocrito",
+  "MCV": "VCM",
+  "MCH": "HCM",
+  "MCHC": "CHCM",
+  "RDW-CV#": "RDW-CV",
+  "RDW-SD": "RDW-SD",
+  "PLT": "Plaquetas",
+  "MPV": "VPM",
+  "PDW": "Ancho de distribución plaquetario",
+  "PCT": "PCT",
+  "P-LCC": "P-LCC",
+  "P-LCR": "P-LCR",
+};
+
 export type DatosMascota = {
   nombre: string;
   especie: string;
@@ -64,13 +90,11 @@ export default function LaboratorialResultadosPDF({
           <View style={styles.clinicaInfo}>
             <Text style={styles.header}>ELDOC | Centro Veterinario</Text>
             <Text style={styles.subheader}>
-              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240
-              Guadalajara, Jal.
+              Dirección: Av. Fidel Velazquez 288-4, San Elías, 44240 Guadalajara, Jal.
             </Text>
             <Text style={styles.subheader}>Teléfono: 33 1485 8130</Text>
             <Text style={styles.subheader}>
-              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3
-              · domingos de 11 a 1
+              Horario: lunes a viernes de 10 a 2 y de 4 a 7 · Sábados de 10 a 3 · domingos de 11 a 1
             </Text>
             <Text style={styles.subheader}>
               www.eldoc.vet · contacto@eldoc.vet
@@ -88,9 +112,7 @@ export default function LaboratorialResultadosPDF({
           <>
             <Text>
               Fecha de nacimiento:{" "}
-              {new Date(datosMascota.fechaNacimiento).toLocaleDateString(
-                "es-MX"
-              )}
+              {new Date(datosMascota.fechaNacimiento).toLocaleDateString("es-MX")}
             </Text>
             <Text>
               Edad al momento del estudio:{" "}
@@ -121,17 +143,15 @@ export default function LaboratorialResultadosPDF({
             <Text style={styles.columnaValor}>Valor</Text>
             <Text style={styles.columnaValorRef}>Mín</Text>
             <Text style={styles.columnaValorRef}>Máx</Text>
+            <Text style={styles.columnaUnidad}>Unidad</Text>
           </View>
 
           {laboratorial.resultados.map((res, i) => {
-            const nombre =
-              res.analito?.nombre ?? res.nombreManual ?? "(sin nombre)";
-            const unidad = res.analito?.unidad ?? "";
-            const valor =
-              res.valorNumerico !== null
-                ? `${res.valorNumerico} ${unidad}`
-                : res.valorTexto ?? "(no disponible)";
-
+            let nombre = res.analito?.nombre ?? res.nombreManual ?? "(sin nombre)";
+            if (nombre in aliasAnalitos) {
+              nombre = aliasAnalitos[nombre];
+            }
+            const unidad = res.analito?.unidad ?? "-";
             const valorRef = res.analito?.valoresReferencia?.find(
               (vr) => vr.especie === datosMascota.especie
             );
@@ -140,23 +160,26 @@ export default function LaboratorialResultadosPDF({
             const max = valorRef?.maximo?.toString() ?? "-";
 
             let alteracionTexto = "";
-            let valorMostrado = valor;
+            let valorMostrado =
+              res.valorNumerico !== null
+                ? `${res.valorNumerico}`
+                : res.valorTexto ?? "(no disponible)";
 
             if (res.valorNumerico !== null && valorRef) {
               const valorNum = res.valorNumerico;
-              const min = valorRef.minimo;
-              const max = valorRef.maximo;
+              const minVal = valorRef.minimo;
+              const maxVal = valorRef.maximo;
 
-              if (max !== null && valorNum > max) {
-                const porcentaje = (((valorNum - max) / max) * 100).toFixed(1);
+              if (maxVal !== null && valorNum > maxVal) {
+                const porcentaje = (((valorNum - maxVal) / maxVal) * 100).toFixed(1);
                 alteracionTexto = `(AUMENTADO ${porcentaje}%)`;
-              } else if (min !== null && valorNum < min) {
-                const porcentaje = (((min - valorNum) / min) * 100).toFixed(1);
+              } else if (minVal !== null && valorNum < minVal) {
+                const porcentaje = (((minVal - valorNum) / minVal) * 100).toFixed(1);
                 alteracionTexto = `(DISMINUIDO ${porcentaje}%)`;
               }
 
               if (alteracionTexto) {
-                valorMostrado = `${valorNum} ${unidad} ${alteracionTexto}`;
+                valorMostrado += ` ${alteracionTexto}`;
               }
             }
 
@@ -166,26 +189,22 @@ export default function LaboratorialResultadosPDF({
                 <Text
                   style={{
                     ...styles.columnaValor,
-                    ...(alteracionTexto.startsWith("(AUMENTADO")
-                      ? styles.valorAlto
-                      : {}),
-                    ...(alteracionTexto.startsWith("(DISMINUIDO")
-                      ? styles.valorBajo
-                      : {}),
+                    ...(alteracionTexto.startsWith("(AUMENTADO") ? styles.valorAlto : {}),
+                    ...(alteracionTexto.startsWith("(DISMINUIDO") ? styles.valorBajo : {}),
                   }}
                 >
                   {valorMostrado}
                 </Text>
                 <Text style={styles.columnaValorRef}>{min}</Text>
                 <Text style={styles.columnaValorRef}>{max}</Text>
+                <Text style={styles.columnaUnidad}>{unidad}</Text>
               </View>
             );
           })}
         </View>
 
         <Text style={{ marginTop: 12 }}>
-          Interpretación clínica sujeta a revisión por el médico veterinario
-          tratante.
+          Interpretación clínica sujeta a revisión por el médico veterinario tratante.
         </Text>
       </Page>
     </Document>
@@ -195,7 +214,7 @@ export default function LaboratorialResultadosPDF({
 const styles = StyleSheet.create({
   page: {
     padding: 24,
-    fontSize: 8,
+    fontSize: 9,
     fontFamily: "Helvetica",
   },
   headerContainer: {
@@ -244,6 +263,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     paddingVertical: 2,
     fontSize: 10,
+    textAlign: "center",
   },
   fila: {
     flexDirection: "row",
@@ -253,34 +273,36 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   columnaNombre: {
-    width: "35%",
+    width: "30%",
     paddingHorizontal: 4,
+    textAlign: "center",
   },
   columnaValor: {
-    width: "25%",
+    width: "20%",
     paddingHorizontal: 4,
+    textAlign: "center",
+    fontWeight: "bold", // ← aquí está el cambio
   },
-  valorAlterado: {
-    color: "#b91c1c", // rojo fuerte
+  columnaValorRef: {
+    width: "15%",
+    paddingHorizontal: 4,
+    textAlign: "center",
+  },
+  columnaUnidad: {
+    width: "20%",
+    paddingHorizontal: 4,
+    textAlign: "center",
+  },
+  valorAlto: {
+    color: "#b91c1c",
     fontWeight: "bold",
     backgroundColor: "#fee2e2",
     borderRadius: 2,
   },
-  valorAlto: {
-    color: "#b91c1c", // rojo intenso
-    fontWeight: "bold",
-    backgroundColor: "#fee2e2", // rojo claro
-    borderRadius: 2,
-  },
   valorBajo: {
-    color: "#1e40af", // azul intenso
+    color: "#1e40af",
     fontWeight: "bold",
-    backgroundColor: "#e0f2fe", // azul claro
+    backgroundColor: "#e0f2fe",
     borderRadius: 2,
-  },
-  columnaValorRef: {
-    width: "20%",
-    paddingHorizontal: 4,
-    textAlign: "right",
   },
 });
