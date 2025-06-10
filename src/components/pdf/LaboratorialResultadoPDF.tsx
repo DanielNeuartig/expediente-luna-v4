@@ -109,7 +109,7 @@ export default function LaboratorialResultadosPDF({
         <Text style={styles.title}>Resultados laboratoriales</Text>
         <Text>Estudio: {laboratorial.tipoEstudio.nombre}</Text>
         <Text>
-          Fecha de toma:{" "}
+          Fecha de solicitud:{" "}
           {new Date(
             laboratorial.fechaToma ?? laboratorial.fechaCreacion
           ).toLocaleDateString("es-MX")}

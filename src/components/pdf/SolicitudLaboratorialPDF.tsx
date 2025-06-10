@@ -118,7 +118,7 @@ export default function SolicitudLaboratorialPDF({
         <Text>Estudio: {solicitud.estudio}</Text>
         <Text>Proveedor: {solicitud.proveedor}</Text>
         <Text>
-          Fecha de solicitud:{" "}
+          Fecha de toma:{" "}
           {new Date(solicitud.fechaSolicitud).toLocaleDateString("es-MX")}
         </Text>
         {solicitud.observacionesClinica && (

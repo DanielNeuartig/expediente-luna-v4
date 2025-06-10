@@ -34,7 +34,7 @@ const botonesDuracion = [1, 2, 3, 5, 7, 10, 15, 30];
 export const estilosInput = {
   color: "gray.600",
   borderColor: "gray.200",
-  borderRadius: "full",
+  borderRadius: "2xl",
   bg: "white",
   _placeholder: {
     color: "gray.300",
@@ -447,7 +447,7 @@ export default function MedicamentoItemNatural({
             >
               <strong>Aplicación única:</strong> {formatearFechaConDia(fechas[0])}
             </Badge>
-            
+
           ) : (
             <Box mt="2">
               <Box
