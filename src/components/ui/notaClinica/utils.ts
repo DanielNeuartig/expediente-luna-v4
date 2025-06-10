@@ -46,6 +46,32 @@ export const calcularFechas = (
   return fechas;
 };
 
+
+export const calcularFechasV2 = (
+  desde: string,
+  frecuenciaHoras: string,
+  veces: string
+): Date[] => {
+  const fechas: Date[] = [];
+  if (
+    desde &&
+    frecuenciaHoras &&
+    veces &&
+    !isNaN(Number(frecuenciaHoras)) &&
+    !isNaN(Number(veces))
+  ) {
+    const base = new Date(desde);
+    for (let i = 0; i < Number(veces); i++) {
+      const fecha = new Date(base);
+      fecha.setHours(fecha.getHours() + i * Number(frecuenciaHoras));
+      fechas.push(fecha); // devuelve objetos Date
+    }
+  }
+  return fechas;
+};
+
+
+
 // Tipos estrictos para la función de parseo
 type ParsedFormArray = Record<string, string>;
 type ParsedFormData = Record<string, string | ParsedFormArray[]>;
@@ -78,4 +104,35 @@ export const parseNestedFormData = (
   }
 
   return result;
+};
+
+export const formatearFechaConDia = (fecha: Date): string => {
+  const ahora = new Date();
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const manana = new Date(hoy);
+  manana.setDate(hoy.getDate() + 1);
+
+  const fechaSinHora = new Date(
+    fecha.getFullYear(),
+    fecha.getMonth(),
+    fecha.getDate()
+  );
+
+  const horaTexto = fecha.toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (fechaSinHora.getTime() === hoy.getTime()) {
+    return `hoy · ${horaTexto}`;
+  }
+
+  if (fechaSinHora.getTime() === manana.getTime()) {
+    return `mañana · ${horaTexto}`;
+  }
+
+  const diaSemana = fecha.toLocaleDateString("es-MX", { weekday: "short" });
+  const fechaCorta = fecha.toLocaleDateString("es-MX");
+
+  return `${diaSemana} · ${fechaCorta} · ${horaTexto}`;
 };

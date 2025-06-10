@@ -21,9 +21,8 @@ import {
   UseFormSetValue,
 } from "react-hook-form";
 
-import { estilosInputBase } from "../config/estilosInputBase";
-import { estilosTituloInput } from "../config/estilosTituloInput";
-import { calcularFechas, formatoDatetimeLocal } from "./utils";
+import { calcularFechasV2, formatoDatetimeLocal } from "./utils";
+import { formatearFechaConDia } from "./utils";
 import type { NotaClinicaValues } from "@/lib/validadores/notaClinicaSchema";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
@@ -31,6 +30,27 @@ import { X } from "lucide-react";
 
 const botonesFrecuencia = [6, 8, 12, 24, 48, 72];
 const botonesDuracion = [1, 2, 3, 5, 7, 10, 15, 30];
+
+export const estilosInput = {
+  color: "gray.600",
+  borderColor: "gray.200",
+  borderRadius: "full",
+  bg: "white",
+  _placeholder: {
+    color: "gray.300",
+  },
+  _focus: {
+    boxShadow: "none",
+    border: "none",
+    outline: "4px solid",
+    outlineColor: "tema.llamativo", // 🎨 token del tema Chakra
+  },
+};
+
+export const estilosTitulo = {
+  color: "gray.600",
+  fontWeight: "md",
+};
 
 interface Props {
   index: number;
@@ -104,26 +124,26 @@ export default function MedicamentoItemNatural({
   }, [cada, durante, tiempoIndefinido]);
   return (
     <Box
-    position="relative" // 🟡 Añade esto
+      position="relative" // 🟡 Añade esto
       borderWidth="2px"
-      p="1"
-      rounded="md"
+      p="2"
+      px="5"
+      borderRadius="4xl"
       borderColor="tema.llamativo"
-      bg="blue.50"
+      bg="brand.50"
     >
-      <Fieldset.Legend {...estilosTituloInput} />
+      <Fieldset.Legend {...estilosTitulo} />
 
       {/* Nombre */}
       <Field.Root>
         <HStack align="start">
-          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
             Nombre
           </Field.Label>
           <Input
             size="sm"
-            {...estilosInputBase}
             {...register(`medicamentos.${index}.nombre`)}
-            
+            {...estilosInput}
           />
         </HStack>
       </Field.Root>
@@ -131,12 +151,12 @@ export default function MedicamentoItemNatural({
       {/* Dosis */}
       <Field.Root>
         <HStack>
-          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
             Dosis
           </Field.Label>
           <Input
             size="sm"
-            {...estilosInputBase}
+            {...estilosInput}
             {...register(`medicamentos.${index}.dosis`)}
           />
         </HStack>
@@ -145,12 +165,12 @@ export default function MedicamentoItemNatural({
       {/* Vía */}
       <Field.Root>
         <HStack>
-          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
             Vía
           </Field.Label>
           <NativeSelect.Root size="sm">
             <NativeSelect.Field
-              {...estilosInputBase}
+              {...estilosInput}
               {...register(`medicamentos.${index}.via`)}
             >
               <option value="">Selecciona una vía</option>
@@ -170,14 +190,14 @@ export default function MedicamentoItemNatural({
       {/* seccion de CADA */}
       <Field.Root>
         <HStack align="center" gap="2">
-          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
             CADA (horas)
           </Field.Label>
           <Input
             size="sm"
             type="number"
             min={1}
-            {...estilosInputBase}
+            {...estilosInput}
             {...register(`medicamentos.${index}.frecuenciaHoras`, {
               valueAsNumber: true,
               validate: (v) =>
@@ -212,14 +232,14 @@ export default function MedicamentoItemNatural({
       {tiempoIndefinido !== "true" && (
         <Field.Root>
           <HStack align="center" gap="2">
-            <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+            <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
               DURANTE (días)
             </Field.Label>
             <Input
               size="sm"
               type="number"
               min={1}
-              {...estilosInputBase}
+              {...estilosInput}
               {...register(`medicamentos.${index}.duracionDias`, {
                 valueAsNumber: true,
               })}
@@ -250,7 +270,7 @@ export default function MedicamentoItemNatural({
       {/* Desde */}
       <Field.Root>
         <HStack align="center" gap="2">
-          <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+          <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
             A PARTIR DE
           </Field.Label>
           <Controller
@@ -310,7 +330,7 @@ export default function MedicamentoItemNatural({
                     size="sm"
                     type="datetime-local"
                     min={formatoDatetimeLocal(new Date(Date.now() - 86400000))}
-                    {...estilosInputBase}
+                    {...estilosInput}
                     value={valorActualISO}
                     onChange={(e) => {
                       const nueva = new Date(e.target.value);
@@ -348,7 +368,7 @@ export default function MedicamentoItemNatural({
 
       {/* Tiempo indefinido */}
       <Field.Root>
-        <Field.Label minW="100px" {...estilosTituloInput}>
+        <Field.Label minW="100px" {...estilosTitulo}>
           ¿Aplicación indefinida?
         </Field.Label>
         <Controller
@@ -400,7 +420,7 @@ export default function MedicamentoItemNatural({
         <Textarea
           size="sm"
           placeholder="Observaciones"
-          {...estilosInputBase}
+          {...estilosInput}
           {...register(`medicamentos.${index}.observaciones`)}
         />
       </Field.Root>
@@ -410,14 +430,14 @@ export default function MedicamentoItemNatural({
         item?.frecuenciaHoras &&
         item?.veces &&
         (() => {
-          const fechas = calcularFechas(
+          const fechas = calcularFechasV2(
             item.desde.toString(),
             item.frecuenciaHoras.toString(),
             item.veces.toString()
           );
 
           return item.veces === 1 ? (
-            <Box
+            <Badge
               fontSize="sm"
               px="2"
               py="1"
@@ -425,8 +445,9 @@ export default function MedicamentoItemNatural({
               color="tema.rojo"
               bg="tema.intenso"
             >
-              <strong>Aplicación única:</strong> {fechas[0]}
-            </Box>
+              <strong>Aplicación única:</strong> {formatearFechaConDia(fechas[0])}
+            </Badge>
+            
           ) : (
             <Box mt="2">
               <Box
@@ -448,18 +469,16 @@ export default function MedicamentoItemNatural({
                       color="tema.claro"
                       bg="tema.suave"
                     >
-                        <Badge
+                      <Badge
                         borderRadius={"xl"}
-                          bg="tema.llamativo"
-                           fontSize="md"
-                           fontWeight={"bold"}>
-                           
-                      {i + 1}
-                     </Badge>
+                        bg="tema.llamativo"
+                        fontSize="md"
+                        fontWeight={"bold"}
+                      >
+                        {i + 1}
+                      </Badge>
 
-                     
-                      {fecha}
-                      
+                     {formatearFechaConDia(fecha)}
                     </Box>
                   </WrapItem>
                 ))}
@@ -472,7 +491,7 @@ export default function MedicamentoItemNatural({
       <HStack>
         <Field.Root>
           <HStack>
-            <Field.Label minW="100px" fontSize="sm" {...estilosTituloInput}>
+            <Field.Label minW="100px" fontSize="sm" {...estilosTitulo}>
               APLICACIÓN EN:
             </Field.Label>
             <Controller
