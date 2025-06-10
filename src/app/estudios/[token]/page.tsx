@@ -157,7 +157,7 @@ export default function DemoUploadConBorrado() {
           };
           setMascota(mascotaAplanada);
         }
-
+console.log("🧬 rawSolicitud.tipoEstudioId:", rawSolicitud.tipoEstudioId);
         if (rawSolicitud) {
           setSolicitud({
             id: rawSolicitud.id,
@@ -165,7 +165,7 @@ export default function DemoUploadConBorrado() {
             proveedor: rawSolicitud.proveedor,
             observacionesClinica: rawSolicitud.observacionesClinica,
             fechaTomaDeMuestra: rawSolicitud.fechaTomaDeMuestra,
-            tipoEstudioId: rawSolicitud.estudio?.id ?? undefined, // 👈 aquí extraes el ID
+            tipoEstudioId: rawSolicitud.tipoEstudioId,
           });
           if (rawSolicitud.archivos) {
             setArchivosCargados(rawSolicitud.archivos);
@@ -181,6 +181,7 @@ export default function DemoUploadConBorrado() {
         setCargando(false);
       }
     };
+    // Corregido: loguea el estudio de la solicitud cruda
 
     obtenerDatos();
   }, [token]);
@@ -786,7 +787,8 @@ export default function DemoUploadConBorrado() {
           mascota={mascota}
           solicitudId={solicitud.id}
           fechaToma={solicitud.fechaTomaDeMuestra}
-          tipoEstudioId={solicitud.tipoEstudioId?.toString()} // 👈 importante que sea string si tu prop lo espera así
+          tipoEstudioId={solicitud.tipoEstudioId?.toString()} 
+           estudio={solicitud.estudio} 
         />
       )}
     </FondoSinBotones>
