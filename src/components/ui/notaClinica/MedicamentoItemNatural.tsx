@@ -12,6 +12,7 @@ import {
   SegmentGroup,
   Wrap,
   WrapItem,
+  Badge,
 } from "@chakra-ui/react";
 import {
   Controller,
@@ -447,7 +448,18 @@ export default function MedicamentoItemNatural({
                       color="tema.claro"
                       bg="tema.suave"
                     >
-                      <strong>#{i + 1}</strong>: {fecha}
+                        <Badge
+                        borderRadius={"xl"}
+                          bg="tema.llamativo"
+                           fontSize="md"
+                           fontWeight={"bold"}>
+                           
+                      {i + 1}
+                     </Badge>
+
+                     
+                      {fecha}
+                      
                     </Box>
                   </WrapItem>
                 ))}
