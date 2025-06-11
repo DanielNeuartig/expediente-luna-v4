@@ -18,6 +18,7 @@ import MenuAccionesNota from "./MenuAccionesNota";
 import { useCrearNotaClinica } from "@/hooks/useCrearNotaClinica";
 import { EstadoNotaClinica } from "@prisma/client";
 import { pdf } from "@react-pdf/renderer";
+import ArchivoPreview from "./archivoPreview";
 import QRCode from "qrcode";
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString("es-MX", {
@@ -606,50 +607,28 @@ export default function HistoricoExpedientes({
                               )}
 
                               {sol.archivos.map((a) => (
-                                <Box key={`archivo-${a.id}`} ml="2">
-                                  <Button
-                                    size="sm"
-                                    colorScheme="blue"
-                                    onClick={async () => {
-                                      console.log("🧪 token:", sol.tokenAcceso);
-                                      console.log("🧪 archivoId:", a.id);
-                                      if (!sol.tokenAcceso || !a.id) {
-                                        toaster.create({
-                                          description:
-                                            "Faltan datos para abrir el archivo",
-                                          type: "error",
-                                        });
-                                        return;
-                                      }
-
-                                      try {
-                                        const res = await fetch(
-                                          `/api/estudios/${sol.tokenAcceso}/archivo/${a.id}/url`
-                                        );
-                                        if (!res.ok) {
-                                          const error = await res.json();
-                                          throw new Error(
-                                            error?.error ??
-                                              "No se pudo obtener la URL firmada"
-                                          );
-                                        }
-                                        const { url } = await res.json();
-                                        window.open(url, "_blank");
-                                      } catch (e) {
-                                        console.error(
-                                          "Error al abrir archivo:",
-                                          e
-                                        );
-                                        toaster.create({
-                                          description:
-                                            "No se pudo abrir el archivo",
-                                          type: "error",
-                                        });
-                                      }
-                                    }}
+                                <Box key={`archivo-${a.id}`} ml="2" mb={6}>
+                                  {/* Vista previa del archivo */}
+                                  <Box
+                                   // border="1px solid"
+                                    borderColor="gray.200"
+                                    p={2}
+                                    rounded="md"
+                                    mb={2}
                                   >
-                                    📎 {a.nombre} ({a.tipo})
-                                  </Button>
+                                    <ArchivoPreview
+                                      token={sol.tokenAcceso}
+                                      archivoId={a.id}
+                                    />
+                                  </Box>
+
+                                  {/* Información del archivo */}
+                                  <Text fontSize="sm" mb={1}>
+                                    <strong>📎 {a.nombre}</strong> ({a.tipo}) ·
+                                    Subido el: {formatearFecha(a.fechaSubida)}
+                                  </Text>
+
+                                  {/* Enviar por WhatsApp */}
                                   {tutor && (
                                     <Box
                                       mt={2}
@@ -663,12 +642,10 @@ export default function HistoricoExpedientes({
                                         color="tema.claro"
                                         onClick={async () => {
                                           const numero = `${tutor.clave}${tutor.telefonoPrincipal}`;
-
                                           try {
                                             const res = await fetch(
                                               `/api/estudios/${sol.tokenAcceso}/archivo/${a.id}/url`
                                             );
-
                                             if (!res.ok) {
                                               const error = await res.json();
                                               throw new Error(
@@ -678,7 +655,6 @@ export default function HistoricoExpedientes({
                                             }
 
                                             const { url } = await res.json();
-
                                             const texto = `¡Hola!
 
 Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
@@ -690,7 +666,8 @@ Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
                                                   ).toLocaleDateString("es-MX")
                                                 : "desconocida"
                                             }_*.
-*_Esta liga solo estará disponible durante 2 horas_*.
+
+*_Esta liga solo estará disponible durante 2 horas._*  
 Te recomendamos descargar el archivo para conservarlo.
 
 ${url}
@@ -700,7 +677,6 @@ _Gracias por confiar en nosotros_.`;
                                             const waUrl = `https://wa.me/${numero}?text=${encodeURIComponent(
                                               texto
                                             )}`;
-
                                             window.open(waUrl, "_blank");
                                           } catch (e) {
                                             console.error(
@@ -718,11 +694,7 @@ _Gracias por confiar en nosotros_.`;
                                         Enviar por WhatsApp
                                       </Button>
                                     </Box>
-                                  )}{" "}
-                                  —{" "}
-                                  <Text as="span" fontSize="sm">
-                                    Subido el: {formatearFecha(a.fechaSubida)}
-                                  </Text>
+                                  )}
                                 </Box>
                               ))}
                             </Box>
