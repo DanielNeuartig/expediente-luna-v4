@@ -190,7 +190,7 @@ export default function HistoricoExpedientes({
                       colSpan={4}
                       //borderRadius="xl"
                       borderColor="gray.200"
-                      bg="tema.intenso"
+                     // bg="tema.intenso"
                       shadow="sm"
                     >
                       <HStack justify="space-between" mb="2">
