@@ -650,6 +650,23 @@ export default function HistoricoExpedientes({
                                         bg="tema.verde"
                                         color="tema.claro"
                                         onClick={async () => {
+                                          console.log(
+                                            "Tipo de archivo:",
+                                            a.tipo
+                                          );
+                                          if (
+                                            !a.tipo
+                                              .toLowerCase()
+                                              .includes("pdf")
+                                          ) {
+                                            toaster.create({
+                                              description:
+                                                "Solo se puede enviar archivos PDF por WhatsApp",
+                                              type: "warning",
+                                            });
+                                            return;
+                                          }
+
                                           const numero = `${tutor.clave}${tutor.telefonoPrincipal}`;
                                           try {
                                             const res = await fetch(
