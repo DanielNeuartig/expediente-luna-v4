@@ -21,16 +21,7 @@ import { EstadoNotaClinica } from "@prisma/client";
 import { pdf } from "@react-pdf/renderer";
 import ArchivoPreview from "./archivoPreview";
 import QRCode from "qrcode";
-function formatearFecha(fecha: string) {
-  return new Date(fecha).toLocaleString("es-MX", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
+import { formatearFechaConDia } from "./notaClinica/utils";
 
 type Props = {
   mascotaId: number;
@@ -137,7 +128,9 @@ export default function HistoricoExpedientes({
                 >
                   <Table.Cell>#{exp.id}</Table.Cell>
                   <Table.Cell>{exp.tipo}</Table.Cell>
-                  <Table.Cell>{formatearFecha(exp.fechaCreacion)}</Table.Cell>
+                  <Table.Cell>
+                    {formatearFechaConDia(new Date(exp.fechaCreacion))}
+                  </Table.Cell>
                   <Table.Cell>
                     <Avatar.Root size="2xs">
                       <Avatar.Image src={exp.autor.usuario?.image ?? ""} />
@@ -193,12 +186,31 @@ export default function HistoricoExpedientes({
                     }
                     color="tema.claro"
                   >
-                    <Table.Cell colSpan={4}>
+                    <Table.Cell
+                      colSpan={4}
+                      //borderRadius="xl"
+                      borderColor="gray.200"
+                      bg="tema.intenso"
+                      shadow="sm"
+                    >
                       <HStack justify="space-between" mb="2">
-                        <Text fontWeight="semibold">
-                          Nota #{nota.id} - 📅{" "}
-                          {formatearFecha(nota.fechaCreacion)}
-                        </Text>
+                        <Badge
+                          p="1"
+                          fontSize="lg"
+                          fontWeight="md"
+                          bg="tema.suave"
+                          color="tema.claro"
+                        >
+                          Nota #{nota.id} - {" "}
+                          <Badge
+                          fontSize="lg"
+                          fontWeight="bold"
+                          p="1"
+                          bg="tema.llamativo"
+                          color="tema.claro">
+                            📅 {formatearFechaConDia(new Date(nota.fechaCreacion))}
+                          </Badge>
+                        </Badge>
                         <PopOverReceta
                           medicamentos={nota.medicamentos}
                           indicaciones={nota.indicaciones} // ✅ Añade esta línea
@@ -262,7 +274,9 @@ export default function HistoricoExpedientes({
                             {nota.fechaCancelacion && (
                               <Text fontSize="sm">
                                 Cancelada el{" "}
-                                {formatearFecha(nota.fechaCancelacion)}
+                                {formatearFechaConDia(
+                                  new Date(nota.fechaCancelacion)
+                                )}
                               </Text>
                             )}
                             {nota.anuladaPor && (
@@ -393,7 +407,9 @@ export default function HistoricoExpedientes({
                                           fontWeight="semibold"
                                         >
                                           • Aplicación #{idx + 1} — 📅{" "}
-                                          {formatearFecha(a.fechaProgramada)}
+                                          {formatearFechaConDia(
+                                            new Date(a.fechaProgramada)
+                                          )}
                                         </Text>
                                         {a.estado === "PENDIENTE" && (
                                           <Text
@@ -488,20 +504,36 @@ export default function HistoricoExpedientes({
                         </Box>
                       )}
                       {nota.solicitudesLaboratoriales?.length > 0 && (
-                        <Box mt="4" pl="4">
-                          <Text fontWeight="medium" mb="1">
-                            🔬 Solicitudes laboratoriales:
-                          </Text>
+                        <Box
+                          mt="4"
+                          pl="4"
+                          // borderWidth="3px"
+                          borderRadius="2xl"
+                          borderColor="tema.morado"
+                          //bg="tema.suave"
+                        >
+                          <Box textAlign="center">
+                            <Badge
+                              color="tema.claro"
+                              fontWeight="medium"
+                              mb="1"
+                              bg="tema.morado"
+                              p="2"
+                              borderRadius={"xl"}
+                            >
+                              🔬 Solicitudes laboratoriales
+                            </Badge>
+                          </Box>
 
                           {nota.solicitudesLaboratoriales.map((sol) => (
                             <Box
                               key={`solicitud-${sol.id}`}
                               mt="3"
                               p="3"
-                              borderWidth="1px"
-                              borderRadius="xl"
-                              borderColor="gray.400"
-                              bg="gray.800"
+                              borderWidth="3px"
+                              borderRadius="2xl"
+                              borderColor="tema.morado"
+                              bg="tema.suave"
                             >
                               <Button
                                 bg="tema.claro"
@@ -557,7 +589,9 @@ export default function HistoricoExpedientes({
                               </Text>
                               <Text color="gray.200">
                                 Fecha toma de muestra:{" "}
-                                {formatearFecha(sol.fechaTomaDeMuestra)}
+                                {formatearFechaConDia(
+                                  new Date(sol.fechaTomaDeMuestra)
+                                )}
                               </Text>
                               <Text color="gray.200">
                                 Estado actual:{" "}
@@ -605,13 +639,17 @@ export default function HistoricoExpedientes({
                               {sol.fechaSubida && (
                                 <Text color="gray.200">
                                   📤 Archivos subidos el:{" "}
-                                  {formatearFecha(sol.fechaSubida)}
+                                  {formatearFechaConDia(
+                                    new Date(sol.fechaSubida)
+                                  )}
                                 </Text>
                               )}
                               {sol.fechaCierre && (
                                 <Text color="gray.200">
                                   ✅ Cerrado el:{" "}
-                                  {formatearFecha(sol.fechaCierre)}
+                                  {formatearFechaConDia(
+                                    new Date(sol.fechaCierre)
+                                  )}
                                 </Text>
                               )}
 
@@ -634,7 +672,10 @@ export default function HistoricoExpedientes({
                                   {/* Información del archivo */}
                                   <Text fontSize="sm" mb={1}>
                                     <strong>📎 {a.nombre}</strong> ({a.tipo}) ·
-                                    Subido el: {formatearFecha(a.fechaSubida)}
+                                    Subido el:{" "}
+                                    {formatearFechaConDia(
+                                      new Date(a.fechaSubida)
+                                    )}
                                   </Text>
 
                                   {/* Enviar por WhatsApp */}
