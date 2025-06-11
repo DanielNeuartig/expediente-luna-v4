@@ -15,7 +15,7 @@ export async function getSignedUrl(
   operation: "putObject" | "getObject"
 ) {
   const Bucket = process.env.AWS_BUCKET!;
-  const expiresIn = parseInt(process.env.AWS_SIGNED_URL_EXPIRES ?? "300", 10);
+  const expiresIn = parseInt(process.env.NEXT_PUBLIC_AWS_SIGNED_URL_EXPIRES ?? "300", 10);
 
   const command =
     operation === "putObject"

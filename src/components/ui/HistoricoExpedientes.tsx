@@ -664,6 +664,15 @@ export default function HistoricoExpedientes({
                                             }
 
                                             const { url } = await res.json();
+                                            const segundosExpira = Number(
+                                              process.env
+                                                .NEXT_PUBLIC_AWS_SIGNED_URL_EXPIRES ??
+                                                "3600"
+                                            );
+                                            const horasExpira = Math.floor(
+                                              segundosExpira / 3600
+                                            );
+
                                             const texto = `¡Hola!
 
 Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
@@ -676,13 +685,12 @@ Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
                                                 : "desconocida"
                                             }_*.
 
-*_Esta liga solo estará disponible durante 2 horas._*  
+*_Esta liga solo estará disponible durante ${horasExpira} horas._*  
 Te recomendamos descargar el archivo para conservarlo.
 
 ${url}
 
 _Gracias por confiar en nosotros_.`;
-
                                             const waUrl = `https://wa.me/${numero}?text=${encodeURIComponent(
                                               texto
                                             )}`;
