@@ -71,6 +71,7 @@ export default function ArchivoPreview({ token, archivoId }: Props) {
           borderRadius="md"
           objectFit="contain"
           animation={"floatGlow"}
+          mx="auto"
         />
       )}
     </ChakraLink>

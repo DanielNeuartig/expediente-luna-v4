@@ -1,4 +1,3 @@
-// src/lib/s3.ts
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl as getAwsSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -24,4 +23,26 @@ export async function getSignedUrl(
       : new GetObjectCommand({ Bucket, Key: key });
 
   return getAwsSignedUrl(s3, command, { expiresIn });
+}
+
+export async function subirArchivoAS3(token: string, archivo: File) {
+  const res = await fetch(`/api/estudios/${token}/archivo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fileType: archivo.type, fileName: archivo.name }),
+  });
+
+  if (!res.ok) throw new Error("No se pudo obtener URL firmada");
+
+  const { url, key } = await res.json();
+
+  const upload = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": archivo.type },
+    body: archivo,
+  });
+
+  if (!upload.ok) throw new Error("Error al subir archivo a S3");
+
+  return { key };
 }

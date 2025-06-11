@@ -2,11 +2,9 @@
 
 import {
   Box,
-  FileUpload,
   Icon,
   Text,
   HStack,
-  CloseButton,
   Stack,
   Spinner,
   Heading,
@@ -24,7 +22,6 @@ import {
   StickyNote,
   CalendarClock,
 } from "lucide-react";
-import { LuUpload } from "react-icons/lu";
 import { useState, useEffect } from "react";
 import FondoSinBotones from "@/components/ui/fondos/FondoSinBotones";
 import BoxMascota from "@/components/ui/BoxMascota";
@@ -33,7 +30,9 @@ import { toaster } from "@/components/ui/toaster";
 import type { ResultadoMascota } from "@/components/ui/BoxMascota";
 import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecial";
 import { estilosInputBase } from "@/components/ui/config/estilosInputBase";
-import DrawerResultadosGPT from "@/components/ui/laboratorio/DrawerResultadosGPT";
+import ComponenteUploadArchivos from "@/components/ui/subidaDeArchivos/ComponenteUploadArchivos";
+import ListaArchivosSubidos from "@/components/ui/subidaDeArchivos/ListaArchivosSubidos";
+
 type ArchivoLaboratorial = {
   id: number;
   url: string;
@@ -41,18 +40,6 @@ type ArchivoLaboratorial = {
   tipo: string;
   fechaSubida: string;
 };
-type ResultadoGPT = {
-  nombre: string;
-  valor: number | null;
-};
-
-const TIPOS_PERMITIDOS = [
-  "application/pdf",
-  "image/png",
-  "image/jpg",
-  "image/jpeg",
-];
-const LIMITE_MB = 5;
 
 type SolicitudLaboratorialPlano = {
   id: number;
@@ -64,14 +51,9 @@ type SolicitudLaboratorialPlano = {
 };
 
 export default function DemoUploadConBorrado() {
-  const [resultadosAnalisis, setResultadosAnalisis] = useState<{
-    datos: ResultadoGPT[];
-  } | null>(null);
-  const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [autenticado, setAutenticado] = useState(false);
   const [codigoIngresado, setCodigoIngresado] = useState("");
-  const [subiendo, setSubiendo] = useState(false);
-  const [archivos, setArchivos] = useState<File[]>([]);
+  const [subiendo] = useState(false);
   const [mascota, setMascota] = useState<ResultadoMascota | null>(null);
   const [solicitud, setSolicitud] = useState<SolicitudLaboratorialPlano | null>(
     null
@@ -83,51 +65,6 @@ export default function DemoUploadConBorrado() {
 
   const params = useParams() as Record<string, string>;
   const token = params?.token;
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nuevos = e.target.files ? Array.from(e.target.files) : [];
-
-    const validos = nuevos.filter((archivo) => {
-      if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
-        toaster.create({
-          description: `Tipo no permitido: ${archivo.type}`,
-          type: "error",
-        });
-        return false;
-      }
-      if (archivo.size > LIMITE_MB * 1024 * 1024) {
-        toaster.create({
-          description: `Archivo demasiado grande: ${archivo.name}`,
-          type: "error",
-        });
-        return false;
-      }
-      return true;
-    });
-
-    setArchivos((prev) => {
-      const nombresPrevios = new Set(prev.map((a) => a.name));
-      const nuevosUnicos = validos.filter((a) => !nombresPrevios.has(a.name));
-      const combinados = [...prev, ...nuevosUnicos];
-
-      if (archivosCargados.length + combinados.length > 5) {
-        toaster.create({
-          description: `Máximo 5 archivos en total (ya hay ${archivosCargados.length} subidos)`,
-          type: "warning",
-        });
-        return prev;
-      }
-
-      return combinados;
-    });
-
-    // Limpia el input para evitar problemas si el usuario selecciona el mismo archivo dos veces
-    e.target.value = "";
-  };
-
-  const eliminarArchivo = (index: number) => {
-    setArchivos((prev) => prev.filter((_, i) => i !== index));
-  };
 
   useEffect(() => {
     if (!token) return;
@@ -157,7 +94,10 @@ export default function DemoUploadConBorrado() {
           };
           setMascota(mascotaAplanada);
         }
-console.log("🧬 rawSolicitud.tipoEstudioId:", rawSolicitud.tipoEstudioId);
+        console.log(
+          "🧬 rawSolicitud.tipoEstudioId:",
+          rawSolicitud.tipoEstudioId
+        );
         if (rawSolicitud) {
           setSolicitud({
             id: rawSolicitud.id,
@@ -185,28 +125,6 @@ console.log("🧬 rawSolicitud.tipoEstudioId:", rawSolicitud.tipoEstudioId);
 
     obtenerDatos();
   }, [token]);
-
-  async function subirArchivoAS3(token: string, archivo: File) {
-    const res = await fetch(`/api/estudios/${token}/archivo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fileType: archivo.type, fileName: archivo.name }),
-    });
-
-    if (!res.ok) throw new Error("No se pudo obtener URL firmada");
-
-    const { url, key } = await res.json();
-
-    const upload = await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": archivo.type },
-      body: archivo,
-    });
-
-    if (!upload.ok) throw new Error("Error al subir archivo a S3");
-
-    return { key }; // ← nueva línea
-  }
 
   const verificarCodigo = async () => {
     try {
@@ -485,312 +403,47 @@ console.log("🧬 rawSolicitud.tipoEstudioId:", rawSolicitud.tipoEstudioId);
                 </Box>
               ) : (
                 <Box animation="pulseCloud">
-                  <FileUpload.Root maxW="xl" alignItems="stretch">
-                    <FileUpload.HiddenInput multiple onChange={handleChange} />
-                    <FileUpload.Dropzone bg="white">
-                      <Icon size="2xl" color="tema.llamativo">
-                        <LuUpload />
-                      </Icon>
-                      <FileUpload.DropzoneContent>
-                        <Box fontSize="xl" color="tema.suave">
-                          Arrastra y suelta archivos aquí o haz clic
-                        </Box>
-                        <Box color="tema.intenso">
-                          .png, .jpg, .pdf hasta 5MB
-                        </Box>
-                        <Box color="tema.intenso">Máx. 5 archivos</Box>
-                      </FileUpload.DropzoneContent>
-                    </FileUpload.Dropzone>
-
-                    {archivos.length > 0 && (
-                      <>
-                        <Stack mt={4}>
-                          {archivos.map((archivo, index) => (
-                            <HStack
-                              key={index}
-                              justify="space-between"
-                              borderRadius="2xl"
-                              px={3}
-                              py={1}
-                              bg="tema.suave"
-                            >
-                              <Text
-                                fontSize="sm"
-                                color="tema.claro"
-                                fontWeight={"bold"}
-                                truncate
-                              >
-                                {archivo.name}
-                              </Text>
-                              <CloseButton
-                                onClick={() => eliminarArchivo(index)}
-                              />
-                            </HStack>
-                          ))}
-                        </Stack>
-                        <Button
-                          animation="floatGlow"
-                          bg="tema.llamativo"
-                          color="tema.claro"
-                          mt={4}
-                          colorScheme="teal"
-                          size="md"
-                          onClick={async () => {
-                            if (!token || archivos.length === 0) {
-                              toaster.create({
-                                description: "No hay archivos para subir",
-                                type: "error",
-                              });
-                              return;
-                            }
-
-                            if (archivosCargados.length + archivos.length > 5) {
-                              toaster.create({
-                                description: "Máximo 5 archivos!!",
-                                type: "error",
-                              });
-                              return;
-                            }
-
-                            setSubiendo(true); // ✅ Activa spinner
-
-                            try {
-                              await Promise.allSettled(
-                                archivos.map(async (archivo) => {
-                                  try {
-                                    await subirArchivoAS3(token, archivo);
-
-                                    const actualizarArchivos = async () => {
-                                      const res = await fetch(
-                                        `/api/estudios/${token}`
-                                      );
-                                      const data = await res.json();
-                                      setArchivosCargados(
-                                        data?.solicitud?.archivos ?? []
-                                      );
-                                    };
-
-                                    await actualizarArchivos();
-                                  } catch (e) {
-                                    console.error(
-                                      "Error al subir o registrar:",
-                                      archivo.name,
-                                      e
-                                    );
-                                  }
-                                })
-                              );
-
-                              toaster.create({
-                                description: "Archivos subidos correctamente",
-                                type: "success",
-                              });
-                              setArchivos([]); // ✅ Limpia la lista de archivos locales
-                            } catch (e) {
-                              console.error(e);
-                              toaster.create({
-                                description: "Error al subir archivos",
-                                type: "error",
-                              });
-                            } finally {
-                              setSubiendo(false); // ✅ Desactiva spinner
-                            }
-                          }}
-                        >
-                          Subir archivo
-                        </Button>
-                      </>
-                    )}
-                  </FileUpload.Root>
+                  <ComponenteUploadArchivos
+                    token={token}
+                    archivosCargados={archivosCargados.map((a) => ({
+                      id: a.id.toString(), // 🔄 forzamos a string
+                      url: a.url,
+                      nombre: a.nombre,
+                    }))}
+                    setArchivosCargados={(archivos) => {
+                      // Solo permitimos los campos esperados por ArchivoLaboratorial
+                      const normalizados: ArchivoLaboratorial[] = archivos.map(
+                        (a) => ({
+                          id: parseInt(a.id), // 🔄 regresamos a número
+                          url: a.url,
+                          nombre: a.nombre,
+                          tipo: "desconocido", // puedes ajustarlo si tienes más info
+                          fechaSubida: new Date().toISOString(), // o puedes omitirlo si no se necesita
+                        })
+                      );
+                      setArchivosCargados(normalizados);
+                    }}
+                  />
                 </Box>
               )}
             </Box>
-            {archivosCargados.length > 0 && (
-              <Box bg="tema.intenso" p={4} mt={6} borderRadius="xl">
-                <Heading size="xl" mb={4} color="tema.claro">
-                  Archivos subidos
-                </Heading>
-
-                <VStack align="start" gap={4}>
-                  {archivosCargados.map((archivo) => (
-                    <Box
-                      key={archivo.id}
-                      p={3}
-                      w="full"
-                      borderWidth="1px"
-                      borderRadius="xl"
-                      bg="gray.50"
-                    >
-                      <Box
-                        key={archivo.id}
-                        p={3}
-                        w="full"
-                        borderWidth="1px"
-                        borderRadius="xl"
-                        bg="gray.50"
-                      >
-                        <VStack align="start" gap={3}>
-                          {/* Nombre y fecha */}
-                          <Box>
-                            <Text fontWeight="bold" color="tema.intenso">
-                              {archivo.nombre}
-                            </Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {archivo.tipo} · Subido el{" "}
-                              {new Date(archivo.fechaSubida).toLocaleDateString(
-                                "es-MX"
-                              )}
-                            </Text>
-                          </Box>
-
-                          {/* Botones en fila debajo */}
-                          <HStack gap={2} wrap="wrap">
-                            <Button
-                              bg="tema.llamativo"
-                              color="tema.claro"
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch(
-                                    `/api/estudios/${token}/archivo/${archivo.id}/url`
-                                  );
-                                  if (!res.ok)
-                                    throw new Error(
-                                      "No se pudo obtener la URL del archivo"
-                                    );
-                                  const { url } = await res.json();
-                                  window.open(url, "_blank");
-                                } catch (e) {
-                                  console.error("Error al abrir archivo:", e);
-                                  toaster.create({
-                                    description: "No se pudo abrir el archivo",
-                                    type: "error",
-                                  });
-                                }
-                              }}
-                            >
-                              Ver
-                            </Button>
-
-                            {solicitud?.proveedor === "ELDOC" && (
-                              <Button
-                                animation="floatGlow"
-                                bg="tema.llamativo"
-                                color="white"
-                                size="sm"
-                                borderRadius="xl"
-                                onClick={async () => {
-                                  const toastId = toaster.create({
-                                    description: "Analizando con IA...",
-                                    type: "loading",
-                                  });
-
-                                  try {
-                                    const res = await fetch(
-                                      "/api/procesarTemporal",
-                                      {
-                                        method: "POST",
-                                        headers: {
-                                          "Content-Type": "application/json",
-                                        },
-                                        body: JSON.stringify({
-                                          token,
-                                          id: archivo.id,
-                                        }),
-                                      }
-                                    );
-
-                                    if (res.ok) {
-                                      const json = await res.json();
-                                      setResultadosAnalisis(json);
-                                      setDrawerAbierto(true);
-                                      toaster.dismiss(toastId);
-                                      toaster.create({
-                                        description:
-                                          "Análisis completado exitosamente",
-                                        type: "success",
-                                      });
-                                    } else {
-                                      throw new Error("Fallo en el análisis");
-                                    }
-                                  } catch (e) {
-                                    console.error(
-                                      "Error al analizar con GPT:",
-                                      e
-                                    );
-                                    toaster.dismiss(toastId);
-                                    toaster.create({
-                                      description:
-                                        "Error al analizar el archivo",
-                                      type: "error",
-                                    });
-                                  }
-                                }}
-                              >
-                                Analizar
-                              </Button>
-                            )}
-
-                            <Button
-                              bg="tema.rojo"
-                              color="tema.claro"
-                              size="sm"
-                              variant="ghost"
-                              colorScheme="red"
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch(
-                                    `/api/estudios/${token}/archivo/${archivo.id}`,
-                                    {
-                                      method: "DELETE",
-                                    }
-                                  );
-                                  if (!res.ok)
-                                    throw new Error("Error al borrar archivo");
-
-                                  setArchivosCargados((prev) =>
-                                    prev.filter((a) => a.id !== archivo.id)
-                                  );
-
-                                  toaster.create({
-                                    description: "Archivo eliminado",
-                                    type: "success",
-                                  });
-                                } catch (e) {
-                                  console.error("Error al borrar archivo:", e);
-                                  toaster.create({
-                                    description:
-                                      "No se pudo eliminar el archivo",
-                                    type: "error",
-                                  });
-                                }
-                              }}
-                            >
-                              Eliminar
-                            </Button>
-                          </HStack>
-                        </VStack>
-                      </Box>
-                    </Box>
-                  ))}
-                </VStack>
-              </Box>
+            {archivosCargados.length > 0 && mascota && (
+              <ListaArchivosSubidos
+                estudio={solicitud?.estudio}
+                mascota={mascota}
+                token={token}
+                archivos={archivosCargados}
+                proveedor={solicitud?.proveedor}
+                onActualizar={async () => {
+                  const res = await fetch(`/api/estudios/${token}`);
+                  const data = await res.json();
+                  setArchivosCargados(data?.solicitud?.archivos ?? []);
+                }}
+              />
             )}
           </Box>
         </Box>
       </Box>
-      {mascota && solicitud && (
-        <DrawerResultadosGPT
-          isOpen={drawerAbierto}
-          onClose={() => setDrawerAbierto(false)}
-          resultados={resultadosAnalisis}
-          mascota={mascota}
-          solicitudId={solicitud.id}
-          fechaToma={solicitud.fechaTomaDeMuestra}
-          tipoEstudioId={solicitud.tipoEstudioId?.toString()} 
-           estudio={solicitud.estudio} 
-        />
-      )}
     </FondoSinBotones>
   );
 }

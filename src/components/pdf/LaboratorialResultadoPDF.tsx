@@ -214,7 +214,7 @@ export default function LaboratorialResultadosPDF({
 const styles = StyleSheet.create({
   page: {
     padding: 24,
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica",
   },
   headerContainer: {

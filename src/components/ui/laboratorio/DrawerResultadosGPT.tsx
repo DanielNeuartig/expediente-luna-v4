@@ -106,7 +106,7 @@ const FormSchema = z.object({
 
 type FormValues = z.input<typeof FormSchema>;
 
-type ResultadoGPT = {
+export type ResultadoGPT = {
   nombre: string;
   valor: number | null;
 };

@@ -8,6 +8,7 @@ import {
   HStack,
   SegmentGroup,
   Button,
+  Badge,
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import { useState, Fragment } from "react";
@@ -503,9 +504,11 @@ export default function HistoricoExpedientes({
                               bg="gray.800"
                             >
                               <Button
-                                size="xs"
-                                colorScheme="teal"
+                                bg="tema.claro"
+                                size="sm"
+                                color="tema.suave"
                                 mb="2"
+                                borderRadius={"lg"}
                                 onClick={async () => {
                                   const url = `${window.location.origin}/estudios/${sol.tokenAcceso}`;
                                   const qrDataUrl = await QRCode.toDataURL(
@@ -570,15 +573,21 @@ export default function HistoricoExpedientes({
                                 </strong>
                               </Text>
                               {sol.tokenAcceso && (
-                                <Box mt="2">
+                                <Badge
+                                  bg="tema.llamativo"
+                                  borderRadius="xl"
+                                  color="tema.claro"
+                                  mt="2"
+                                  px="2"
+                                >
                                   <a
                                     href={`/estudios/${sol.tokenAcceso}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
-                                    🌐 Ver página de carga de archivos
+                                    Ver página de carga de archivos
                                   </a>
-                                </Box>
+                                </Badge>
                               )}
                               {sol.observacionesClinica && (
                                 <Text color="gray.300">
@@ -610,7 +619,7 @@ export default function HistoricoExpedientes({
                                 <Box key={`archivo-${a.id}`} ml="2" mb={6}>
                                   {/* Vista previa del archivo */}
                                   <Box
-                                   // border="1px solid"
+                                    // border="1px solid"
                                     borderColor="gray.200"
                                     p={2}
                                     rounded="md"
