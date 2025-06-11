@@ -228,12 +228,13 @@ export default function DrawerResultadosGPT({
         fechaToma,
         resultados: data.resultados,
       };
+
       const res = await fetch("/api/laboratoriales/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
+      console.log("📤 Enviando payload:", payload);
       const json = await res.json();
       if (!res.ok) {
         console.error("Error al guardar:", json.error);

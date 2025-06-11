@@ -53,7 +53,6 @@ type SolicitudLaboratorialPlano = {
 export default function DemoUploadConBorrado() {
   const [autenticado, setAutenticado] = useState(false);
   const [codigoIngresado, setCodigoIngresado] = useState("");
-  const [subiendo] = useState(false);
   const [mascota, setMascota] = useState<ResultadoMascota | null>(null);
   const [solicitud, setSolicitud] = useState<SolicitudLaboratorialPlano | null>(
     null
@@ -386,51 +385,37 @@ export default function DemoUploadConBorrado() {
               Arrastra los archivos para subirlos
             </Heading>
             <Box>
-              {subiendo ? (
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  minH="150px"
-                >
-                  <Spinner
-                    animationDuration="1s"
-                    borderWidth="9px"
-                    size="xl"
-                    color="tema.llamativo"
-                    css={{ "--spinner-track-color": "colors.gray.100" }}
-                  />
-                </Box>
-              ) : (
-                <Box animation="pulseCloud">
-                  <ComponenteUploadArchivos
-                    token={token}
-                    archivosCargados={archivosCargados.map((a) => ({
-                      id: a.id.toString(), // 🔄 forzamos a string
-                      url: a.url,
-                      nombre: a.nombre,
-                    }))}
-                    setArchivosCargados={(archivos) => {
-                      // Solo permitimos los campos esperados por ArchivoLaboratorial
-                      const normalizados: ArchivoLaboratorial[] = archivos.map(
-                        (a) => ({
-                          id: parseInt(a.id), // 🔄 regresamos a número
-                          url: a.url,
-                          nombre: a.nombre,
-                          tipo: "desconocido", // puedes ajustarlo si tienes más info
-                          fechaSubida: new Date().toISOString(), // o puedes omitirlo si no se necesita
-                        })
-                      );
-                      setArchivosCargados(normalizados);
-                    }}
-                  />
-                </Box>
-              )}
+              <Box animation="pulseCloud">
+                <ComponenteUploadArchivos
+                  token={token}
+                  archivosCargados={archivosCargados.map((a) => ({
+                    id: a.id.toString(), // 🔄 forzamos a string
+                    url: a.url,
+                    nombre: a.nombre,
+                  }))}
+                  setArchivosCargados={(archivos) => {
+                    // Solo permitimos los campos esperados por ArchivoLaboratorial
+                    const normalizados: ArchivoLaboratorial[] = archivos.map(
+                      (a) => ({
+                        id: parseInt(a.id), // 🔄 regresamos a número
+                        url: a.url,
+                        nombre: a.nombre,
+                        tipo: "desconocido", // puedes ajustarlo si tienes más info
+                        fechaSubida: new Date().toISOString(), // o puedes omitirlo si no se necesita
+                      })
+                    );
+                    setArchivosCargados(normalizados);
+                  }}
+                />
+              </Box>
             </Box>
             {archivosCargados.length > 0 && mascota && (
               <ListaArchivosSubidos
                 estudio={solicitud?.estudio}
                 mascota={mascota}
+                solicitudId={solicitud?.id}
+                tipoEstudioId={solicitud?.tipoEstudioId?.toString()} // 🔁 o sin .toString() si espera número
+                fechaToma={solicitud?.fechaTomaDeMuestra}
                 token={token}
                 archivos={archivosCargados}
                 proveedor={solicitud?.proveedor}

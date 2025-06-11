@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       },
     ];
 
+    console.log("📝 Enviando a ChatGPT:", JSON.stringify(messages, null, 2));
     // 4. Llamar a OpenAI
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

@@ -6,6 +6,7 @@ import { crearLaboratorialSchema } from "@/hooks/useCrearLaboratorial";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log("📥 Body recibido en API:", body);
     const datos = crearLaboratorialSchema.parse(body);
 
     const solicitud = await prisma.solicitudLaboratorial.findUnique({
