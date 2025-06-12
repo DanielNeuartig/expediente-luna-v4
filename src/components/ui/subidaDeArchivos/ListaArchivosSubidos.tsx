@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  Badge,
-} from "@chakra-ui/react";
+import { Box, Text, VStack, HStack, Button, Badge } from "@chakra-ui/react";
 import { useState } from "react";
 import { toaster } from "../toaster";
 import ArchivoPreview from "../archivoPreview";
@@ -45,8 +38,11 @@ export default function ListaArchivosSubidos({
   estudio,
 }: Props) {
   const [analizandoId, setAnalizandoId] = useState<number | null>(null);
+  const [eliminandoId, setEliminandoId] = useState<number | null>(null);
   const [drawerAbierto, setDrawerAbierto] = useState(false);
-  const [resultadosAnalisis, setResultadosAnalisis] = useState<{ datos: ResultadoGPT[] } | null>(null);
+  const [resultadosAnalisis, setResultadosAnalisis] = useState<{
+    datos: ResultadoGPT[];
+  } | null>(null);
 
   if (archivos.length === 0) return null;
 
@@ -106,7 +102,13 @@ export default function ListaArchivosSubidos({
               </VStack>
 
               {/* Botones */}
-              <HStack gap={2} wrap="wrap" mx="center">
+              <HStack
+                gap={2}
+                flexWrap="wrap"
+                justifyContent="center"
+                w="full"
+                mt={2}
+              >
                 {proveedor === "ELDOC" && (
                   <Button
                     animation="floatGlow"
@@ -162,26 +164,39 @@ export default function ListaArchivosSubidos({
                   size="sm"
                   variant="ghost"
                   colorScheme="red"
+                  loading={eliminandoId === archivo.id}
                   onClick={async () => {
+                    const toastId = toaster.create({
+                      description: "Eliminando archivo...",
+                      type: "loading",
+                    });
+
+                    setEliminandoId(archivo.id);
+
                     try {
                       const res = await fetch(
                         `/api/estudios/${token}/archivo/${archivo.id}`,
                         { method: "DELETE" }
                       );
+
                       if (!res.ok) throw new Error("Error al borrar archivo");
 
                       onActualizar();
 
+                      toaster.dismiss(toastId);
                       toaster.create({
                         description: "Archivo eliminado",
                         type: "success",
                       });
                     } catch (e) {
                       console.error("Error al borrar archivo:", e);
+                      toaster.dismiss(toastId);
                       toaster.create({
                         description: "No se pudo eliminar el archivo",
                         type: "error",
                       });
+                    } finally {
+                      setEliminandoId(null);
                     }
                   }}
                 >

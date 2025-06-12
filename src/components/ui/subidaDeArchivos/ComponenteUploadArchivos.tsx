@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Icon,
-  FileUpload,
-  Spinner,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Icon, FileUpload, Spinner } from "@chakra-ui/react";
 import { LuUpload } from "react-icons/lu";
 import { useState } from "react";
 import { toaster } from "@/components/ui/toaster";
@@ -76,7 +70,27 @@ export default function ComponenteUploadArchivos({
     }
   };
 
-  return (
+  return subiendo ? (
+    <Box
+      maxW="xl"
+      py={12}
+      px={6}
+      textAlign="center"
+      bg="white"
+      borderRadius="xl"
+      border="2px dashed"
+      borderColor="tema.llamativo"
+    >
+              <Spinner
+                animationDuration="1s"
+                borderWidth="9px"
+                size="xl"
+                color="tema.llamativo"
+                css={{ "--spinner-track-color": "colors.gray.500" }}
+              />
+
+    </Box>
+  ) : (
     <FileUpload.Root maxW="xl" alignItems="stretch">
       <FileUpload.HiddenInput
         multiple
@@ -106,15 +120,6 @@ export default function ComponenteUploadArchivos({
           <Box color="tema.intenso">Máx. {maxArchivos} archivos</Box>
         </FileUpload.DropzoneContent>
       </FileUpload.Dropzone>
-
-      {subiendo && (
-        <Box mt={2} display="flex" alignItems="center" gap={2}>
-          <Spinner size="sm" />
-          <Text fontSize="sm" color="tema.suave">
-            Subiendo archivos...
-          </Text>
-        </Box>
-      )}
     </FileUpload.Root>
   );
 }

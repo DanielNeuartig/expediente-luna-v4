@@ -35,6 +35,7 @@ import {
   CheckIcon,
   HelpCircleIcon,
 } from "lucide-react";
+import { toaster } from "@/components/ui/toaster";
 
 export type ResultadoMascota = {
   id: number;
@@ -234,16 +235,43 @@ export default function DrawerResultadosGPT({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      console.log("📤 Enviando payload:", payload);
+
       const json = await res.json();
+
       if (!res.ok) {
         console.error("Error al guardar:", json.error);
+        toaster.create({
+          description: json.error,
+          type: "error",
+        });
         return;
       }
-      console.log("✅ Laboratorial creado:", json.laboratorial);
+
+      toaster.create({
+        description:
+          json.mensaje ?? "Resultado laboratorial registrado correctamente",
+        type: "success",
+      });
+
+      if (
+        Array.isArray(json.analitosNoEncontrados) &&
+        json.analitosNoEncontrados.length > 0
+      ) {
+        toaster.create({
+          description: `Analitos no reconocidos: ${json.analitosNoEncontrados.join(
+            ", "
+          )}`,
+          type: "warning",
+        });
+      }
+
       onClose();
     } catch (error) {
       console.error("Error en la solicitud:", error);
+      toaster.create({
+        description: "Error de red al guardar resultados",
+        type: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
