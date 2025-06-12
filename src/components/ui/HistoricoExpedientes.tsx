@@ -190,7 +190,7 @@ export default function HistoricoExpedientes({
                       colSpan={4}
                       //borderRadius="xl"
                       borderColor="gray.200"
-                     // bg="tema.intenso"
+                      // bg="tema.intenso"
                       shadow="sm"
                     >
                       <HStack justify="space-between" mb="2">
@@ -201,14 +201,16 @@ export default function HistoricoExpedientes({
                           bg="tema.suave"
                           color="tema.claro"
                         >
-                          Nota #{nota.id} - {" "}
+                          Nota #{nota.id} -{" "}
                           <Badge
-                          fontSize="lg"
-                          fontWeight="bold"
-                          p="1"
-                          bg="tema.llamativo"
-                          color="tema.claro">
-                            📅 {formatearFechaConDia(new Date(nota.fechaCreacion))}
+                            fontSize="lg"
+                            fontWeight="bold"
+                            p="1"
+                            bg="tema.llamativo"
+                            color="tema.claro"
+                          >
+                            📅{" "}
+                            {formatearFechaConDia(new Date(nota.fechaCreacion))}
                           </Badge>
                         </Badge>
                         <PopOverReceta
@@ -701,8 +703,11 @@ export default function HistoricoExpedientes({
                                               .includes("pdf")
                                           ) {
                                             toaster.create({
-                                              description:
-                                                "Solo se puede enviar archivos PDF por WhatsApp",
+                                              description: (
+                                                <Text fontWeight="bold"color="tema.claro">
+                                                  ⚠️ Sólo es posible enviar PDFs por WhatsApp
+                                                </Text>
+                                              ),
                                               type: "warning",
                                             });
                                             return;
