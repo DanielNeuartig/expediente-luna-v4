@@ -3,12 +3,26 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import HistoricoExpedientes from "@/components/ui/HistoricoExpedientes";
-import { Box, Tabs, Spinner, Text, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Tabs,
+  Spinner,
+  Text,
+  Button,
+  Badge,
+  HStack,
+  VStack,
+} from "@chakra-ui/react";
 import TarjetaBase from "@/components/ui/TarjetaBase";
 import BoxMascota from "@/components/ui/BoxMascota";
 import ListaAplicacionesMedicamento from "@/components/ui/aplicaciones/ListaAplicacionesMedicamento";
 import FormularioNotaClinica from "@/components/ui/notaClinica/FormularioNotaClinica";
-import { LuFileText, LuCircleCheck, LuMicroscope } from "react-icons/lu";
+import {
+  LuFileText,
+  LuCircleCheck,
+  LuMicroscope,
+  LuDroplet,
+} from "react-icons/lu";
 import ResumenExpedienteActivo from "@/components/ui/expediente/ResumenExpedienteActivo";
 import type { Mascota } from "@/types/mascota";
 import type { ExpedienteConNotas } from "@/types/expediente";
@@ -19,6 +33,7 @@ import { useSession } from "next-auth/react";
 import { pdf } from "@react-pdf/renderer";
 import LaboratorialResultadosPDF from "@/components/pdf/LaboratorialResultadoPDF";
 import { LaboratorialConResultados } from "@/types/laboratorial";
+import { formatearFechaConDia } from "@/components/ui/notaClinica/utils";
 export default function MascotaDetalleClient({
   mascota,
 }: {
@@ -168,6 +183,27 @@ export default function MascotaDetalleClient({
     );
   }
 
+  const labs = expedienteSeleccionado?.notasClinicas?.flatMap((nota) =>
+    Array.isArray(nota.laboratoriales) ? nota.laboratoriales : []
+  );
+
+  // 🧪 Log para depurar
+  console.log("📊 Estudios laboratoriales encontrados:", labs);
+  labs?.forEach((lab, i) => {
+    console.log(`🔍 Lab ${i}:`, lab);
+    if (!lab) console.warn(`❌ Lab ${i} está vacío o null`);
+    if (!lab.tipoEstudio) console.warn(`⚠️ Lab ${i} no tiene tipoEstudio`);
+    if (!lab.resultados?.length)
+      console.warn(`⚠️ Lab ${i} no tiene resultados`);
+  });
+
+  const laboratorialesTotales: LaboratorialConResultados[] =
+    expedientes?.flatMap((exp) =>
+      exp.notasClinicas.flatMap((nota) =>
+        Array.isArray(nota.laboratoriales) ? nota.laboratoriales : []
+      )
+    ) ?? [];
+
   return (
     <>
       <Box gridColumn="1" gridRow="1" display="flex" justifyContent="center">
@@ -294,33 +330,35 @@ export default function MascotaDetalleClient({
             </Tabs.Content>
 
             <Tabs.Content value="historico">
-              {expedienteSeleccionado?.notasClinicas?.flatMap(
-                (nota) => nota.laboratoriales ?? []
-              ).length === 0 ? (
-                <Box py={4} color="tema.suave">
+              {laboratorialesTotales?.length === 0 ? (
+                <Box py={1} color="tema.suave">
                   No hay estudios laboratoriales registrados.
                 </Box>
               ) : (
-                <Box display="flex" flexDirection="column" gap={4} py={4}>
-                  {expedienteSeleccionado?.notasClinicas
-                    ?.flatMap((nota) =>
-                      Array.isArray(nota.laboratoriales)
-                        ? nota.laboratoriales
-                        : []
-                    )
-                    .map((lab: LaboratorialConResultados) => (
+                <Box display="flex" flexDirection="column" gap={1} py={1}>
+                  {laboratorialesTotales.map(
+                    (lab: LaboratorialConResultados) => (
                       <Box key={lab.id}>
                         <Button
-                          borderRadius={"xl"}
-                          bg="tema.rojo"
+                          borderRadius="xl"
+                          bg="tema.intenso"
                           color="tema.claro"
-                          fontWeight={"bold"}
-                          colorScheme="teal"
+                          fontWeight="bold"
+                          px={1}
+                          py={2}
+                          textAlign="left"
+                          width="100%"
+                          whiteSpace="normal"
+                          height="auto" // ⬅️ permite crecer verticalmente
+                          alignItems="start" // ⬅️ alinea texto arriba
+                          display="flex" // ⬅️ asegúrate de que no colapse contenido
+                          _hover={{
+                            bg: "tema.llamativo",
+                            //color: "tema.suave",
+                            //boxShadow: "md",
+                            transition: "background 0.2s, color 0.2s",
+                          }}
                           onClick={async () => {
-                            console.log(
-                              "Resultados con analito:",
-                              lab.resultados
-                            );
                             const blob = await pdf(
                               <LaboratorialResultadosPDF
                                 laboratorial={{
@@ -345,20 +383,87 @@ export default function MascotaDetalleClient({
                             window.open(url, "_blank");
                           }}
                         >
-                          {lab.tipoEstudio?.nombre ?? "Sin nombre"} ·{" "}
-                          {lab.fechaToma
-                            ? new Date(lab.fechaToma).toLocaleString("es-MX", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false, // ⬅️ 24h (usa true si prefieres AM/PM)
-                              })
-                            : "Sin fecha"}
+                          <Box w="100%" textAlign="left">
+                            <VStack align="start" gap={1}>
+                              <HStack gap={2} wrap="wrap">
+                                <Badge
+                                  p="1"
+                                  px="2"
+                                  borderRadius="lg"
+                                  bg={"tema.suave"}
+                                  color="tema.claro"
+                                  fontSize="sm"
+                                >
+                  #{lab.id}
+                                </Badge>
+
+                                <Badge
+                                  p="1"
+                                  px="2"
+                                  borderRadius="lg"
+                                  bg={
+                                    lab.tipoEstudio?.nombre ===
+                                    "Biometria Hematica"
+                                      ? "tema.rojo"
+                                      : "tema.intenso"
+                                  }
+                                  color="tema.claro"
+                                  fontSize="lg"
+                                >
+                                  <LuDroplet></LuDroplet>#{lab.id} ·{" "}
+                                  {lab.tipoEstudio?.nombre ?? "Sin nombre"}
+                                </Badge>
+
+                                {lab.solicitudLaboratorial?.estado && (
+                                  <Badge
+                                    borderRadius="lg"
+                                    px={2}
+                                    py={1}
+                                    fontSize="xs"
+                                    variant="subtle"
+                                    bg="whiteAlpha.300"
+                                  >
+                                    {lab.solicitudLaboratorial.estado}
+                                  </Badge>
+                                )}
+                              </HStack>
+
+                              <Text fontSize="sm">
+                                📄 Reporte generado:{" "}
+                                {lab.fechaCreacion
+                                  ? formatearFechaConDia(
+                                      new Date(lab.fechaCreacion)
+                                    )
+                                  : "Sin fecha"}
+                              </Text>
+
+                              {lab.solicitudLaboratorial && (
+                                <>
+                                  <Text fontSize="sm">
+                                    📆 Solicitado:{" "}
+                                    {formatearFechaConDia(
+                                      lab.solicitudLaboratorial.fechaSolicitud
+                                        ? new Date(
+                                            lab.solicitudLaboratorial.fechaSolicitud
+                                          )
+                                        : new Date()
+                                    )}
+                                  </Text>
+
+                                  {lab.solicitudLaboratorial.proveedor && (
+                                    <Text fontSize="sm">
+                                      🏥 Proveedor:{" "}
+                                      {lab.solicitudLaboratorial.proveedor}
+                                    </Text>
+                                  )}
+                                </>
+                              )}
+                            </VStack>
+                          </Box>
                         </Button>
                       </Box>
-                    ))}
+                    )
+                  )}
                 </Box>
               )}
             </Tabs.Content>

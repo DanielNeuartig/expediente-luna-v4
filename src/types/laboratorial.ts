@@ -22,6 +22,7 @@ export type DatosLaboratorialPDF = {
   fechaToma: string | null;
   resultados: ResultadoAnalitoCompleto[];
 };
+
 export type LaboratorialConResultados = {
   id: number;
   fechaToma: string | null;
@@ -30,6 +31,21 @@ export type LaboratorialConResultados = {
     nombre: string;
   };
   resultados: ResultadoAnalitoCompleto[];
+
+  solicitudLaboratorial?: {
+    id: number;
+    estudio?: string | null;
+    proveedor: string;
+    estado: string;
+    fechaSolicitud: string;
+    archivos: {
+      id: number;
+      url: string;
+      nombre: string;
+      tipo: string;
+      fechaSubida: string;
+    }[];
+  };
 };
 
 export type ResultadoGPT = {

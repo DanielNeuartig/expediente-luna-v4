@@ -168,6 +168,9 @@ export async function GET(
                 },
                 solicitudLaboratorial: {
                   select: {
+                    fechaSolicitud: true,
+                    estudio: true, // 👈 Añade esto
+                    estado: true,
                     id: true,
                     proveedor: true,
                     archivos: {
