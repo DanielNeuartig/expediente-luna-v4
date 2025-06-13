@@ -37,6 +37,10 @@ import {
 } from "lucide-react";
 import { toaster } from "@/components/ui/toaster";
 
+export type ResultadoConAnalisis = {
+  datos: ResultadoGPT[];
+  analisis?: string;
+};
 export type ResultadoMascota = {
   id: number;
   nombre: string;
@@ -116,7 +120,7 @@ export type ResultadoGPT = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  resultados: { datos: ResultadoGPT[] } | null;
+  resultados: { datos: ResultadoGPT[]; analisis?: string } | null;
   mascota: ResultadoMascota;
   tipoEstudioId?: string;
   solicitudId?: number;
@@ -177,7 +181,7 @@ export default function DrawerResultadosGPT({
       );
       reset({
         resultados: analitosCompletos,
-        analisis: (resultados as any)?.analisis ?? "", // 🆕 interpretación opcional
+       analisis: resultados?.analisis ?? "", // ✅ correcto
       });
     }
   }, [resultados, reset]);
