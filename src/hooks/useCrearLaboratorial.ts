@@ -12,6 +12,7 @@ export const crearLaboratorialSchema = z.object({
       valor: z.number().nullable(),
     })
   ),
+  analisis: z.string().optional(), // ✅ Añadir esta línea
 });
 
 export type DatosLaboratorial = z.infer<typeof crearLaboratorialSchema>;

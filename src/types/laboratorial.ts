@@ -21,6 +21,7 @@ export type DatosLaboratorialPDF = {
   tipoEstudio: { nombre: string };
   fechaToma: string | null;
   resultados: ResultadoAnalitoCompleto[];
+   analisis?: string; // 🆕 opcional para PDF
 };
 
 export type LaboratorialConResultados = {
@@ -31,7 +32,7 @@ export type LaboratorialConResultados = {
     nombre: string;
   };
   resultados: ResultadoAnalitoCompleto[];
-
+ analisis?: string; // 🆕 interpretación clínica por IA
   solicitudLaboratorial?: {
     id: number;
     estudio?: string | null;

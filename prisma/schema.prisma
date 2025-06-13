@@ -441,7 +441,7 @@ model LaboratorialPaciente {
   creadoPor             Perfil                  @relation("LaboratorialesCreados", fields: [creadoPorId], references: [id])
   notaClinica           NotaClinica?            @relation(fields: [notaClinicaId], references: [id])
   solicitudLaboratorial SolicitudLaboratorial?  @relation(name: "SolicitudALaboratorio", fields: [solicitudId], references: [id])
-
+ analisis      String?  
   resultados ResultadoAnalito[]
   archivos   ArchivoLaboratorial[]
 }

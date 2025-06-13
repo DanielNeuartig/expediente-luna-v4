@@ -100,6 +100,7 @@ export async function POST(req: Request) {
         mascota: { connect: { id: mascotaId } },
         notaClinica: { connect: { id: solicitud.notaClinica.id } },
         creadoPor: { connect: { id: solicitud.notaClinica.autorId } },
+        analisis: datos.analisis ?? null,
         resultados: {
           createMany: {
             data: datos.resultados.map((r) => {

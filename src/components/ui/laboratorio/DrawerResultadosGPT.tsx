@@ -103,6 +103,7 @@ const ResultadoSchema = ResultadoEntradaSchema.transform((item) => ({
 
 const FormSchema = z.object({
   resultados: z.array(ResultadoSchema),
+  analisis: z.string().optional(), // 🆕 campo para interpretación
 });
 
 type FormValues = z.input<typeof FormSchema>;
@@ -174,7 +175,10 @@ export default function DrawerResultadosGPT({
           };
         }
       );
-      reset({ resultados: analitosCompletos });
+      reset({
+        resultados: analitosCompletos,
+        analisis: (resultados as any)?.analisis ?? "", // 🆕 interpretación opcional
+      });
     }
   }, [resultados, reset]);
 
@@ -228,6 +232,7 @@ export default function DrawerResultadosGPT({
         tipoEstudioId,
         fechaToma,
         resultados: data.resultados,
+        analisis: data.analisis, // 🆕 campo incluido
       };
 
       const res = await fetch("/api/laboratoriales/crear", {
@@ -383,6 +388,18 @@ export default function DrawerResultadosGPT({
                         {renderColumna(analitosEsperadosColumna2)}
                       </VStack>
                     </Grid>
+                  </Fieldset.Root>
+                  <Fieldset.Root mt={6}>
+                    <Field.Label color="tema.claro" fontSize="sm">
+                      Interpretación automática por IA
+                    </Field.Label>
+                    <Input
+                      as="textarea"
+                      minH="80px"
+                      placeholder="Sin análisis"
+                      {...estilosInputBase}
+                      {...register("analisis")}
+                    />
                   </Fieldset.Root>
                   <HStack mt={4}>
                     <Button

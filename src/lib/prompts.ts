@@ -38,7 +38,7 @@ PCT
 P-LCC  
 P-LCR
 
-⚠️ No expliques nada. No agregues comentarios ni texto adicional. Solo devuelve el JSON.
+
 
 Ejemplo (si algunos datos faltan):
 
@@ -48,4 +48,10 @@ Ejemplo (si algunos datos faltan):
   { "nombre": "Lym#", "valor": null },
   ...
 ]
+Además del listado de analitos, agrega un objeto adicional al final con este formato:
+
+{ "analisis": "Interpretación concisa de los resultados: por ejemplo, si los glóbulos blancos están elevados, si hay anemia, etc." }
+
+⚠️ La interpretación debe ser breve, clara y clínica. No repitas los valores, solo interpreta los hallazgos anormales más relevantes.
+⚠️ No expliques nada. No agregues comentarios ni texto adicional. Solo devuelve el JSON.
 `.trim();
