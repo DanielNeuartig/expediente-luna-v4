@@ -282,7 +282,6 @@ export default function MascotaDetalleClient({
               <Tabs.Trigger
                 color="tema.claro"
                 fontSize={"md"}
-
                 fontWeight="bold"
                 value="aplicaciones"
               >
@@ -449,7 +448,6 @@ export default function MascotaDetalleClient({
                                 <>
                                   <Text fontWeight="light" fontSize="sm">
                                     📆 Solicitado:{" "}
-                                    
                                     {formatearFechaConDia(
                                       lab.solicitudLaboratorial.fechaSolicitud
                                         ? new Date(
@@ -458,7 +456,14 @@ export default function MascotaDetalleClient({
                                         : new Date()
                                     )}
                                   </Text>
+                                  {lab.analisis && (
+                                    <Badge color="tema.claro" bg="tema.llamativo" animation="floatGlow" fontWeight="light" fontSize="md">
+                                       Análisis IA:{" "} {lab.analisis}
 
+                                        </Badge>
+                                      )}
+                                 
+                          
                                   {/*lab.solicitudLaboratorial.proveedor && (
                                     <Text fontSize="sm">
                                       🏥 Proveedor:{" "}

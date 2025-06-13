@@ -3,6 +3,7 @@
 import {
   Drawer,
   Portal,
+  Textarea,
   Field,
   Fieldset,
   Input,
@@ -143,10 +144,9 @@ export default function DrawerResultadosGPT({
     { minimo: number | null; maximo: number | null; unidad: string | null }
   > | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const methods = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { resultados: [] },
+    defaultValues: { resultados: [], analisis: resultados?.analisis ?? "" },
     mode: "onChange",
   });
 
@@ -179,9 +179,17 @@ export default function DrawerResultadosGPT({
           };
         }
       );
+
+      // ✅ Extraer el objeto que contiene 'analisis'
+      const analisisObj = resultados.datos.find(
+        (r) => typeof r === "object" && "analisis" in r
+      ) as { analisis: string } | undefined;
+
+      const analisisTexto = analisisObj?.analisis ?? "";
+
       reset({
         resultados: analitosCompletos,
-       analisis: resultados?.analisis ?? "", // ✅ correcto
+        analisis: analisisTexto, // ✅ corregido
       });
     }
   }, [resultados, reset]);
@@ -394,16 +402,19 @@ export default function DrawerResultadosGPT({
                     </Grid>
                   </Fieldset.Root>
                   <Fieldset.Root mt={6}>
-                    <Field.Label color="tema.claro" fontSize="sm">
-                      Interpretación automática por IA
-                    </Field.Label>
-                    <Input
-                      as="textarea"
-                      minH="80px"
-                      placeholder="Sin análisis"
-                      {...estilosInputBase}
-                      {...register("analisis")}
-                    />
+                    <Field.Root>
+                      <Field.Label color="tema.claro" fontSize="sm">
+                        Interpretación automática por IA
+                      </Field.Label>
+                      <Textarea
+                        {...register("analisis")}
+                        readOnly
+                        minH="100px"
+                        fontSize="sm"
+                        borderColor="tema.suave"
+                        bg="whiteAlpha.100"
+                      />
+                    </Field.Root>
                   </Fieldset.Root>
                   <HStack mt={4}>
                     <Button

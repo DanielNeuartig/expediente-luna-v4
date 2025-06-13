@@ -162,6 +162,7 @@ export async function GET(
               select: {
                 id: true,
                 fechaToma: true,
+                analisis: true, // 🩺 ✅ AÑADIDO
                 fechaCreacion: true,
                 tipoEstudio: {
                   select: { nombre: true },
