@@ -280,9 +280,11 @@ export default function MascotaDetalleClient({
           <Tabs.Root defaultValue="aplicaciones" variant="enclosed">
             <Tabs.List bg="tema.intenso">
               <Tabs.Trigger
-                color="tema.suave"
-                value="aplicaciones"
+                color="tema.claro"
+                fontSize={"md"}
+
                 fontWeight="bold"
+                value="aplicaciones"
               >
                 <LuCircleCheck style={{ marginRight: 6 }} /> Aplicaciones
                 clínicas
@@ -291,12 +293,18 @@ export default function MascotaDetalleClient({
                 value="nota"
                 fontWeight="bold"
                 color="tema.llamativo"
+                fontSize={"md"}
                 disabled={!expedienteSeleccionado}
               >
                 <LuFileText style={{ marginRight: 6 }} /> Nueva nota clínica
               </Tabs.Trigger>
-              <Tabs.Trigger value="historico" fontWeight="bold">
-                <LuMicroscope style={{ marginRight: 6 }} /> Laboratoriales
+              <Tabs.Trigger
+                color="tema.claro"
+                fontSize={"md"}
+                value="historico"
+                fontWeight="bold"
+              >
+                <LuMicroscope color="tema.claro" /> Laboratoriales
               </Tabs.Trigger>
             </Tabs.List>
 
@@ -394,7 +402,7 @@ export default function MascotaDetalleClient({
                                   color="tema.claro"
                                   fontSize="sm"
                                 >
-                  #{lab.id}
+                                  #{lab.id}
                                 </Badge>
 
                                 <Badge
@@ -410,7 +418,7 @@ export default function MascotaDetalleClient({
                                   color="tema.claro"
                                   fontSize="lg"
                                 >
-                                  <LuDroplet></LuDroplet>#{lab.id} ·{" "}
+                                  <LuDroplet />
                                   {lab.tipoEstudio?.nombre ?? "Sin nombre"}
                                 </Badge>
 
@@ -428,7 +436,7 @@ export default function MascotaDetalleClient({
                                 )}
                               </HStack>
 
-                              <Text fontSize="sm">
+                              <Text fontWeight="light" fontSize="sm">
                                 📄 Reporte generado:{" "}
                                 {lab.fechaCreacion
                                   ? formatearFechaConDia(
@@ -439,8 +447,9 @@ export default function MascotaDetalleClient({
 
                               {lab.solicitudLaboratorial && (
                                 <>
-                                  <Text fontSize="sm">
+                                  <Text fontWeight="light" fontSize="sm">
                                     📆 Solicitado:{" "}
+                                    
                                     {formatearFechaConDia(
                                       lab.solicitudLaboratorial.fechaSolicitud
                                         ? new Date(
@@ -450,12 +459,12 @@ export default function MascotaDetalleClient({
                                     )}
                                   </Text>
 
-                                  {lab.solicitudLaboratorial.proveedor && (
+                                  {/*lab.solicitudLaboratorial.proveedor && (
                                     <Text fontSize="sm">
                                       🏥 Proveedor:{" "}
                                       {lab.solicitudLaboratorial.proveedor}
                                     </Text>
-                                  )}
+                                  )*/}
                                 </>
                               )}
                             </VStack>
