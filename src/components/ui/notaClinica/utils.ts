@@ -136,3 +136,31 @@ export const formatearFechaConDia = (fecha: Date): string => {
 
   return `${diaSemana} · ${fechaCorta} · ${horaTexto}`;
 };
+
+export const formatearFechaConDiaV2 = (fecha: Date): string => {
+  const ahora = new Date();
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const manana = new Date(hoy);
+  manana.setDate(hoy.getDate() + 1);
+
+
+  const horaTexto = fecha.toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const diaSemana = fecha.toLocaleDateString("es-MX", {
+    weekday: "long",
+  });
+
+  const fechaCompleta = fecha.toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  // Capitalizamos la primera letra del día y del mes (por si aparecen en minúsculas)
+  const capitalizar = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  return `${capitalizar(diaSemana)} ${capitalizar(fechaCompleta)} ${horaTexto}`;
+};

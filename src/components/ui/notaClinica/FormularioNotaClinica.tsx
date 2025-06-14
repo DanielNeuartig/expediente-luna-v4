@@ -27,7 +27,7 @@ import RecetaPDF from "@/components/pdf/RecetaPDF";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useState } from "react";
 import ListaSolicitudesLaboratoriales from "./ListaSolicitudesLaboratoriales";
-
+import type { Mascota } from "@/types/mascota";
 interface Expediente {
   id: number;
   tipo: string;
@@ -38,14 +38,7 @@ interface Props {
   expedienteSeleccionado: Expediente | null;
   mascotaId: number;
   onClose?: () => void;
-  datosMascota: {
-    nombre: string;
-    especie: string;
-    raza?: string;
-    fechaNacimiento?: string;
-    sexo: string;
-    esterilizado: string;
-  };
+  datosMascota: Mascota; // ✅ Usa directamente tu tipo global
 }
 
 // 🔹 Utilidad para asegurar booleans consistentes
@@ -125,7 +118,7 @@ export default function FormularioNotaClinica({
             <CamposClinicos />
             <ListaMedicamentos fechaBase={formatoDatetimeLocal(new Date())} />
             <ListaIndicaciones />
-            <ListaSolicitudesLaboratoriales/>
+            <ListaSolicitudesLaboratoriales />
           </Fieldset.Content>
           <Button
             {...estilosBotonEspecial}

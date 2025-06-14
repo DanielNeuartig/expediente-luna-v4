@@ -17,7 +17,7 @@ import { useState } from "react";
 import { estilosTituloInput } from "./config/estilosTituloInput";
 import { estilosInputBase } from "./config/estilosInputBase";
 import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
-
+import type { Mascota } from "@/types/mascota";
 // Define el tipo para el expediente seleccionado
 type Expediente = {
   id: number;
@@ -27,6 +27,7 @@ type Expediente = {
 
 type Props = {
   expedienteSeleccionado: Expediente | null;
+   mascota: Mascota;
 };
 
 const formatoDatetimeLocal = (date: Date) => {

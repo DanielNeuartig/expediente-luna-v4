@@ -21,6 +21,7 @@ import { EstadoNotaClinica } from "@prisma/client";
 import { pdf } from "@react-pdf/renderer";
 import ArchivoPreview from "./archivoPreview";
 import QRCode from "qrcode";
+import type { Mascota } from "@/types/mascota";
 import { formatearFechaConDia } from "./notaClinica/utils";
 
 type Props = {
@@ -28,14 +29,7 @@ type Props = {
   expedientes: ExpedienteConNotas[];
   expedienteSeleccionado: ExpedienteConNotas | null;
   setExpedienteSeleccionado: (exp: ExpedienteConNotas) => void;
-  datosMascota: {
-    nombre: string;
-    especie: string;
-    raza?: string;
-    fechaNacimiento?: string;
-    sexo: string;
-    esterilizado: string;
-  };
+  datosMascota: Mascota;
   perfilActualId: number; // ✅ Nuevo prop requerido
   tutor: {
     id: number;
@@ -552,10 +546,15 @@ export default function HistoricoExpedientes({
 
                                   const blob = await pdf(
                                     <SolicitudLaboratorialPDF
-                                      datosMascota={{
+                                      mascota={{
+                                        id: datosMascota.id,
+                                        activo: datosMascota.activo,
                                         nombre: datosMascota.nombre ?? "",
                                         especie: datosMascota.especie ?? "",
-                                        raza: datosMascota.raza ?? "",
+                                        raza:
+                                          typeof datosMascota.raza === "string"
+                                            ? { nombre: datosMascota.raza }
+                                            : datosMascota.raza ?? null,
                                         fechaNacimiento:
                                           datosMascota.fechaNacimiento ?? "",
                                         sexo: datosMascota.sexo ?? "",
@@ -704,8 +703,12 @@ export default function HistoricoExpedientes({
                                           ) {
                                             toaster.create({
                                               description: (
-                                                <Text fontWeight="bold"color="tema.claro">
-                                                  ⚠️ Sólo es posible enviar PDFs por WhatsApp
+                                                <Text
+                                                  fontWeight="bold"
+                                                  color="tema.claro"
+                                                >
+                                                  ⚠️ Sólo es posible enviar PDFs
+                                                  por WhatsApp
                                                 </Text>
                                               ),
                                               type: "warning",
@@ -753,7 +756,7 @@ Te recomendamos descargar el archivo para conservarlo.
 
 ${url}
 
-_Gracias por confiar en nosotros_.`;
+_Gracias por confiar en nosotros_. -Equipo ELDOC | Centro Veterinario`;
                                             const waUrl = `https://wa.me/${numero}?text=${encodeURIComponent(
                                               texto
                                             )}`;

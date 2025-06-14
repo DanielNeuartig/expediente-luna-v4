@@ -262,14 +262,7 @@ export default function MascotaDetalleClient({
             expedienteSeleccionado={expedienteSeleccionado}
             setExpedienteSeleccionado={() => {}}
             perfilActualId={perfilActualId}
-            datosMascota={{
-              nombre: mascota.nombre,
-              especie: mascota.especie,
-              raza: mascota.raza?.nombre,
-              fechaNacimiento: mascota.fechaNacimiento,
-              sexo: mascota.sexo,
-              esterilizado: mascota.esterilizado,
-            }}
+            datosMascota={mascota}
             tutor={data?.perfil ?? null}
           />
         </TarjetaBase>
@@ -318,14 +311,7 @@ export default function MascotaDetalleClient({
                 <FormularioNotaClinica
                   expedienteSeleccionado={expedienteSeleccionado}
                   mascotaId={mascota.id}
-                  datosMascota={{
-                    nombre: mascota.nombre,
-                    especie: mascota.especie,
-                    raza: mascota.raza?.nombre,
-                    fechaNacimiento: mascota.fechaNacimiento,
-                    sexo: mascota.sexo,
-                    esterilizado: mascota.esterilizado,
-                  }}
+                  datosMascota={mascota} // ✅ Nombre correcto de la prop
                 />
               ) : (
                 <Box py={4} color="tema.suave">
@@ -375,14 +361,7 @@ export default function MascotaDetalleClient({
                                   tipoEstudio: lab.tipoEstudio,
                                   resultados: lab.resultados,
                                 }}
-                                datosMascota={{
-                                  nombre: mascota.nombre,
-                                  especie: mascota.especie,
-                                  raza: mascota.raza?.nombre,
-                                  fechaNacimiento: mascota.fechaNacimiento,
-                                  sexo: mascota.sexo,
-                                  esterilizado: mascota.esterilizado,
-                                }}
+                                mascota={mascota}
                               />
                             ).toBlob();
 
@@ -457,13 +436,17 @@ export default function MascotaDetalleClient({
                                     )}
                                   </Text>
                                   {lab.analisis && (
-                                    <Badge color="tema.claro" bg="tema.llamativo" animation="floatGlow" fontWeight="light" fontSize="md">
-                                       Análisis IA:{" "} {lab.analisis}
+                                    <Badge
+                                      color="tema.claro"
+                                      bg="tema.llamativo"
+                                      animation="floatGlow"
+                                      fontWeight="light"
+                                      fontSize="md"
+                                    >
+                                      Análisis IA: {lab.analisis}
+                                    </Badge>
+                                  )}
 
-                                        </Badge>
-                                      )}
-                                 
-                          
                                   {/*lab.solicitudLaboratorial.proveedor && (
                                     <Text fontSize="sm">
                                       🏥 Proveedor:{" "}

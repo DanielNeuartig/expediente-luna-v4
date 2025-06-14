@@ -16,6 +16,7 @@ import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import RecetaPDF from "@/components/pdf/RecetaPDF";
 import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
+import type { Mascota } from "@/types/mascota";
 
 type Medicamento = {
   id: number;
@@ -38,19 +39,10 @@ type DatosClinicos = {
   extras?: string;
 };
 
-type DatosMascota = {
-  nombre: string;
-  especie: string;
-  raza?: string;
-  fechaNacimiento?: string;
-  sexo: string;
-  esterilizado: string;
-};
-
 interface Props {
   medicamentos: Medicamento[];
   datosClinicos?: DatosClinicos;
-  datosMascota: DatosMascota;
+  datosMascota: Mascota; // ✅ usa el tipo global
   fechaNota: string;
   estadoNota: "EN_REVISION" | "FINALIZADA" | "ANULADA";
   indicaciones?: { descripcion: string }[];
@@ -85,7 +77,15 @@ export default function PopOverReceta({
       <RecetaPDF
         medicamentos={medsSeleccionados}
         datosClinicos={incluirDatosClinicos ? datosClinicos : undefined}
-        datosMascota={datosMascota}
+        datosMascota={{
+          ...datosMascota,
+          raza:
+            datosMascota.raza && typeof datosMascota.raza === "object"
+              ? datosMascota.raza
+              : datosMascota.raza
+              ? { nombre: datosMascota.raza }
+              : undefined,
+        }}
         fechaNota={fechaNota}
         estadoNota={estadoNota}
         indicaciones={incluirIndicaciones ? indicaciones : undefined} // ✅
