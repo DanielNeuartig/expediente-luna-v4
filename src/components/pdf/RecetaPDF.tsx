@@ -70,7 +70,20 @@ function calcularFechas(
 
   return fechas;
 }
-
+function hayContenidoClinico(dc?: DatosClinicos): boolean {
+  if (!dc) return false;
+  return Boolean(
+    dc.historiaClinica?.trim() ||
+      dc.exploracionFisica?.trim() ||
+      dc.temperatura !== undefined ||
+      dc.peso !== undefined ||
+      dc.frecuenciaCardiaca !== undefined ||
+      dc.frecuenciaRespiratoria !== undefined ||
+      dc.diagnosticoPresuntivo?.trim() ||
+      dc.pronostico?.trim() ||
+      dc.extras?.trim()
+  );
+}
 
 export default function RecetaPDF({
   medicamentos,
@@ -97,7 +110,6 @@ export default function RecetaPDF({
           <Text style={styles.marcaAgua}>ANULADA</Text>
         )}
         <EncabezadoClinicaPDF />
-
 
         {datosMascota && (
           <BloqueMascotaPDF
@@ -127,38 +139,37 @@ export default function RecetaPDF({
           </Text>
         </View>
 
-        {datosClinicos && (
+        {hayContenidoClinico(datosClinicos) && (
           <View style={styles.datosClinicos}>
             <Text style={styles.title}>Datos Clínicos</Text>
-            {datosClinicos.historiaClinica && (
-              <Text>Historia clínica: {datosClinicos.historiaClinica}</Text>
+            {datosClinicos!.historiaClinica && (
+              <Text>Historia clínica: {datosClinicos!.historiaClinica}</Text>
             )}
-            {datosClinicos.exploracionFisica && (
-              <Text>Exploración física: {datosClinicos.exploracionFisica}</Text>
+            {datosClinicos!.exploracionFisica && (
+              <Text>
+                Exploración física: {datosClinicos!.exploracionFisica}
+              </Text>
             )}
-            {datosClinicos.temperatura !== undefined && (
-              <Text>Temperatura: {datosClinicos.temperatura} °C</Text>
+            {datosClinicos!.temperatura !== undefined && (
+              <Text>Temperatura: {datosClinicos!.temperatura} °C</Text>
             )}
-            {datosClinicos.peso !== undefined && (
-              <Text>Peso: {datosClinicos.peso} kg</Text>
+            {datosClinicos!.peso !== undefined && (
+              <Text>Peso: {datosClinicos!.peso} kg</Text>
             )}
-            {datosClinicos.frecuenciaCardiaca !== undefined && (
-              <Text>FC: {datosClinicos.frecuenciaCardiaca} lpm</Text>
+            {datosClinicos!.frecuenciaCardiaca !== undefined && (
+              <Text>FC: {datosClinicos!.frecuenciaCardiaca} lpm</Text>
             )}
-            {datosClinicos.frecuenciaRespiratoria !== undefined && (
-              <Text>FR: {datosClinicos.frecuenciaRespiratoria} rpm</Text>
+            {datosClinicos!.frecuenciaRespiratoria !== undefined && (
+              <Text>FR: {datosClinicos!.frecuenciaRespiratoria} rpm</Text>
             )}
-            {datosClinicos.diagnosticoPresuntivo && (
-              <Text>Diagnóstico: {datosClinicos.diagnosticoPresuntivo}</Text>
+            {datosClinicos!.diagnosticoPresuntivo && (
+              <Text>Diagnóstico: {datosClinicos!.diagnosticoPresuntivo}</Text>
             )}
-            {datosClinicos.pronostico && (
-              <Text>Pronóstico: {datosClinicos.pronostico}</Text>
+            {datosClinicos!.pronostico && (
+              <Text>Pronóstico: {datosClinicos!.pronostico}</Text>
             )}
-            {/*datosClinicos.laboratoriales?.trim() && (
-              <Text>Laboratoriales: {datosClinicos.laboratoriales}</Text>
-            )*/}
-            {datosClinicos.extras && (
-              <Text>Extras: {datosClinicos.extras}</Text>
+            {datosClinicos!.extras && (
+              <Text>Extras: {datosClinicos!.extras}</Text>
             )}
           </View>
         )}
