@@ -751,7 +751,7 @@ Te enviamos los resultados de *_${datosMascota.nombre}_* del estudio *_${
                                                 : "desconocida"
                                             }_*.
 
-*_Esta liga solo estará disponible durante ${horasExpira} horas._*  
+*_Esta liga sólo estará disponible durante ${horasExpira} horas._*  
 Te recomendamos descargar el archivo para conservarlo.
 
 ${url}
