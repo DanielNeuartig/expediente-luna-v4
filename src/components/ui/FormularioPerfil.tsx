@@ -49,12 +49,12 @@ export default function FormularioPerfil({
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: crearPerfil,
-    onSuccess: () => {
+    onSuccess: (perfil) => {
       toaster.create({
         description: "Perfil creado exitosamente",
         type: "success",
       });
-      router.push("/dashboard");
+       router.push(`/dashboard/perfiles/${perfil.id}`);
     },
     onError: (error: unknown) => {
       const mensaje =
