@@ -23,6 +23,7 @@ import TarjetaBase from "./TarjetaBase";
 import { estilosBotonEspecial } from "./config/estilosBotonEspecial";
 import { estilosInputBase } from "./config/estilosInputBase";
 import { estilosTituloInput } from "./config/estilosTituloInput";
+import { useState } from "react";
 
 interface FormularioPerfilProps {
   mostrarVerificacionSMS?: boolean;
@@ -32,6 +33,7 @@ export default function FormularioPerfil({
   mostrarVerificacionSMS = true,
 }: FormularioPerfilProps) {
   const router = useRouter();
+  const [enviando, setEnviando] = useState(false);
 
   const methods = useForm<PerfilFormData>({
     resolver: zodResolver(perfilSchema),
@@ -42,44 +44,56 @@ export default function FormularioPerfil({
   });
 
   const {
-    handleSubmit,
     register,
+    handleSubmit,
     formState: { errors, isValid },
   } = methods;
 
-  const { mutateAsync, isPending } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: crearPerfil,
-    onSuccess: (perfil) => {
-      toaster.create({
-        description: "Perfil creado exitosamente",
-        type: "success",
-      });
-       router.push(`/dashboard/perfiles/${perfil.id}`);
-    },
-    onError: (error: unknown) => {
-      const mensaje =
-        error instanceof Error ? error.message : "Error desconocido";
-      toaster.create({
-        description: mensaje,
-        type: "error",
-      });
+    onSuccess: ({ perfil }) => {
+      router.push(`/dashboard/perfiles/${perfil.id}`);
     },
   });
 
   const onSubmit = async (data: PerfilFormData) => {
-    const datosAEnviar = { ...data };
+    setEnviando(true); // 🟡 Deshabilitamos el botón manualmente
 
+    const datosAEnviar = { ...data };
     if (!mostrarVerificacionSMS) {
       delete datosAEnviar.codigoVerificacion;
     }
 
-    await mutateAsync(datosAEnviar);
+    try {
+      await toaster.promise(mutateAsync(datosAEnviar), {
+        loading: {
+          title: "Creando perfil...",
+          description: "Por favor espera un momento",
+        },
+        success: {
+          title: "Perfil creado",
+          description: `Perfil "${data.nombre}" creado exitosamente`,
+        },
+        error: {
+          title: "Error al crear perfil",
+          description: "Revisa los campos e intenta de nuevo",
+        },
+      });
+    } catch {
+      // error ya manejado en toaster
+      setEnviando(false); // 🟥 Reactivamos botón en caso de error
+    }
   };
 
   return (
     <TarjetaBase>
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSubmit(onSubmit)(e);
+          }}
+        >
           <Fieldset.Root>
             <Stack gap={4}>
               <Stack>
@@ -94,7 +108,6 @@ export default function FormularioPerfil({
                   label="Nombre completo"
                   autoFocus
                 />
-
                 <InputTelefonoConClave />
                 {mostrarVerificacionSMS && <VerificacionSMS />}
                 <InputTelefonosAdicionales />
@@ -114,11 +127,12 @@ export default function FormularioPerfil({
                   <Input {...estilosInputBase} {...register("documentoId")} />
                 </Field.Root>
               </HStack>
+
               <Button
                 {...estilosBotonEspecial}
                 type="submit"
-                loading={isPending}
-                disabled={!isValid}
+                loading={enviando}
+                disabled={!isValid || enviando}
               >
                 Guardar perfil
               </Button>

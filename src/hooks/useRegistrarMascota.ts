@@ -23,9 +23,7 @@ export function useRegistrarMascota() {
 
       return json.mascota;
     },
-    onSuccess: () => {
-      toaster.create({ type: "success", description: "Mascota registrada con éxito" });
-    },
+
     onError: (error: unknown) => {
       const msg = error instanceof Error ? error.message : "Error desconocido";
       toaster.create({ type: "error", description: msg });

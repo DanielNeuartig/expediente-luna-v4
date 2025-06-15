@@ -9,6 +9,7 @@ import {
   Stack,
   Textarea,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
@@ -19,7 +20,6 @@ import { estilosBotonEspecial } from "@/components/ui/config/estilosBotonEspecia
 import { mascotaSchema } from "@/lib/validadores/mascotaSchema";
 import { toaster } from "@/components/ui/toaster";
 import InputRaza from "@/components/ui/InputRaza";
-import { useRegistrarMascota } from "@/hooks/useRegistrarMascota";
 import {
   differenceInYears,
   differenceInMonths,
@@ -27,19 +27,16 @@ import {
   parseISO,
 } from "date-fns";
 import InputNombreFormateado from "./InputNombreFormateado";
+import { useRegistrarMascota } from "@/hooks/useRegistrarMascota";
 
 type FormValues = z.infer<typeof mascotaSchema>;
 
 export default function FormularioMascotaVisual() {
+  const [botonDeshabilitado, setBotonDeshabilitado] = useState(false);
   const params = useParams();
   const router = useRouter();
   const perfilId = Number(params?.id);
   const registrarMascota = useRegistrarMascota();
-
-  const handleVerDatos = () => {
-    const datos = getValues();
-    console.log("📋 Datos actuales del formulario:", { ...datos, perfilId });
-  };
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(mascotaSchema),
@@ -59,8 +56,7 @@ export default function FormularioMascotaVisual() {
     watch,
     formState: { errors },
   } = methods;
-
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = async (data: FormValues) => {
     if (!perfilId || isNaN(perfilId)) {
       toaster.create({
         type: "error",
@@ -70,27 +66,42 @@ export default function FormularioMascotaVisual() {
     }
 
     const datos = { ...data, perfilId };
+    setBotonDeshabilitado(true); // ⛔️ Desactiva el botón
 
-    registrarMascota.mutate(datos, {
-      onSuccess: (mascota) => {
-        toaster.create({
-          type: "success",
-          description: "Mascota registrada con éxito",
+    await toaster.promise(
+      new Promise<void>((resolve, reject) => {
+        registrarMascota.mutate(datos, {
+          onSuccess: (mascota) => {
+            resolve(); // 🟢 no se reactiva, ya que redirige
+            router.push(`/dashboard/mascotas/${mascota.id}`);
+          },
+          onError: (error) => {
+            setBotonDeshabilitado(false); // 🔁 vuelve a habilitar si hay error
+            reject(error);
+          },
         });
-        if (mascota?.id) {
-          router.push(`/dashboard/mascotas/${mascota.id}`);
-        }
-      },
-      onError: (err: unknown) => {
-        const error =
-          err instanceof Error ? err.message : "Error al registrar mascota";
-        toaster.create({
-          type: "error",
-          description: error,
-        });
-      },
-    });
-  });
+      }),
+      {
+        loading: {
+          title: "Registrando mascota...",
+          description: "Por favor espera un momento",
+        },
+        success: {
+          title: "Mascota registrada",
+          description: `Mascota "${data.nombre}" registrada con éxito`,
+        },
+        error: {
+          title: "Error al registrar",
+          description: "Revisa los campos e intenta de nuevo",
+        },
+      }
+    );
+  };
+
+  const handleVerDatos = () => {
+    const datos = getValues();
+    console.log("📋 Datos actuales del formulario:", { ...datos, perfilId });
+  };
 
   const fechaNacimiento = watch("fechaNacimiento");
 
@@ -106,7 +117,13 @@ export default function FormularioMascotaVisual() {
 
   return (
     <FormProvider {...methods}>
-      <Box as="form" onSubmit={onSubmit}>
+      <Box
+        as="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit(onSubmit)(e);
+        }}
+      >
         <input
           type="hidden"
           value={perfilId}
@@ -124,9 +141,9 @@ export default function FormularioMascotaVisual() {
                   {...register("especie")}
                   {...estilosInputBase}
                 >
-                  <option value="CANINO">Canino 🐶 </option>
-                  <option value="FELINO">Felino 🐱 </option>
-                  <option value="AVE_PSITACIDA">Ave psitácida 🦜 </option>
+                  <option value="CANINO">Canino 🐶</option>
+                  <option value="FELINO">Felino 🐱</option>
+                  <option value="AVE_PSITACIDA">Ave psitácida 🦜</option>
                   <option value="AVE_OTRA">Otra ave 🐦</option>
                   <option value="OFIDIO">Ofidio 🐍</option>
                   <option value="QUELONIO">Quelonio 🐢</option>
@@ -223,7 +240,8 @@ export default function FormularioMascotaVisual() {
           <Stack direction="row" gap="3" pt="2">
             <Button
               type="submit"
-              disabled={registrarMascota.isPending}
+              loading={botonDeshabilitado}
+              disabled={botonDeshabilitado}
               {...estilosBotonEspecial}
             >
               Registrar mascota
