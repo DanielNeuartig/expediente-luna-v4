@@ -443,7 +443,7 @@ export default function MascotaDetalleClient({
                                       fontWeight="light"
                                       fontSize="md"
                                     >
-                                      Análisis IA: {lab.analisis}
+                                      {/*Análisis IA: {lab.analisis}*/}
                                     </Badge>
                                   )}
 
